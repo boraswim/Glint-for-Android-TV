@@ -187,7 +187,8 @@ data class Progress(
     val subtitleTrack: Int = -2,
 ) {
     val fraction get() = if (duration > 0) (position.toFloat() / duration).coerceIn(0f, 1f) else 0f
-    val inProgress get() = !watched && position > 60_000 && duration > 0
+    /** Has a place to resume from, however early: anything in Watching asks whether to resume or start over. */
+    val inProgress get() = !watched && position > 0 && duration > 0
     /**
      * Opened and not finished, however briefly: enough to sit in Watching (resuming needs [inProgress]).
      * The player saves at least 1 ms; "mark unwatched" saves 0, which keeps the title out.
