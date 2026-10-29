@@ -279,11 +279,17 @@ private fun FavoritesRow(nav: Nav, first: FocusRequester, wanted: String?) {
             )
         }
     }
+    // In its own window: drawn here, inside the row, the sheet would be squeezed into the row's height.
     menu?.let { e ->
-        OptionSheet(e.label, listOf(
-            stringResource(R.string.move_tile) to { moving = e.id },
-            stringResource(R.string.remove_from_home) to e.remove,
-        )) { menu = null }
+        androidx.compose.ui.window.Dialog({ menu = null }, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+            // A dialog brings the window's own density; the app's 1280dp canvas has to be set again.
+            TvScale {
+                OptionSheet(e.label, listOf(
+                    stringResource(R.string.move_tile) to { moving = e.id },
+                    stringResource(R.string.remove_from_home) to e.remove,
+                )) { menu = null }
+            }
+        }
     }
 }
 
@@ -395,11 +401,14 @@ fun OptionSheet(title: String, options: List<Pair<String, () -> Unit>>, onDismis
         },
         contentAlignment = Alignment.Center,
     ) {
-        Column(Modifier.width(520.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xF2303236)).padding(26.dp)) {
-            Txt(title, Type.Heading, Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 2, align = TextAlign.Center)
-            options.forEachIndexed { i, (label, action) ->
-                ListRow(label, modifier = if (i == 0) FocusFirst() else Modifier) { action(); onDismiss() }
-                Gap(8.dp)
+        // Opened from the Home rows, the sheet would otherwise take their enlarged text.
+        androidx.compose.runtime.CompositionLocalProvider(LocalTextScale provides 1f) {
+            Column(Modifier.width(520.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xF2303236)).padding(26.dp)) {
+                Txt(title, Type.Heading, Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 2, align = TextAlign.Center)
+                options.forEachIndexed { i, (label, action) ->
+                    ListRow(label, modifier = if (i == 0) FocusFirst() else Modifier) { action(); onDismiss() }
+                    Gap(8.dp)
+                }
             }
         }
     }
