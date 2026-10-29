@@ -451,6 +451,7 @@ fun MovieDetailScreen(nav: Nav, id: String) {
     val resume = p?.inProgress == true
     val versions = remember(data) { lib.versions(movie) }
     var version by remember(id) { mutableStateOf(movie) }
+    LaunchedEffect(version.id) { lib.wake(version.file) }
     var adding by remember { mutableStateOf<Int?>(null) }      // R.string.add_to_playlist / add_to_collection
     var plot by remember { mutableStateOf(false) }
     val plotFocus = remember { androidx.compose.ui.focus.FocusRequester() }

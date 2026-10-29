@@ -171,6 +171,25 @@ class Library(private val context: Context) {
         ))
     }
 
+    private val woken = java.util.concurrent.ConcurrentHashMap<String, Long>()
+
+    /**
+     * NAS disks go to sleep and take 10-20 seconds to spin up, which the player would spend on "Loading".
+     * Reading a byte of the film and its dubs while its page is open or it's focused wakes them before Play.
+     */
+    fun wake(file: VideoFile) {
+        val now = System.currentTimeMillis()
+        if ((woken[file.key] ?: 0L) > now - 60_000) return
+        woken[file.key] = now
+        val targets = listOf(Triple(file.source, file.share, file.parts.firstOrNull() ?: file.path)) +
+            file.dubs.map { Triple(it.source, it.share, it.path) }
+        for ((id, share, path) in targets) scope.launch {
+            val src = source(id) ?: return@launch
+            runCatching { Fs.open(src, share, path).use { it.read() } }
+                .onFailure { runCatching { Fs.list(src, share, path) } }   // a DVD or Blu-ray folder
+        }
+    }
+
     // ---- progress ----
 
     fun progressOf(key: String) = _progress.value[key]

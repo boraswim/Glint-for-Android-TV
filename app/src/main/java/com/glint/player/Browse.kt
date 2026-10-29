@@ -148,7 +148,7 @@ fun HomeScreen(nav: Nav) {
                                 // The cards' title and year a size below Home's other text; corners rounded as
                                 // about 5% of the card's width.
                                 androidx.compose.runtime.CompositionLocalProvider(LocalTextScale provides 1.35f) {
-                                    WideCard(it, width = 324.dp, wanted = wanted, captionOnFocus = true, corner = 16.dp, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = { i -> play(nav, i) })
+                                    WideCard(it, width = 324.dp, wanted = wanted, captionOnFocus = true, corner = 16.dp, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id); wakeFor(i) }, onClick = { i -> play(nav, i) })
                                 }
                             }
                         }
@@ -291,6 +291,13 @@ private fun FavoritesRow(nav: Nav, first: FocusRequester, wanted: String?) {
             }
         }
     }
+}
+
+/** Spins up the NAS disks behind a film or episode the viewer is about to play. */
+private fun wakeFor(item: Item) = when (item) {
+    is Item.MovieItem -> App.library.wake(item.movie.file)
+    is Item.EpisodeItem -> App.library.wake(item.episode.file)
+    else -> Unit
 }
 
 fun openPin(nav: Nav, key: String) {
