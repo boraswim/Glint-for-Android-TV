@@ -50,6 +50,10 @@ the film details from TMDB, the rating scores, and YouTube when you open a trail
 
 Updates install over the old version and keep your library and settings.
 
+The release APK is built without a TMDB key, so films and series show their NAS posters, `.nfo`
+details and file names, but no TMDB details, artwork or trailers. Build it yourself with your own free
+key to get them (see below).
+
 ## Building from source
 
 Requires the Android SDK and JDK 17 (Android Studio brings both).
@@ -57,7 +61,7 @@ Requires the Android SDK and JDK 17 (Android Studio brings both).
 1. Copy `local.properties.example` to `local.properties` and fill it in:
    - `sdk.dir`: your Android SDK path (Android Studio sets this for you).
    - `tmdb.apiKey`: a free key from [themoviedb.org](https://www.themoviedb.org/settings/api). Optional,
-     but without it films show only NAS posters and file names.
+     but without it films show only NAS posters, `.nfo` details and file names.
    - `release.*`: optional, your own signing key. Without it, release builds are signed with the debug key.
 2. Build and install:
 
