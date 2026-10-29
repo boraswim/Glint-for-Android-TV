@@ -100,6 +100,24 @@ fun MinimalScroll(content: @Composable () -> Unit) {
     androidx.compose.runtime.CompositionLocalProvider(androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides spec, content = content)
 }
 
+/**
+ * While [settling], something already in view gets focus without the list moving; afterwards the TV's own
+ * scrolling applies. Lets a screen put focus back without first jumping to park it a third of the way down.
+ */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+fun rememberSettleScroll(settling: () -> Boolean): androidx.compose.runtime.ProvidedValue<*> {
+    val usual = androidx.compose.foundation.gestures.LocalBringIntoViewSpec.current
+    val spec = remember(usual) {
+        object : androidx.compose.foundation.gestures.BringIntoViewSpec {
+            override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float =
+                if (settling() && offset >= 0 && offset + size <= containerSize) 0f
+                else usual.calculateScrollDistance(offset, size, containerSize)
+        }
+    }
+    return androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides spec
+}
+
 object Palette {
     /** Light appearance; set at start from Settings (changing it restarts the screen). */
     @Volatile var light = false

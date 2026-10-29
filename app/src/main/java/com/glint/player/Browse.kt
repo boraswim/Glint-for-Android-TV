@@ -133,19 +133,22 @@ fun HomeScreen(nav: Nav) {
         mutableStateOf(last ?: watching.firstOrNull()?.id)
     }
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    // Until focus has settled, a card or tile already on screen takes it without the list moving: the TV would
+    // otherwise park a Favorites tile a third of the way down, pushing Watching off the top.
+    var settling by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
         delay(400)
         // If nothing claimed focus (empty rows, slow load), start on the first Favorites tile, never the top bar.
         if (!anyFocus) runCatching { firstTile.requestFocus() }
-        // Focus on a Favorites tile scrolls it a third of the way down, pushing Watching off the top.
-        listState.animateScrollToItem(0)
+        delay(400)
+        settling = false
     }
 
     Box(Modifier.fillMaxSize()) {
         ScreenBackground()
         // Home's text (row titles, captions, tile names, the search pill) reads from the sofa at 1.5×;
         // sizes of cards and tiles stay as they are, and menus opened from here keep the normal size.
-        androidx.compose.runtime.CompositionLocalProvider(LocalTextScale provides 1.5f) {
+        androidx.compose.runtime.CompositionLocalProvider(LocalTextScale provides 1.5f, rememberSettleScroll { settling }) {
         Column(Modifier.fillMaxSize().onFocusChanged { anyFocus = it.hasFocus; if (it.hasFocus) wanted = null }) {
             HomeTopBar(nav, searchButton)
             if (data.movies.isEmpty() && data.shows.isEmpty()) EmptyLibrary()
