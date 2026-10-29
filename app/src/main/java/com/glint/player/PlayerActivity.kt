@@ -158,6 +158,7 @@ class PlayerActivity : ComponentActivity() {
     var rate by mutableFloatStateOf(1f)
     var scale by mutableIntStateOf(5)              // picture size, index into the menu's choices; starts on "Original"
     var chapters by mutableStateOf<List<Pair<String, Long>>>(emptyList())
+    private var exoChapters: List<Pair<String, Long>> = emptyList()   // read from the file for the Dolby Vision player
     var techInfo by mutableStateOf<List<String>>(emptyList())
 
     private var queue: List<String> = emptyList()
@@ -303,7 +304,7 @@ class PlayerActivity : ComponentActivity() {
     fun load(key: String, fromStart: Boolean) {
         upNextJob?.cancel(); upNext = null
         error = null; tracksApplied = false; modeSwitched = false
-        position = 0; duration = 0; chapters = emptyList(); techInfo = emptyList()
+        position = 0; duration = 0; chapters = emptyList(); exoChapters = emptyList(); techInfo = emptyList()
         subtitleDelay = 0; audioDelay = 0; rate = 1f
         markedIntro = lib.introOf(key); introStartMark = null; skippedMarked = false; skippedChapter = -1
         if (key.startsWith("url|")) { loadUrl(key, key.removePrefix("url|")); return }
@@ -330,6 +331,9 @@ class PlayerActivity : ComponentActivity() {
             exo?.let { e ->
                 e.load(src, share, path, subs, subs.map { subtitleLabel(it) }, dubs, start)
                 startTicker()
+                // Media3 doesn't give MKV chapters; read them from the file for the chapter list and skipping.
+                exoChapters = withContext(Dispatchers.IO) { runCatching { MkvChapters.read(src, share, path) }.getOrDefault(emptyList()) }
+                chapters = exoChapters
                 return@launch
             }
             // A .strm file is a link to a video elsewhere; play what it points at. A DVD folder plays its
@@ -475,7 +479,7 @@ class PlayerActivity : ComponentActivity() {
             spuIds = subtitleTracks.map { it.id }
             audioTrack = e.selected(androidx.media3.common.C.TRACK_TYPE_AUDIO)
             subtitleTrack = e.selected(androidx.media3.common.C.TRACK_TYPE_TEXT)
-            chapters = emptyList()
+            chapters = exoChapters
             return
         }
         val info = mediaTracks().associateBy { it.id }
