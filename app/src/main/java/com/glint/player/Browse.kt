@@ -133,6 +133,8 @@ fun HomeScreen(nav: Nav) {
         mutableStateOf(last ?: watching.firstOrNull()?.id)
     }
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    // Watching starts at the card focus goes back to: one further along isn't composed yet and couldn't take it.
+    val watchingRow = androidx.compose.foundation.lazy.rememberLazyListState(watching.indexOfFirst { it.id == wanted }.coerceAtLeast(0))
     // Until focus has settled, a card or tile already on screen takes it without the list moving: the TV would
     // otherwise park a Favorites tile a third of the way down, pushing Watching off the top.
     var settling by remember { mutableStateOf(true) }
@@ -154,10 +156,11 @@ fun HomeScreen(nav: Nav) {
             if (data.movies.isEmpty() && data.shows.isEmpty()) EmptyLibrary()
             LazyColumn(Modifier.fillMaxWidth().weight(1f), state = listState, contentPadding = PaddingValues(bottom = 60.dp)) {
                 if (watching.isNotEmpty()) item {
-                    Box(toTopBar) {
-                        // The selected card grows 10% toward its title; extra room keeps the title as far from it
-                        // as Favorites' title is from its tiles.
-                        Shelf(stringResource(R.string.shelf_watching), titleGap = 13.dp) {
+                    Column(toTopBar) {
+                        // The title sits as far above the cards as Favorites' title above its tiles (measured with
+                        // no card selected); the 9dp taken from its gap goes above it, so the cards stay put.
+                        Gap(9.dp)
+                        Shelf(stringResource(R.string.shelf_watching), watchingRow, titleGap = 4.dp) {
                             items(watching, key = { it.id }) {
                                 // The cards' title and year a size below Home's other text; corners rounded as
                                 // about 5% of the card's width.
