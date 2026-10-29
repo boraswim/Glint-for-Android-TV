@@ -458,6 +458,9 @@ fun ItemMenu(item: Item, nav: Nav, onDismiss: () -> Unit) {
         if (item is Item.MovieItem || item is Item.EpisodeItem) add(stringResource(R.string.play) to { play(nav, item) })
         add(stringResource(R.string.open_details) to { nav.open(item) })
         add(stringResource(if (watched) R.string.mark_unwatched else R.string.mark_watched) to { lib.setWatched(ids, !watched) })
+        // Out of Watching: its place is forgotten, as "mark unwatched" does (an upcoming episode has none to forget).
+        if ((item is Item.MovieItem || item is Item.EpisodeItem) && progress[ids.first()]?.started == true)
+            add(stringResource(R.string.remove_from_watching) to { lib.setWatched(ids, false) })
         if (item !is Item.CollectionItem) add(stringResource(if (listId in user.watchlist) R.string.watchlist_remove else R.string.watchlist_add) to { lib.toggleWatchlist(listId) })
         if (item is Item.MovieItem || item is Item.ShowItem) add(stringResource(R.string.add_to_collection) to { adding = true })
     }

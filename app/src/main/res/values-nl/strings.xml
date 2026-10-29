@@ -158,6 +158,7 @@
     <string name="open_details">Details tonen</string>
     <string name="watchlist_add">Toevoegen aan kijklijst</string>
     <string name="watchlist_remove">Verwijderen uit kijklijst</string>
+    <string name="remove_from_watching">Verwijderen uit Bezig met kijken</string>
     <string name="sort_order">Sortering</string>
     <string name="sort_duration">Duur</string>
     <string name="sort_file_name">Bestandsnaam</string>

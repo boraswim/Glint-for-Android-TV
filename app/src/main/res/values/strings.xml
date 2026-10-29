@@ -171,6 +171,7 @@
     <string name="open_details">Show details</string>
     <string name="watchlist_add">Add to Watchlist</string>
     <string name="watchlist_remove">Remove from Watchlist</string>
+    <string name="remove_from_watching">Remove from Watching</string>
     <string name="sort_order">Sort order</string>
     <string name="sort_duration">Duration</string>
     <string name="sort_file_name">File name</string>

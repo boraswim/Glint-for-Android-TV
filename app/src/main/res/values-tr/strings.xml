@@ -158,6 +158,7 @@
     <string name="open_details">Ayrıntıları göster</string>
     <string name="watchlist_add">İzleme listesine ekle</string>
     <string name="watchlist_remove">İzleme listesinden çıkar</string>
+    <string name="remove_from_watching">İzleniyor\'dan kaldır</string>
     <string name="sort_order">Sıralama</string>
     <string name="sort_duration">Süre</string>
     <string name="sort_file_name">Dosya adı</string>

@@ -158,6 +158,7 @@
     <string name="open_details">Подробнее</string>
     <string name="watchlist_add">Добавить в «Буду смотреть»</string>
     <string name="watchlist_remove">Убрать из «Буду смотреть»</string>
+    <string name="remove_from_watching">Убрать из Смотрю</string>
     <string name="sort_order">Порядок сортировки</string>
     <string name="sort_duration">Длительность</string>
     <string name="sort_file_name">Имя файла</string>

@@ -158,6 +158,7 @@
     <string name="open_details">Pokaż szczegóły</string>
     <string name="watchlist_add">Dodaj do Do obejrzenia</string>
     <string name="watchlist_remove">Usuń z Do obejrzenia</string>
+    <string name="remove_from_watching">Usuń z Oglądanych</string>
     <string name="sort_order">Kolejność sortowania</string>
     <string name="sort_duration">Czas trwania</string>
     <string name="sort_file_name">Nazwa pliku</string>
