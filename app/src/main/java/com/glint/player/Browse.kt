@@ -131,7 +131,16 @@ fun HomeScreen(nav: Nav) {
     // or the lower copy would win and scroll Watching off the top.
     val wantedBelow = wanted?.takeIf { w -> watching.none { it.id == w } }
     // If nothing claimed focus (empty rows, slow load), start on the first Favorites tile, never the top bar.
-    LaunchedEffect(Unit) { delay(400); if (!anyFocus) runCatching { firstTile.requestFocus() } }
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val backToTile = remember { nav.focused(screen)?.let { it.startsWith("tile:") || it.startsWith("pin:") } ?: false }
+    LaunchedEffect(Unit) {
+        delay(400)
+        val fallback = !anyFocus
+        if (fallback) runCatching { firstTile.requestFocus() }
+        // Focus on a Favorites tile scrolls it a third of the way down, pushing Watching off the top; Favorites
+        // is on the first screen, so going back to the top keeps both in view.
+        if (backToTile || fallback) listState.animateScrollToItem(0)
+    }
 
     Box(Modifier.fillMaxSize()) {
         ScreenBackground()
@@ -141,7 +150,7 @@ fun HomeScreen(nav: Nav) {
         Column(Modifier.fillMaxSize().onFocusChanged { anyFocus = it.hasFocus; if (it.hasFocus) wanted = null }) {
             HomeTopBar(nav, searchButton)
             if (data.movies.isEmpty() && data.shows.isEmpty()) EmptyLibrary()
-            LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(bottom = 60.dp)) {
+            LazyColumn(Modifier.fillMaxWidth().weight(1f), state = listState, contentPadding = PaddingValues(bottom = 60.dp)) {
                 if (watching.isNotEmpty()) item {
                     Box(toTopBar) {
                         // The selected card grows 10% toward its title; extra room keeps the title as far from it
