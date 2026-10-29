@@ -126,20 +126,19 @@ fun HomeScreen(nav: Nav) {
     // Where focus goes back to, decided once on arrival. Following it as focus moves made a film that is on
     // two rows (Watching and Recently Added) pull focus to its other copy as soon as one was focused. Dropped
     // once focus has landed: a row scrolled away and back is composed again and would grab focus anew.
-    var wanted by remember { mutableStateOf(nav.focused(screen) ?: watching.firstOrNull()?.id) }
-    // A film just played is in Watching as well as the row it was started from; its Watching copy takes focus,
-    // or the lower copy would win and scroll Watching off the top.
-    val wantedBelow = wanted?.takeIf { w -> watching.none { it.id == w } }
-    // If nothing claimed focus (empty rows, slow load), start on the first Favorites tile, never the top bar.
+    // Home always comes back at its top, Watching and Favorites in view: focus returns to where it was only
+    // if that is in one of those two rows (a film just played is in Watching too), else to Watching's first card.
+    var wanted by remember {
+        val last = nav.focused(screen)?.takeIf { id -> watching.any { it.id == id } || id.startsWith("tile:") || id.startsWith("pin:") }
+        mutableStateOf(last ?: watching.firstOrNull()?.id)
+    }
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val backToTile = remember { nav.focused(screen)?.let { it.startsWith("tile:") || it.startsWith("pin:") } ?: false }
     LaunchedEffect(Unit) {
         delay(400)
-        val fallback = !anyFocus
-        if (fallback) runCatching { firstTile.requestFocus() }
-        // Focus on a Favorites tile scrolls it a third of the way down, pushing Watching off the top; Favorites
-        // is on the first screen, so going back to the top keeps both in view.
-        if (backToTile || fallback) listState.animateScrollToItem(0)
+        // If nothing claimed focus (empty rows, slow load), start on the first Favorites tile, never the top bar.
+        if (!anyFocus) runCatching { firstTile.requestFocus() }
+        // Focus on a Favorites tile scrolls it a third of the way down, pushing Watching off the top.
+        listState.animateScrollToItem(0)
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -177,27 +176,27 @@ fun HomeScreen(nav: Nav) {
                 for (p in user.pins.filter { it.row }) item(key = "pinrow:${p.key}") {
                     val list = remember(data, user) { lib.pinItems(p.key) }
                     if (list.isNotEmpty()) Shelf(p.label) {
-                        items(list, key = { "pr" + p.key + it.id }) { PosterCard(it, wanted = wantedBelow, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
+                        items(list, key = { "pr" + p.key + it.id }) { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
                     }
                 }
                 if (picks.isNotEmpty()) item {
                     Shelf(stringResource(R.string.shelf_picks)) {
-                        items(picks, key = { "p" + it.id }) { PosterCard(it, wanted = wantedBelow, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
+                        items(picks, key = { "p" + it.id }) { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
                     }
                 }
                 if (watchlist.isNotEmpty()) item {
                     Shelf(stringResource(R.string.shelf_watchlist)) {
-                        items(watchlist, key = { "w" + it.id }) { PosterCard(it, wanted = wantedBelow, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
+                        items(watchlist, key = { "w" + it.id }) { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
                     }
                 }
                 if (recentMovies.isNotEmpty()) item {
                     Shelf(stringResource(R.string.shelf_recent_movies)) {
-                        items(recentMovies, key = { "r" + it.id }) { PosterCard(it, wanted = wantedBelow, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
+                        items(recentMovies, key = { "r" + it.id }) { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
                     }
                 }
                 if (recentShows.isNotEmpty()) item {
                     Shelf(stringResource(R.string.shelf_recent_shows)) {
-                        items(recentShows, key = { "s" + it.id }) { PosterCard(it, wanted = wantedBelow, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
+                        items(recentShows, key = { "s" + it.id }) { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
                     }
                 }
             }
