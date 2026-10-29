@@ -308,10 +308,20 @@ class Library(private val context: Context) {
                 notScanned += src.id
             }
         }
-        // Keep the library of a source we couldn't reach (or didn't scan) rather than emptying it.
+        // Two shares can reach the same file (the whole NAS, and a folder of it): keep one copy, the one
+        // with details or watch history if only one has them, else the first share's.
+        val byId = sources.associateBy { it.id }
+        val matchedBefore = old.movies.filter { it.tmdbId != 0 }.map { it.file.key }.toSet()
+        val watched = _progress.value
+        val unique = files.groupBy { f -> byId[f.source]?.let { "${it.type}|${it.host.trim().lowercase()}|${f.share.lowercase()}|${f.path.lowercase()}" } ?: f.key }
+            .values.map { same -> same.maxBy { f -> (if (f.key in matchedBefore) 2 else 0) + (if (f.key in watched) 1 else 0) } }
+        files.clear(); files.addAll(unique)
+        // Keep the library of a source we couldn't reach (or didn't scan) rather than emptying it. Films of a
+        // source that's gone (a restored backup brings its own share list) go, or they'd show twice.
         val reached = sources.map { it.id }.toSet() - notScanned
-        val keepMovies = old.movies.filter { it.file.source !in reached }
-        val keepShows = old.shows.map { s -> s.copy(episodes = s.episodes.filter { it.file.source !in reached }) }.filter { it.episodes.isNotEmpty() }
+        fun kept(f: VideoFile) = f.source in byId && f.source !in reached
+        val keepMovies = old.movies.filter { kept(it.file) }
+        val keepShows = old.shows.map { s -> s.copy(episodes = s.episodes.filter { kept(it.file) }) }.filter { it.episodes.isNotEmpty() }
 
         val oldMovies = old.movies.associateBy { it.file.key }
         val movieFiles = ArrayList<Pair<VideoFile, Parsed.MovieName>>()
