@@ -1,0 +1,33 @@
+# libVLC calls back into Java from native code.
+-keep class org.videolan.libvlc.** { *; }
+# smbj looks up its message and crypto classes reflectively; BouncyCastle is optional.
+-keep class com.hierynomus.** { *; }
+-keep class net.engio.mbassy.** { *; }
+-dontwarn org.bouncycastle.**
+-dontwarn javax.el.**
+-dontwarn org.slf4j.**
+-dontwarn org.ietf.jgss.**
+-dontwarn javax.security.auth.**
+-dontwarn com.sun.**
+-keep class com.rapid7.client.dcerpc.** { *; }
+-keep class org.bouncycastle.crypto.** { *; }
+-dontwarn com.google.errorprone.**
+-dontwarn com.google.j2objc.**
+-dontwarn org.checkerframework.**
+-dontwarn javax.annotation.**
+-dontwarn java.lang.invoke.**
+-dontwarn java.rmi.**
+-dontwarn org.slf4j.**
+-dontwarn org.jboss.**
+-dontwarn org.apache.log4j.**
+-dontwarn com.google.protobuf.**
+-dontwarn javax.naming.**
+-dontwarn org.ietf.jgss.**
+-dontwarn com.sun.jna.**
+-dontwarn org.newsclub.**
+-dontwarn org.bouncycastle.**
+-keep class com.jcraft.jsch.** { *; }
+-keep class com.emc.ecs.nfsclient.** { *; }
+-dontwarn com.jcraft.jsch.**
+-dontwarn org.jboss.netty.**
+-dontwarn javax.annotation.**
