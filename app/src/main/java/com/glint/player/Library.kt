@@ -219,8 +219,8 @@ class Library(private val context: Context) {
     fun continueWatching(): List<Item> {
         val d = _visible.value
         val p = _progress.value
-        val movies = d.movies.filter { p[it.id]?.inProgress == true }.map { Item.MovieItem(it) to p.getValue(it.id).updated }
-        val episodes = d.shows.flatMap { s -> s.episodes.filter { p[it.id]?.inProgress == true }.map { Item.EpisodeItem(s, it) to p.getValue(it.id).updated } }
+        val movies = d.movies.filter { p[it.id]?.started == true }.map { Item.MovieItem(it) to p.getValue(it.id).updated }
+        val episodes = d.shows.flatMap { s -> s.episodes.filter { p[it.id]?.started == true }.map { Item.EpisodeItem(s, it) to p.getValue(it.id).updated } }
         return (movies + episodes).sortedByDescending { it.second }.map { it.first }
     }
 
@@ -231,7 +231,7 @@ class Library(private val context: Context) {
             val eps = s.sortedEpisodes()
             val lastIdx = eps.indexOfLast { p[it.id]?.watched == true }
             if (lastIdx < 0) return@mapNotNull null
-            val next = eps.drop(lastIdx + 1).firstOrNull { p[it.id]?.watched != true && p[it.id]?.inProgress != true } ?: return@mapNotNull null
+            val next = eps.drop(lastIdx + 1).firstOrNull { p[it.id]?.watched != true && p[it.id]?.started != true } ?: return@mapNotNull null
             Item.EpisodeItem(s, next) to (p[eps[lastIdx].id]?.updated ?: 0)
         }.sortedByDescending { it.second }.map { it.first }
     }

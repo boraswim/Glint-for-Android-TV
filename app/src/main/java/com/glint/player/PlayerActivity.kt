@@ -172,6 +172,7 @@ class PlayerActivity : ComponentActivity() {
     private var dubLabels: List<String> = emptyList()     // names for the dub audio tracks, in the order added
     private var modeSwitched = false
     private var lastSaved = 0L
+    private var resumeAt = 0L   // where this play started; saves before playback reaches it keep the old place
 
     override fun attachBaseContext(base: android.content.Context) = super.attachBaseContext(AppLanguage.wrap(base))
 
@@ -304,7 +305,7 @@ class PlayerActivity : ComponentActivity() {
     fun load(key: String, fromStart: Boolean) {
         upNextJob?.cancel(); upNext = null
         error = null; tracksApplied = false; modeSwitched = false
-        position = 0; duration = 0; chapters = emptyList(); exoChapters = emptyList(); techInfo = emptyList()
+        position = 0; duration = 0; resumeAt = 0; chapters = emptyList(); exoChapters = emptyList(); techInfo = emptyList()
         subtitleDelay = 0; audioDelay = 0; rate = 1f
         markedIntro = lib.introOf(key); introStartMark = null; skippedMarked = false; skippedChapter = -1
         if (key.startsWith("url|")) { loadUrl(key, key.removePrefix("url|")); return }
@@ -327,6 +328,7 @@ class PlayerActivity : ComponentActivity() {
             dubLabels = dubs.map { getString(R.string.dub_track, Dubs.label(it, path.substringAfterLast('/'))) }
             val saved = lib.progressOf(key)
             val start = if (!fromStart && saved != null && saved.inProgress && saved.position < saved.duration * 0.97) saved.position else 0L
+            resumeAt = start
             useExo(DolbyVision.shouldUse(this@PlayerActivity, src, now?.file))
             exo?.let { e ->
                 e.load(src, share, path, subs, subs.map { subtitleLabel(it) }, dubs, start)
@@ -784,10 +786,19 @@ class PlayerActivity : ComponentActivity() {
         val n = now ?: return
         val t = System.currentTimeMillis()
         if (!force && t - lastSaved < 5000) return
-        if (duration <= 0 || position <= 0) return
+        val old = lib.progressOf(n.key)
+        val early = duration <= 0 || position < resumeAt - 5_000
+        if (early && (!force || old?.watched == true)) return
         lastSaved = t
+        if (early) {
+            // Closed before playback got going (no length yet, or the resume point not reached): the title still
+            // moves to the front of Watching, keeping any earlier place.
+            val length = ((lib.findMovie(n.key)?.runtime ?: lib.findEpisode(n.key)?.second?.runtime ?: 0) * 60_000L).coerceAtLeast(1)
+            lib.saveProgress(n.key, old?.takeIf { it.position > 0 }?.copy(updated = t) ?: Progress(1, length, t, false, audioTrack, subtitleTrack))
+            return
+        }
         val watched = position > duration * 0.92
-        lib.saveProgress(n.key, Progress(position, duration, t, watched, audioTrack, subtitleTrack))
+        lib.saveProgress(n.key, Progress(position.coerceAtLeast(1), duration, t, watched, audioTrack, subtitleTrack))
     }
 
     // ---- choices from the overlay ----

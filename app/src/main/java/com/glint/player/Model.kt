@@ -188,6 +188,11 @@ data class Progress(
 ) {
     val fraction get() = if (duration > 0) (position.toFloat() / duration).coerceIn(0f, 1f) else 0f
     val inProgress get() = !watched && position > 60_000 && duration > 0
+    /**
+     * Opened and not finished, however briefly: enough to sit in Watching (resuming needs [inProgress]).
+     * The player saves at least 1 ms; "mark unwatched" saves 0, which keeps the title out.
+     */
+    val started get() = !watched && position > 0 && duration > 0
 }
 
 /** Anything that can sit on a shelf or in a grid. */
