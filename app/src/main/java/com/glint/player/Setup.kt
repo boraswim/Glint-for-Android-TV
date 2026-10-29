@@ -169,6 +169,12 @@ fun EditSourceScreen(nav: Nav, id: String?) {
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
+    // A new name for a saved share needs no reconnect, so it's kept as soon as it's typed.
+    LaunchedEffect(name) {
+        val current = id?.let { lib.source(it) } ?: return@LaunchedEffect
+        if (name.isNotBlank() && name.trim() != current.name) lib.saveSource(current.copy(name = name.trim()))
+    }
+
     LaunchedEffect(type) {
         if (existing != null) return@LaunchedEffect
         when (type) {
