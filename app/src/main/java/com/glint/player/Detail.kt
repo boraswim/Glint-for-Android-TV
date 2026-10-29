@@ -561,8 +561,14 @@ fun ShowDetailScreen(nav: Nav, key: String, openSeason: Int? = null) {
     Box(Modifier.fillMaxSize()) {
         ScreenBackground()
         Backdrop(if (spoiler) Item.ShowItem(show).backdrop else shown.still ?: Item.ShowItem(show).backdrop)
-        MinimalScroll { Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            Column(Modifier.padding(start = 80.dp, top = 40.dp, end = 80.dp)) {
+        val scroll = rememberScrollState()
+        val scope = rememberCoroutineScope()
+        MinimalScroll { Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
+            // Back in the top section: show all of it again (logo, title, plot), not only the buttons. Started a
+            // moment after focus lands, or the scroll that brings the focused button into view cancels it.
+            Column(Modifier.padding(start = 80.dp, top = 40.dp, end = 80.dp).onFocusChanged {
+                if (it.hasFocus) scope.launch { kotlinx.coroutines.delay(120); scroll.animateScrollTo(0) }
+            }) {
                 DetailHeader(
                     show.title, show.logo, episodeLine(shown),
                     listOf(
