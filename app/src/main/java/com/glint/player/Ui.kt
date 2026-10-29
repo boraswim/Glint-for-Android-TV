@@ -250,10 +250,8 @@ fun Poster(model: Any?, title: String, modifier: Modifier = Modifier) {
             val density = androidx.compose.ui.platform.LocalDensity.current
             val w = with(density) { (maxWidth.toPx() * 1.1f).toInt() }.coerceAtLeast(1)
             val h = with(density) { (maxHeight.toPx() * 1.1f).toInt() }.coerceAtLeast(1)
-            val request = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
-                .data(SizedPoster(sharper(model), w, h))
-                .size(w, h)
-                .build()
+            PosterPrefetch.sizes[Math.round(maxWidth.value)] = w to h
+            val request = PosterPrefetch.request(androidx.compose.ui.platform.LocalContext.current, model, w, h)
             AsyncImage(
                 request, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop,
                 filterQuality = androidx.compose.ui.graphics.FilterQuality.High,
@@ -265,6 +263,37 @@ fun Poster(model: Any?, title: String, modifier: Modifier = Modifier) {
 
 /** A poster or backdrop made ready for one card size; see [SizedPosterFetcher]. */
 data class SizedPoster(val model: Any, val w: Int, val h: Int)
+
+/**
+ * Loading posters before their cards come on screen, so fast scrolling through a grid shows pictures, not
+ * grey boxes. Requests match [Poster]'s exactly, so they land in the same memory cache entries.
+ */
+object PosterPrefetch {
+    /** Pixel size [Poster] asked for, by card width in dp; known once one card of that width was drawn. */
+    val sizes = java.util.concurrent.ConcurrentHashMap<Int, Pair<Int, Int>>()
+
+    fun request(ctx: android.content.Context, model: Any, w: Int, h: Int) =
+        coil.request.ImageRequest.Builder(ctx).data(SizedPoster(sharper(model), w, h)).size(w, h).build()
+
+    /** Into memory, for cards about to scroll into view. */
+    fun warm(ctx: android.content.Context, models: List<Any>, w: Int, h: Int) {
+        val loader = coil.Coil.imageLoader(ctx)
+        for (m in models) loader.enqueue(request(ctx, m, w, h))
+    }
+
+    /** Onto disk only, one at a time, for posters never made yet at this size; quick when all are made. */
+    suspend fun prepare(ctx: android.content.Context, models: List<Any>, w: Int, h: Int) {
+        val loader = coil.Coil.imageLoader(ctx)
+        val dir = SizedPosterFetcher.dir(ctx)
+        for (m in models) {
+            if (java.io.File(dir, SizedPosterFetcher.key(SizedPoster(sharper(m), w, h))).exists()) continue
+            loader.execute(
+                coil.request.ImageRequest.Builder(ctx).data(SizedPoster(sharper(m), w, h)).size(w, h)
+                    .memoryCachePolicy(coil.request.CachePolicy.DISABLED).build(),
+            )
+        }
+    }
+}
 
 /**
  * Makes a card's picture once (full original, careful resize, sharpening) and keeps the result on disk,
@@ -365,7 +394,7 @@ class SharpResize(private val w: Int, private val h: Int) : coil.transform.Trans
 }
 
 /** TMDB serves resized copies (w342, w500…); "original" is the file as uploaded, with nothing redone. */
-private fun sharper(model: Any): Any =
+internal fun sharper(model: Any): Any =
     if (model is String && model.contains("image.tmdb.org")) model.replace(Regex("""/t/p/w\d+/"""), "/t/p/original/") else model
 
 @Composable

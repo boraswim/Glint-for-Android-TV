@@ -605,10 +605,31 @@ fun GridScreen(nav: Nav, kind: Kind) {
                         PosterRow(item, Modifier.restoreFocus(item.id, wanted), onLongClick = { sheet = item }) { nav.remember(screen, item.id); nav.open(item) }
                     }
                 }
-            } else LazyVerticalGrid(
+            } else {
+            val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState((at / cols - 1).coerceAtLeast(0) * cols)
+            val ctx = androidx.compose.ui.platform.LocalContext.current
+            val cardDp = if (wide) 255 else 177
+            fun picture(i: Item) = if (wide) i.backdrop ?: i.poster else i.poster
+            // Pictures load before their cards scroll in: the rows just above and the next few below, as the grid
+            // moves; meanwhile any never prepared at this size are made in the background, one at a time.
+            LaunchedEffect(items) {
+                var done = IntRange.EMPTY
+                androidx.compose.runtime.snapshotFlow { gridState.firstVisibleItemIndex }.collect { first ->
+                    val (w, h) = PosterPrefetch.sizes[cardDp] ?: return@collect
+                    val window = (first - 2 * cols).coerceAtLeast(0)..(first + 7 * cols).coerceAtMost(items.lastIndex)
+                    PosterPrefetch.warm(ctx, window.filter { it !in done }.mapNotNull { picture(items[it]) }, w, h)
+                    done = window
+                }
+            }
+            LaunchedEffect(items) {
+                delay(1500)   // after the first screen's own posters
+                val (w, h) = PosterPrefetch.sizes[cardDp] ?: return@LaunchedEffect
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { PosterPrefetch.prepare(ctx, items.mapNotNull(::picture), w, h) }
+            }
+            LazyVerticalGrid(
                 GridCells.Fixed(cols),
                 Modifier.fillMaxSize(),
-                androidx.compose.foundation.lazy.grid.rememberLazyGridState((at / cols - 1).coerceAtLeast(0) * cols),
+                gridState,
                 // Six 177dp posters across the 1280dp screen; 34dp gaps fit the focused one's 10% zoom.
                 contentPadding = if (wide) PaddingValues(start = 80.dp, end = 80.dp, top = 18.dp, bottom = 60.dp) else PaddingValues(start = 24.dp, end = 24.dp, top = 18.dp, bottom = 60.dp),
                 horizontalArrangement = Arrangement.spacedBy(if (wide) 26.dp else 34.dp),
@@ -618,6 +639,7 @@ fun GridScreen(nav: Nav, kind: Kind) {
                     if (wide) WideCard(item, width = 255.dp, wanted = wanted, label = (item as? Item.MovieItem)?.movie?.file?.name, onLongClick = { sheet = it }, onFocus = { nav.remember(screen, it.id) }, onClick = { play(nav, it) })
                     else PosterCard(item, width = 177.dp, wanted = wanted, onLongClick = { sheet = it }, onFocus = { nav.remember(screen, it.id) }, onClick = nav::open)
                 }
+            }
             }
         }
         sheet?.let { ItemMenu(it, nav) { sheet = null } }

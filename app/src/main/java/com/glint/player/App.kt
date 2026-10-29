@@ -40,7 +40,7 @@ class App : Application(), ImageLoaderFactory {
             add(SizedPosterFetcher.Factory())
             add(Keyer<SizedPoster> { data, _ -> "sized:${data.model}|${data.w}x${data.h}" })
         }
-        .memoryCache { MemoryCache.Builder(this).maxSizePercent(0.3).build() }
+        .memoryCache { MemoryCache.Builder(this).maxSizePercent(0.4).build() }   // room for a whole 300-film grid of posters
         .diskCache { DiskCache.Builder().directory(cacheDir.resolve("images")).maxSizeBytes(250L shl 20).build() }
         .crossfade(200)
         .build()
