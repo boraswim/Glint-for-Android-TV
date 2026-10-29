@@ -490,7 +490,8 @@ fun GridScreen(nav: Nav, kind: Kind) {
     val user by lib.user.collectAsState()
     val screen = Screen.Grid(kind)
     var sortTick by remember { mutableStateOf(0) }
-    var filter by rememberSaveable(kind.toString()) { mutableStateOf(0) }
+    // Kept by Nav, so opening a film and coming back doesn't reset it.
+    val filter = nav.filters[screen] ?: 0
     var filtering by remember { mutableStateOf(false) }
     var sorting by remember { mutableStateOf(false) }
     var sheet by remember { mutableStateOf<Item?>(null) }
@@ -617,7 +618,7 @@ fun GridScreen(nav: Nav, kind: Kind) {
         if (sorting) SortSheet { sorting = false; sortTick++ }
         if (filtering) OptionSheet(
             stringResource(R.string.filter_title),
-            FILTERS.indices.map { i -> ((if (filter == i) "✓  " else "") + filterLabel(i)) to { filter = i } },
+            FILTERS.indices.map { i -> ((if (filter == i) "✓  " else "") + filterLabel(i)) to { nav.filters[screen] = i } },
         ) { filtering = false }
     }
 }

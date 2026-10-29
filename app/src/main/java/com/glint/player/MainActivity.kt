@@ -97,6 +97,9 @@ class Nav {
     fun remember(screen: Screen, id: String) { focus[screen] = id }
     fun focused(screen: Screen) = focus[screen]
 
+    /** A grid's filter choice, kept while its films are opened and closed (the grid leaves composition meanwhile). */
+    val filters = mutableStateMapOf<Screen, Int>()
+
     fun open(item: Item) = when (item) {
         is Item.MovieItem -> push(Screen.MovieDetail(item.movie.id))
         is Item.ShowItem -> push(Screen.ShowDetail(item.show.key, item.season))
