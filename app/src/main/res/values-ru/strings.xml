@@ -5,6 +5,7 @@
     <string name="add_source_sub">Выберите NAS, войдите, если нужен логин, затем выберите сетевую папку.</string>
     <string name="edit_source">Изменить сетевую папку</string>
     <string name="all_shares">Все сетевые папки</string>
+    <string name="use_this_folder">Использовать эту папку</string>
     <string name="back">Назад</string>
     <string name="connect">Подключить</string>
     <string name="connecting">Подключение…</string>

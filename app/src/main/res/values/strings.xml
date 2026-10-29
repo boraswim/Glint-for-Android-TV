@@ -6,6 +6,7 @@
     <string name="add_source_sub">Pick your NAS, sign in if it needs a user name, then choose which share to use.</string>
     <string name="edit_source">Edit share</string>
     <string name="all_shares">All shares</string>
+    <string name="use_this_folder">Use this folder</string>
     <string name="back">Back</string>
     <string name="connect">Connect</string>
     <string name="connecting">Connecting…</string>

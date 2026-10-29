@@ -5,6 +5,7 @@
     <string name="add_source_sub">Kies je NAS, log in als er een gebruikersnaam nodig is en kies dan welke share je wilt gebruiken.</string>
     <string name="edit_source">Share bewerken</string>
     <string name="all_shares">Alle shares</string>
+    <string name="use_this_folder">Deze map gebruiken</string>
     <string name="back">Terug</string>
     <string name="connect">Verbinden</string>
     <string name="connecting">Verbinden…</string>

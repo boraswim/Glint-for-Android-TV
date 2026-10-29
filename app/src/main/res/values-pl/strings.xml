@@ -5,6 +5,7 @@
     <string name="add_source_sub">Wybierz swój NAS, zaloguj się, jeśli wymaga nazwy użytkownika, a potem wybierz udział.</string>
     <string name="edit_source">Edytuj udział</string>
     <string name="all_shares">Wszystkie udziały</string>
+    <string name="use_this_folder">Użyj tego folderu</string>
     <string name="back">Wstecz</string>
     <string name="connect">Połącz</string>
     <string name="connecting">Łączenie…</string>

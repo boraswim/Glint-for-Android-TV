@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -160,6 +161,10 @@ fun EditSourceScreen(nav: Nav, id: String?) {
         else askStorage.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
     }
     var shares by remember { mutableStateOf<List<String>?>(null) }
+    // The share and folder open in the folder picker, and the folders in it.
+    var browse by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var dirs by remember { mutableStateOf<List<SmbEntry>?>(null) }
+    var dirsError by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -180,6 +185,20 @@ fun EditSourceScreen(nav: Nav, id: String?) {
         existing?.id ?: "", name.ifBlank { host }, host.trim(), if (type == "nfs") export.trim() else if (type == "smb") share else "",
         folder.trim('/', ' '), user.trim(), password, "", type,
     )
+
+    LaunchedEffect(browse) {
+        val (share, path) = browse ?: return@LaunchedEffect
+        dirs = null; dirsError = null
+        withContext(Dispatchers.IO) {
+            runCatching { Fs.list(draft(share), share, path).filter { it.isDir }.sortedBy { it.name.lowercase() } }
+                .onSuccess { dirs = it }.onFailure { dirsError = it.message ?: it.javaClass.simpleName }
+        }
+    }
+
+    fun up() {
+        val (share, path) = browse ?: return
+        browse = if (path.isEmpty()) null else share to path.substringBeforeLast('/', "")
+    }
 
     fun connect() {
         if (host.isBlank()) return
@@ -206,9 +225,9 @@ fun EditSourceScreen(nav: Nav, id: String?) {
         }
     }
 
-    fun save(share: String) {
+    fun save(share: String, path: String = "") {
         val first = lib.sources.value.isEmpty()
-        lib.saveSource(draft(share))
+        lib.saveSource(draft(share).copy(folder = path))
         lib.scanAll()
         if (first) nav.tab(Screen.Home) else nav.pop()
     }
@@ -216,10 +235,27 @@ fun EditSourceScreen(nav: Nav, id: String?) {
     Column(Modifier.fillMaxSize().screenBackground()) {
         Header(stringResource(if (existing == null) R.string.add_source else R.string.edit_source), stringResource(R.string.add_source_sub))
         val sh = shares
+        val at = browse
+        // Back steps up a folder, then out of the share list, before leaving the screen.
+        androidx.activity.compose.BackHandler(enabled = sh != null) { if (at != null) up() else shares = null }
+        if (sh != null && at != null) {
+            val (share, path) = at
+            key(at) {
+                ListColumn {
+                    item { ListRow(stringResource(R.string.use_this_folder), sub = listOf(share, path).filter { it.isNotEmpty() }.joinToString(" / "), modifier = FocusFirst()) { save(share, path) } }
+                    val list = dirs
+                    if (list == null && dirsError == null) item { Txt(stringResource(R.string.loading), Type.Body) }
+                    dirsError?.let { item { Txt(it, Type.Body.copy(color = Palette.Accent)) } }
+                    if (list != null) items(list, key = { it.path }) { e -> ListRow("📁  ${e.name}") { browse = share to e.path } }
+                    item { ListRow(stringResource(R.string.back)) { up() } }
+                }
+            }
+            return@Column
+        }
         if (sh != null) {
             ListColumn {
                 item { ListRow(stringResource(R.string.all_shares), sub = sh.joinToString(", "), modifier = FocusFirst()) { save("") } }
-                items(sh) { share -> ListRow(share) { save(share) } }
+                items(sh) { share -> ListRow(share) { browse = share to "" } }
                 item { ListRow(stringResource(R.string.back)) { shares = null } }
             }
             return@Column

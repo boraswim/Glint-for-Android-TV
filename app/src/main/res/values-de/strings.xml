@@ -5,6 +5,7 @@
     <string name="add_source_sub">Wähle dein NAS, melde dich an, falls ein Benutzername nötig ist, und wähle dann die Freigabe.</string>
     <string name="edit_source">Freigabe bearbeiten</string>
     <string name="all_shares">Alle Freigaben</string>
+    <string name="use_this_folder">Diesen Ordner verwenden</string>
     <string name="back">Zurück</string>
     <string name="connect">Verbinden</string>
     <string name="connecting">Verbinde…</string>

@@ -5,6 +5,7 @@
     <string name="add_source_sub">NAS\'ınızı seçin, gerekiyorsa kullanıcı adıyla giriş yapın, sonra kullanılacak paylaşımı seçin.</string>
     <string name="edit_source">Paylaşımı düzenle</string>
     <string name="all_shares">Tüm paylaşımlar</string>
+    <string name="use_this_folder">Bu klasörü kullan</string>
     <string name="back">Geri</string>
     <string name="connect">Bağlan</string>
     <string name="connecting">Bağlanıyor…</string>

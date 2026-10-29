@@ -5,6 +5,7 @@
     <string name="add_source_sub">Escolha seu NAS, entre se ele pedir um nome de usuário e depois escolha o compartilhamento.</string>
     <string name="edit_source">Editar compartilhamento</string>
     <string name="all_shares">Todos os compartilhamentos</string>
+    <string name="use_this_folder">Usar esta pasta</string>
     <string name="back">Voltar</string>
     <string name="connect">Conectar</string>
     <string name="connecting">Conectando…</string>

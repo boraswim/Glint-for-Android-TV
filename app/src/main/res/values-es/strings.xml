@@ -5,6 +5,7 @@
     <string name="add_source_sub">Elige tu NAS, inicia sesión si necesita usuario y luego escoge la carpeta compartida.</string>
     <string name="edit_source">Editar carpeta compartida</string>
     <string name="all_shares">Todas las carpetas</string>
+    <string name="use_this_folder">Usar esta carpeta</string>
     <string name="back">Atrás</string>
     <string name="connect">Conectar</string>
     <string name="connecting">Conectando…</string>
