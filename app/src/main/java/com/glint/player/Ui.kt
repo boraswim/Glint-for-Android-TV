@@ -703,7 +703,7 @@ fun ListRow(label: String, value: String = "", modifier: Modifier = Modifier, su
             Txt(label, Type.Button.copy(color = labelColor, fontWeight = FontWeight.Medium, fontSize = 19.sp), maxLines = 1)
             if (sub != null) Txt(sub, Type.Small.copy(color = if (focused) Color(0xFF444444) else Palette.Faint), maxLines = 2)
         }
-        if (value.isNotEmpty()) Txt(value, Type.Meta.copy(color = if (focused) Color(0xFF333333) else Palette.Dim), maxLines = 1)
+        if (value.isNotEmpty()) Txt(value, Type.Meta.copy(fontSize = 18.sp, color = if (focused) Color(0xFF333333) else Palette.Dim), maxLines = 1)
         if (chevron) { Spacer(Modifier.width(10.dp)); Txt("›", Type.Title.copy(color = if (focused) Color(0xFF555555) else Palette.Faint, fontSize = 24.sp)) }
     }
 }
