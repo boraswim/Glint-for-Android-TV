@@ -107,7 +107,7 @@
     <string name="on">Aan</string>
     <string name="off">Uit</string>
     <string name="none">Geen</string>
-    <string name="tmdb_missing">Er is geen TMDB-sleutel ingebouwd, dus alleen bestandsnamen worden getoond.</string>
+    <string name="tmdb_missing">Voeg in Instellingen je eigen TMDB-sleutel toe voor filmgegevens, afbeeldingen en trailers.</string>
     <string name="scan_failed">Bijwerken van bibliotheek mislukt</string>
     <string name="scan_reading">%1$s lezen…</string>
     <string name="scan_matching">Films herkennen %1$d / %2$d</string>
@@ -180,6 +180,13 @@
     <string name="hide_spoilers_sub">Verbergt afbeeldingen en samenvattingen van afleveringen die je nog niet zag</string>
     <string name="show_logos">Logo\'s tonen</string>
     <string name="show_ratings">Externe beoordelingen tonen</string>
+    <string name="tmdb_key">TMDB-API-sleutel</string>
+    <string name="tmdb_key_sub">Gratis op themoviedb.org → Instellingen → API. Filmgegevens, afbeeldingen en trailers.</string>
+    <string name="omdb_key">OMDb-API-sleutel</string>
+    <string name="omdb_key_sub">Gratis op omdbapi.com. IMDb- en Rotten Tomatoes-beoordelingen.</string>
+    <string name="key_checking">Controleren…</string>
+    <string name="key_ok">De sleutel werkt</string>
+    <string name="key_bad">Deze sleutel werkt niet</string>
     <string name="group_collections">Films groeperen in collecties</string>
     <string name="collection_details">Detailweergave van collecties</string>
     <string name="collection_details_sub">Een collectie op een eigen pagina openen in plaats van een eenvoudig raster</string>

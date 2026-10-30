@@ -107,7 +107,7 @@
     <string name="on">Activado</string>
     <string name="off">Desactivado</string>
     <string name="none">Ninguno</string>
-    <string name="tmdb_missing">No hay clave de TMDB integrada, así que solo se muestran nombres de archivo.</string>
+    <string name="tmdb_missing">Añade tu propia clave de TMDB en Ajustes para ver detalles, imágenes y tráileres.</string>
     <string name="scan_failed">Error al actualizar la biblioteca</string>
     <string name="scan_reading">Leyendo %1$s…</string>
     <string name="scan_matching">Identificando películas %1$d / %2$d</string>
@@ -180,6 +180,13 @@
     <string name="hide_spoilers_sub">Oculta imágenes y sinopsis de los episodios que no has visto</string>
     <string name="show_logos">Mostrar logotipos</string>
     <string name="show_ratings">Mostrar valoraciones externas</string>
+    <string name="tmdb_key">Clave de API de TMDB</string>
+    <string name="tmdb_key_sub">Gratis en themoviedb.org → Ajustes → API. Detalles, imágenes y tráileres.</string>
+    <string name="omdb_key">Clave de API de OMDb</string>
+    <string name="omdb_key_sub">Gratis en omdbapi.com. Valoraciones de IMDb y Rotten Tomatoes.</string>
+    <string name="key_checking">Comprobando…</string>
+    <string name="key_ok">La clave funciona</string>
+    <string name="key_bad">Esta clave no funciona</string>
     <string name="group_collections">Agrupar películas en colecciones</string>
     <string name="collection_details">Vista detallada de colecciones</string>
     <string name="collection_details_sub">Abrir una colección en su propia página en lugar de una cuadrícula</string>

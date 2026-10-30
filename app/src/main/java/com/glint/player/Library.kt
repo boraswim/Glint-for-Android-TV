@@ -31,7 +31,7 @@ class Library(private val context: Context) {
     private val scope = CoroutineScope(Dispatchers.IO)
 
     val settings = Settings(context)
-    val tmdb = Tmdb(BuildConfig.TMDB_KEY, { settings.language }, { settings.artLanguage })
+    val tmdb = Tmdb({ BuildConfig.TMDB_KEY.ifBlank { settings.tmdbKey } }, { settings.language }, { settings.artLanguage })
 
     // ---- profiles: each has its own progress and lists; the library itself is shared ----
     private val _profiles = MutableStateFlow(load("profiles.json") { listOf(Profile("main", "Glint")) })

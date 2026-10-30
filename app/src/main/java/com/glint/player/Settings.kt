@@ -19,6 +19,14 @@ class Settings(context: Context) {
         set(v) = prefs.edit().putString("artworkLanguage", v).apply()
     val artLanguage get() = artworkLanguage.ifEmpty { language }
 
+    /** The viewer's own TMDB key (used when the build has none) and OMDb key (ratings in the store build). */
+    var tmdbKey: String
+        get() = prefs.getString("tmdbKey", "")!!
+        set(v) = prefs.edit().putString("tmdbKey", v.trim()).apply()
+    var omdbKey: String
+        get() = prefs.getString("omdbKey", "")!!
+        set(v) = prefs.edit().putString("omdbKey", v.trim()).apply()
+
     /** Send Dolby/DTS bitstreams to the TV or receiver instead of decoding them. */
     var passthrough: Boolean
         get() = prefs.getBoolean("passthrough", false)

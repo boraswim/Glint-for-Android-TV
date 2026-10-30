@@ -20,12 +20,12 @@ Studio brings both).
 2. Build and install the release build on a TV or box:
 
    ```
-   ./gradlew assembleRelease
-   adb install -r app/build/outputs/apk/release/app-release.apk
+   ./gradlew assembleGithubRelease
+   adb install -r app/build/outputs/apk/github/release/app-github-release.apk
    ```
 
    Use the release build even for testing: debug builds of Compose are slow on TV boxes.
-3. Run the unit tests with `./gradlew testReleaseUnitTest`.
+3. Run the unit tests with `./gradlew testGithubReleaseUnitTest`.
 
 The README's **Code** table says what each file does.
 

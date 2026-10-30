@@ -82,6 +82,7 @@ object ImdbRatings {
     /** IMDb rating of a TMDB film or series; looks the IMDb id up once and remembers it. Call off the main thread. */
     fun forTitle(ctx: Context, tmdbId: Int, tv: Boolean): Rating? {
         val imdb = imdbId(ctx, tmdbId, tv) ?: return null
+        if (BuildConfig.STORE) return Omdb.of(ctx, imdb)?.imdb
         refresh(ctx)
         return lookup(ctx, imdb)
     }
@@ -110,6 +111,7 @@ object RottenTomatoes {
     fun forTitle(ctx: Context, tmdbId: Int, tv: Boolean): Scores? {
         val prefs = ctx.getSharedPreferences("rotten-tomatoes", Context.MODE_PRIVATE)
         val imdb = ImdbRatings.imdbId(ctx, tmdbId, tv) ?: return null
+        if (BuildConfig.STORE) return Omdb.of(ctx, imdb)?.rottenTomatoes?.let { Scores(it, null) }
         val page = prefs.getString("id:$imdb", null) ?: pageOf(imdb)?.also { prefs.edit().putString("id:$imdb", it).apply() } ?: return null
         if (page.isEmpty()) return null                                  // looked up before: none
         prefs.getString("s:$page", null)?.split('|')?.takeIf { it.size == 3 }?.let { (c, a, t) ->
@@ -141,5 +143,49 @@ object RottenTomatoes {
         val html = try { c.inputStream.bufferedReader().use { it.readText() } } finally { c.disconnect() }
         fun score(name: String) = Regex("\"$name\":\\{[^}]*?\"score\":\"(\\d+)\"").find(html)?.groupValues?.get(1)?.toIntOrNull()
         Scores(score("criticsScore"), score("audienceScore")).takeIf { it.critics != null || it.audience != null }
+    }.getOrNull()
+}
+
+/**
+ * IMDb and Rotten Tomatoes scores from the OMDb API (omdbapi.com), with the viewer's own key: what the store build
+ * uses instead of IMDb's datasets and Rotten Tomatoes' pages. Answers are kept for a week.
+ */
+object Omdb {
+    data class Ratings(val imdb: ImdbRatings.Rating?, val rottenTomatoes: Int?)
+
+    private const val MAX_AGE = 7 * 24 * 3600_000L
+
+    /** Call off the main thread. Null without a key, or when OMDb can't be reached. */
+    fun of(ctx: Context, imdbId: String): Ratings? {
+        val key = App.library.settings.omdbKey.ifBlank { return null }
+        val prefs = ctx.getSharedPreferences("omdb", Context.MODE_PRIVATE)
+        prefs.getString(imdbId, null)?.split('|')?.takeIf { it.size == 4 }?.let { (score, votes, rt, t) ->
+            if (System.currentTimeMillis() - (t.toLongOrNull() ?: 0) < MAX_AGE)
+                return Ratings(score.toDoubleOrNull()?.let { ImdbRatings.Rating(it, votes.toIntOrNull() ?: 0) }, rt.toIntOrNull())
+        }
+        val o = fetch(key, imdbId) ?: return null
+        if (o.optString("Response") != "True") return null
+        val score = o.optString("imdbRating").toDoubleOrNull()
+        val votes = o.optString("imdbVotes").replace(",", "").toIntOrNull() ?: 0
+        val rt = o.optJSONArray("Ratings")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
+            ?.firstOrNull { it.optString("Source") == "Rotten Tomatoes" }?.optString("Value")?.removeSuffix("%")?.toIntOrNull()
+        prefs.edit().putString(imdbId, "${score ?: ""}|$votes|${rt ?: ""}|${System.currentTimeMillis()}").apply()
+        return Ratings(score?.let { ImdbRatings.Rating(it, votes) }, rt)
+    }
+
+    /** Whether OMDb accepts the key. Call off the main thread. */
+    fun works(key: String): Boolean = key.isNotBlank() && fetch(key, "tt0133093")?.optString("Response") == "True"
+
+    /** Forgets kept answers, for a new key. */
+    fun clear(ctx: Context) = ctx.getSharedPreferences("omdb", Context.MODE_PRIVATE).edit().clear().apply()
+
+    private fun fetch(key: String, imdbId: String): org.json.JSONObject? = runCatching {
+        val c = URL("https://www.omdbapi.com/?i=$imdbId&apikey=" + java.net.URLEncoder.encode(key, "UTF-8")).openConnection() as HttpURLConnection
+        c.connectTimeout = 10000; c.readTimeout = 15000
+        try {
+            // OMDb answers a bad key with 401 and a JSON body that says so.
+            val stream = if (c.responseCode in 200..299) c.inputStream else c.errorStream ?: return@runCatching null
+            org.json.JSONObject(stream.bufferedReader().use { it.readText() })
+        } finally { c.disconnect() }
     }.getOrNull()
 }

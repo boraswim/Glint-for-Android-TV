@@ -215,6 +215,13 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         ListRow(stringResource(R.string.show_logos), onOff(s.showLogos), FocusFirst()) { change { s.showLogos = !s.showLogos } }
                         ListRow(stringResource(R.string.prefer_local_metadata), onOff(s.preferLocalMetadata), sub = stringResource(R.string.prefer_local_metadata_sub)) { change { s.preferLocalMetadata = !s.preferLocalMetadata } }
                         ListRow(stringResource(R.string.show_ratings), onOff(s.showRatings)) { change { s.showRatings = !s.showRatings } }
+                        // Keys of the viewer's own: TMDB where the build has none, OMDb for ratings in the store build.
+                        if (BuildConfig.TMDB_KEY.isBlank()) ApiKeyField(R.string.tmdb_key, R.string.tmdb_key_sub, s.tmdbKey, { s.tmdbKey = it }) { key ->
+                            Tmdb({ key }, { s.language }).works().also { if (it) lib.scanAll() }   // match the library now it can be
+                        }
+                        if (BuildConfig.STORE) ApiKeyField(R.string.omdb_key, R.string.omdb_key_sub, s.omdbKey, { s.omdbKey = it }) { key ->
+                            Omdb.works(key).also { if (it) Omdb.clear(App.instance) }
+                        }
                     }
                 }
                 5 -> item {
@@ -309,13 +316,40 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         Txt(stringResource(R.string.about, BuildConfig.VERSION_NAME), Type.Heading, modifier = FocusFirst())
                         Gap(10.dp)
                         Txt(stringResource(R.string.tmdb_notice), Type.Body, align = TextAlign.Center)
-                        Txt(stringResource(R.string.imdb_notice), Type.Body, align = TextAlign.Center)
+                        Txt(stringResource(if (BuildConfig.STORE) R.string.omdb_notice else R.string.imdb_notice), Type.Body, align = TextAlign.Center)
                         Gap(6.dp)
                         Txt(stringResource(R.string.license_notice), Type.Body, align = TextAlign.Center)
                         if (!lib.tmdb.enabled) { Gap(6.dp); Txt(stringResource(R.string.tmdb_missing), Type.Body.copy(color = Palette.Accent)) }
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * A field for one of the viewer's own API keys, saved as typed; finishing the entry (OK on the keyboard) asks
+ * [check] (off the main thread) whether the service accepts it, and says so below.
+ */
+@Composable
+private fun ApiKeyField(label: Int, sub: Int, value: String, onSave: (String) -> Unit, check: (String) -> Boolean) {
+    var text by remember { mutableStateOf(value) }
+    var state by remember { mutableStateOf<Boolean?>(null) }     // null: not checked; true/false: works or not
+    var checking by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    Column(Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 6.dp)) {
+        Txt(stringResource(label), Type.Heading)
+        Txt(stringResource(sub), Type.Small, maxLines = 2)
+        Gap(8.dp)
+        TextInput(text, { text = it.trim(); onSave(text); state = null }, "", Modifier.fillMaxWidth(), keyboard = androidx.compose.ui.text.input.KeyboardType.Ascii, onDone = {
+            if (text.isEmpty()) return@TextInput   // cleared: nothing to check
+            checking = true
+            scope.launch { state = withContext(Dispatchers.IO) { check(text) }; checking = false }
+        })
+        when {
+            checking -> Txt(stringResource(R.string.key_checking), Type.Small)
+            state == true -> Txt(stringResource(R.string.key_ok), Type.Small.copy(color = Palette.Accent))
+            state == false -> Txt(stringResource(R.string.key_bad), Type.Small.copy(color = Color(0xFFE5484D)))
         }
     }
 }

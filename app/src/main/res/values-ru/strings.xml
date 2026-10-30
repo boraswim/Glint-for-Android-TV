@@ -107,7 +107,7 @@
     <string name="on">Вкл.</string>
     <string name="off">Выкл.</string>
     <string name="none">Нет</string>
-    <string name="tmdb_missing">Ключ TMDB не встроен, поэтому показываются только имена файлов.</string>
+    <string name="tmdb_missing">Добавьте свой ключ TMDB в Настройках, чтобы получить описания, изображения и трейлеры.</string>
     <string name="scan_failed">Не удалось обновить медиатеку</string>
     <string name="scan_reading">Чтение %1$s…</string>
     <string name="scan_matching">Распознавание фильмов %1$d / %2$d</string>
@@ -180,6 +180,13 @@
     <string name="hide_spoilers_sub">Скрывает кадры и описания непросмотренных серий</string>
     <string name="show_logos">Показывать логотипы</string>
     <string name="show_ratings">Показывать внешние рейтинги</string>
+    <string name="tmdb_key">Ключ API TMDB</string>
+    <string name="tmdb_key_sub">Бесплатно на themoviedb.org → Настройки → API. Описания, изображения и трейлеры.</string>
+    <string name="omdb_key">Ключ API OMDb</string>
+    <string name="omdb_key_sub">Бесплатно на omdbapi.com. Рейтинги IMDb и Rotten Tomatoes.</string>
+    <string name="key_checking">Проверка…</string>
+    <string name="key_ok">Ключ работает</string>
+    <string name="key_bad">Этот ключ не работает</string>
     <string name="group_collections">Объединять фильмы в коллекции</string>
     <string name="collection_details">Подробный вид коллекций</string>
     <string name="collection_details_sub">Открывать коллекцию на отдельной странице, а не простой сеткой</string>

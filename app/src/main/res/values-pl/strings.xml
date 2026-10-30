@@ -107,7 +107,7 @@
     <string name="on">Wł.</string>
     <string name="off">Wył.</string>
     <string name="none">Brak</string>
-    <string name="tmdb_missing">Brak wbudowanego klucza TMDB, więc wyświetlane są tylko nazwy plików.</string>
+    <string name="tmdb_missing">Dodaj własny klucz TMDB w Ustawieniach, aby zobaczyć szczegóły, grafiki i zwiastuny.</string>
     <string name="scan_failed">Aktualizacja biblioteki nie powiodła się</string>
     <string name="scan_reading">Odczyt %1$s…</string>
     <string name="scan_matching">Dopasowywanie filmów %1$d / %2$d</string>
@@ -180,6 +180,13 @@
     <string name="hide_spoilers_sub">Ukrywa obrazy i opisy odcinków, których jeszcze nie oglądałeś</string>
     <string name="show_logos">Pokaż logo</string>
     <string name="show_ratings">Pokaż zewnętrzne oceny</string>
+    <string name="tmdb_key">Klucz API TMDB</string>
+    <string name="tmdb_key_sub">Bezpłatny na themoviedb.org → Ustawienia → API. Szczegóły, grafiki i zwiastuny.</string>
+    <string name="omdb_key">Klucz API OMDb</string>
+    <string name="omdb_key_sub">Bezpłatny na omdbapi.com. Oceny IMDb i Rotten Tomatoes.</string>
+    <string name="key_checking">Sprawdzanie…</string>
+    <string name="key_ok">Klucz działa</string>
+    <string name="key_bad">Ten klucz nie działa</string>
     <string name="group_collections">Grupuj filmy w kolekcje</string>
     <string name="collection_details">Widok szczegółów kolekcji</string>
     <string name="collection_details_sub">Otwieraj kolekcję na osobnej stronie zamiast w zwykłej siatce</string>

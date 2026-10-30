@@ -107,7 +107,7 @@
     <string name="on">Açık</string>
     <string name="off">Kapalı</string>
     <string name="none">Yok</string>
-    <string name="tmdb_missing">TMDB anahtarı eklenmediği için filmler yalnızca dosya adıyla görünür.</string>
+    <string name="tmdb_missing">Film bilgileri, görseller ve fragmanlar için Ayarlar → Bilgiler ve Görseller\'e kendi TMDB anahtarınızı ekleyin.</string>
     <string name="scan_failed">Kütüphane güncellenemedi</string>
     <string name="scan_reading">%1$s okunuyor…</string>
     <string name="scan_matching">Filmler eşleştiriliyor %1$d / %2$d</string>
@@ -180,6 +180,13 @@
     <string name="hide_spoilers_sub">İzlemediğiniz bölümlerin görsellerini ve konularını gizler</string>
     <string name="show_logos">Logoları göster</string>
     <string name="show_ratings">Dış puanları göster</string>
+    <string name="tmdb_key">TMDB API anahtarı</string>
+    <string name="tmdb_key_sub">themoviedb.org → Ayarlar → API\'den ücretsiz. Film bilgileri, görseller ve fragmanlar.</string>
+    <string name="omdb_key">OMDb API anahtarı</string>
+    <string name="omdb_key_sub">omdbapi.com\'dan ücretsiz. IMDb ve Rotten Tomatoes puanları.</string>
+    <string name="key_checking">Kontrol ediliyor…</string>
+    <string name="key_ok">Anahtar çalışıyor</string>
+    <string name="key_bad">Bu anahtar çalışmıyor</string>
     <string name="group_collections">Filmleri serilere grupla</string>
     <string name="collection_details">Seri ayrıntı sayfası</string>
     <string name="collection_details_sub">Seriyi düz liste yerine kendi sayfasında aç</string>

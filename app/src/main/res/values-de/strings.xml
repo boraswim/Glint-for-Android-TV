@@ -107,7 +107,7 @@
     <string name="on">An</string>
     <string name="off">Aus</string>
     <string name="none">Keine</string>
-    <string name="tmdb_missing">Kein TMDB-Schlüssel eingebaut, daher werden nur Dateinamen angezeigt.</string>
+    <string name="tmdb_missing">Füge in den Einstellungen deinen eigenen TMDB-Schlüssel hinzu, um Filmdetails, Bilder und Trailer zu erhalten.</string>
     <string name="scan_failed">Aktualisierung der Mediathek fehlgeschlagen</string>
     <string name="scan_reading">Lese %1$s…</string>
     <string name="scan_matching">Ordne Filme zu %1$d / %2$d</string>
@@ -180,6 +180,13 @@
     <string name="hide_spoilers_sub">Blendet Bilder und Inhalt ungesehener Folgen aus</string>
     <string name="show_logos">Logos anzeigen</string>
     <string name="show_ratings">Externe Bewertungen anzeigen</string>
+    <string name="tmdb_key">TMDB-API-Schlüssel</string>
+    <string name="tmdb_key_sub">Kostenlos auf themoviedb.org → Einstellungen → API. Filmdetails, Bilder und Trailer.</string>
+    <string name="omdb_key">OMDb-API-Schlüssel</string>
+    <string name="omdb_key_sub">Kostenlos auf omdbapi.com. IMDb- und Rotten-Tomatoes-Bewertungen.</string>
+    <string name="key_checking">Wird geprüft…</string>
+    <string name="key_ok">Der Schlüssel funktioniert</string>
+    <string name="key_bad">Dieser Schlüssel funktioniert nicht</string>
     <string name="group_collections">Filme zu Sammlungen gruppieren</string>
     <string name="collection_details">Detailansicht für Sammlungen</string>
     <string name="collection_details_sub">Eine Sammlung auf eigener Seite statt als einfaches Raster öffnen</string>

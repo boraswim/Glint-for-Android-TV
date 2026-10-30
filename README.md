@@ -66,14 +66,19 @@ Requires the Android SDK and JDK 17 (Android Studio brings both).
 2. Build and install:
 
    ```
-   ./gradlew assembleRelease
-   adb install -r app/build/outputs/apk/release/app-release.apk
+   ./gradlew assembleGithubRelease
+   adb install -r app/build/outputs/apk/github/release/app-github-release.apk
    ```
 
    The release build (shrunk with R8) is the one to use even for testing: debug builds of Compose are
    slow on TV boxes.
 
-Unit tests run with `./gradlew testReleaseUnitTest`.
+There are two builds. **github** is what the releases ship. **store** is meant for app stores: it has no TMDB key built in,
+and its IMDb and Rotten Tomatoes ratings come from the [OMDb API](https://www.omdbapi.com) instead of IMDb's datasets and
+Rotten Tomatoes' pages. Viewers enter their own free TMDB and OMDb keys in Settings → Metadata & Artwork. Build it with
+`./gradlew assembleStoreRelease`.
+
+Unit tests run with `./gradlew testGithubReleaseUnitTest`.
 
 ## Code
 

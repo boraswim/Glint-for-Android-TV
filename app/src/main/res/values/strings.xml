@@ -116,8 +116,9 @@
     <string name="about">Glint %1$s</string>
     <string name="tmdb_notice">This product uses the TMDB API but is not endorsed or certified by TMDB.</string>
     <string name="imdb_notice" translatable="false">Information courtesy of IMDb (https://www.imdb.com). Used with permission.</string>
+    <string name="omdb_notice" translatable="false">IMDb and Rotten Tomatoes ratings come from the OMDb API (https://www.omdbapi.com) with your own key. Glint is not affiliated with IMDb, Rotten Tomatoes or OMDb.</string>
     <string name="license_notice" translatable="false">Glint is free software under the GNU General Public License v3.0.</string>
-    <string name="tmdb_missing">No TMDB key was built in, so films show file names only.</string>
+    <string name="tmdb_missing">Add your own TMDB key in Settings → Metadata &amp; Artwork to get film details, artwork and trailers.</string>
     <string name="scan_failed">Library update failed</string>
     <string name="scan_reading">Reading %1$s…</string>
     <string name="scan_matching">Matching films %1$d / %2$d</string>
@@ -193,6 +194,13 @@
     <string name="hide_spoilers_sub">Hides images and plots of episodes you haven\'t watched</string>
     <string name="show_logos">Show logos</string>
     <string name="show_ratings">Show external ratings</string>
+    <string name="tmdb_key">TMDB API key</string>
+    <string name="tmdb_key_sub">Free at themoviedb.org → Settings → API. Film details, artwork and trailers.</string>
+    <string name="omdb_key">OMDb API key</string>
+    <string name="omdb_key_sub">Free at omdbapi.com. IMDb and Rotten Tomatoes ratings.</string>
+    <string name="key_checking">Checking…</string>
+    <string name="key_ok">The key works</string>
+    <string name="key_bad">This key doesn\'t work</string>
     <string name="group_collections">Group movies into collections</string>
     <string name="collection_details">Collection details view</string>
     <string name="collection_details_sub">Open a collection on its own page instead of a plain grid</string>

@@ -14,14 +14,20 @@ data class SearchHit(
 
 /**
  * themoviedb.org: matches names to films and series, then fetches artwork, plots, cast and
- * episode details. Accepts a v3 API key or a v4 read access token.
+ * episode details. Accepts a v3 API key or a v4 read access token; [keyOf] is asked each time, so a key the
+ * viewer enters in Settings takes effect at once.
  */
-class Tmdb(private val key: String, private val language: () -> String, private val artLanguage: () -> String = language) {
+class Tmdb(private val keyOf: () -> String, private val language: () -> String, private val artLanguage: () -> String = language) {
+    private val key get() = keyOf()
+
 
     /** The language to ask TMDB for; "original" needs the title's own, which searches don't have yet. */
     private fun lang(original: String? = null) = language().let { if (it == "original") original?.ifBlank { null } ?: "en-US" else it }
 
     val enabled get() = key.isNotBlank()
+
+    /** Whether TMDB accepts the key. Call off the main thread. */
+    fun works(): Boolean = enabled && runCatching { get("configuration"); true }.getOrDefault(false)
 
     fun search(query: String, tv: Boolean, year: String = ""): List<SearchHit> {
         val kind = if (tv) "tv" else "movie"
