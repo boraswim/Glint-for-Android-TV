@@ -285,7 +285,7 @@ private fun MovieHero(
             shownLogo = withContext(Dispatchers.IO) { App.library.tmdb.logoOf(movie.tmdbId, tv = false) }
     }
     Box(Modifier.fillMaxWidth().height(720.dp).onFocusChanged { if (it.hasFocus) onFocusIn() }) {
-        if (backdrop != null) AsyncImage(backdrop, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        if (backdrop != null) AsyncImage(fullScreen(backdrop), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.4f to Color.Transparent, 0.72f to Color.Black.copy(alpha = 0.6f), 1f to Palette.Bottom)))
         Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to Color.Black.copy(alpha = 0.3f), 0.45f to Color.Transparent)))
         if (shownLogo != null && s.showLogos) AsyncImage(

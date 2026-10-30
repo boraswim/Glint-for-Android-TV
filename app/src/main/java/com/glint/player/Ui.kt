@@ -643,11 +643,24 @@ fun ListRow(label: String, value: String = "", modifier: Modifier = Modifier, su
     }
 }
 
+/**
+ * A screen-filling picture at the screen's own pixels: TMDB's original file rather than its 1280 px copy (a NAS
+ * picture is used as it is), decoded down to the window the TV gives the app, 1080p or 4K.
+ */
+@Composable
+fun fullScreen(model: Any): coil.request.ImageRequest {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val m = ctx.resources.displayMetrics
+    return remember(model, m.widthPixels, m.heightPixels) {
+        coil.request.ImageRequest.Builder(ctx).data(sharper(model)).size(m.widthPixels, m.heightPixels).build()
+    }
+}
+
 /** Full-bleed backdrop that fades into the page on the left and bottom. */
 @Composable
 fun Backdrop(model: Any?, modifier: Modifier = Modifier, strength: Float = 1f) {
     Box(modifier.fillMaxSize()) {
-        if (model != null) AsyncImage(model, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop, alignment = Alignment.TopEnd)
+        if (model != null) AsyncImage(fullScreen(model), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop, alignment = Alignment.TopEnd)
         Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to Palette.Bottom.copy(alpha = 0.95f * strength), 0.5f to Palette.Bottom.copy(alpha = 0.55f * strength), 1f to Color.Transparent)))
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to Palette.Bottom)))
     }
