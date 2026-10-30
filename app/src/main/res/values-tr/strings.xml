@@ -184,6 +184,10 @@
     <string name="tmdb_key_sub">themoviedb.org → Ayarlar → API\'den ücretsiz. Film bilgileri, görseller ve fragmanlar.</string>
     <string name="omdb_key">OMDb API anahtarı</string>
     <string name="omdb_key_sub">omdbapi.com\'dan ücretsiz. IMDb ve Rotten Tomatoes puanları.</string>
+    <string name="keys_title">Film bilgileri ve puanlar</string>
+    <string name="keys_body">Glint başlıkları, konuları, oyuncuları, afişleri, görselleri ve fragmanları TMDB\'den; IMDb ve Rotten Tomatoes puanlarını OMDb\'den alır. İkisi de ücretsiz: her sitede bir hesap açın, API anahtarınızı kopyalayın ve aşağıya girin. Glint her anahtarı yazmayı bitirdiğinizde dener.</string>
+    <string name="keys_later">Bunu şimdi atlayıp anahtarları sonra Ayarlar → Bilgiler ve Görseller\'den ekleyebilirsiniz. O zamana kadar filmler NAS\'ınızdaki afişler, .nfo bilgileri ve dosya adlarıyla görünür.</string>
+    <string name="keys_continue">Devam</string>
     <string name="key_checking">Kontrol ediliyor…</string>
     <string name="key_ok">Anahtar çalışıyor</string>
     <string name="key_bad">Bu anahtar çalışmıyor</string>

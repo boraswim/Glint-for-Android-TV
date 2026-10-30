@@ -184,6 +184,10 @@
     <string name="tmdb_key_sub">Бесплатно на themoviedb.org → Настройки → API. Описания, изображения и трейлеры.</string>
     <string name="omdb_key">Ключ API OMDb</string>
     <string name="omdb_key_sub">Бесплатно на omdbapi.com. Рейтинги IMDb и Rotten Tomatoes.</string>
+    <string name="keys_title">Сведения и оценки</string>
+    <string name="keys_body">Glint берёт названия, описания, актёров, постеры, изображения и трейлеры из TMDB, а оценки IMDb и Rotten Tomatoes — из OMDb. Оба сервиса бесплатны: создайте аккаунт на каждом сайте, скопируйте ключ API и введите его ниже. Glint проверяет каждый ключ, как только вы закончите ввод.</string>
+    <string name="keys_later">Это можно пропустить и добавить ключи позже в Настройки → Метаданные и изображения. До тех пор фильмы показывают постеры и данные .nfo с вашего NAS и имена файлов.</string>
+    <string name="keys_continue">Продолжить</string>
     <string name="key_checking">Проверка…</string>
     <string name="key_ok">Ключ работает</string>
     <string name="key_bad">Этот ключ не работает</string>

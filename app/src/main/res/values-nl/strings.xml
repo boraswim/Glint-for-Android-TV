@@ -184,6 +184,10 @@
     <string name="tmdb_key_sub">Gratis op themoviedb.org → Instellingen → API. Filmgegevens, afbeeldingen en trailers.</string>
     <string name="omdb_key">OMDb-API-sleutel</string>
     <string name="omdb_key_sub">Gratis op omdbapi.com. IMDb- en Rotten Tomatoes-beoordelingen.</string>
+    <string name="keys_title">Filmgegevens en beoordelingen</string>
+    <string name="keys_body">Glint haalt titels, samenvattingen, cast, posters, afbeeldingen en trailers van TMDB, en de scores van IMDb en Rotten Tomatoes via OMDb. Beide zijn gratis: maak op elke site een account, kopieer je API-sleutel en vul die hieronder in. Glint controleert elke sleutel zodra je klaar bent met typen.</string>
+    <string name="keys_later">Je kunt dit overslaan en de sleutels later toevoegen bij Instellingen → Metadata en afbeeldingen. Tot die tijd tonen films de posters en .nfo-gegevens van je NAS en hun bestandsnamen.</string>
+    <string name="keys_continue">Doorgaan</string>
     <string name="key_checking">Controleren…</string>
     <string name="key_ok">De sleutel werkt</string>
     <string name="key_bad">Deze sleutel werkt niet</string>

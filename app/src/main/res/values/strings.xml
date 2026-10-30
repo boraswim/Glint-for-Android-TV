@@ -197,6 +197,10 @@
     <string name="tmdb_key_sub">Free at themoviedb.org → Settings → API. Film details, artwork and trailers.</string>
     <string name="omdb_key">OMDb API key</string>
     <string name="omdb_key_sub">Free at omdbapi.com. IMDb and Rotten Tomatoes ratings.</string>
+    <string name="keys_title">Film details and ratings</string>
+    <string name="keys_body">Glint gets titles, plots, cast, posters, artwork and trailers from TMDB, and IMDb and Rotten Tomatoes scores from OMDb. Both are free: create an account on each site, copy your API key, and enter it below. Glint checks each key when you finish typing it.</string>
+    <string name="keys_later">You can skip this and add the keys later in Settings → Metadata &amp; Artwork. Until then, films show the posters and .nfo details on your NAS and their file names.</string>
+    <string name="keys_continue">Continue</string>
     <string name="key_checking">Checking…</string>
     <string name="key_ok">The key works</string>
     <string name="key_bad">This key doesn\'t work</string>

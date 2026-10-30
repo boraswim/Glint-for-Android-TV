@@ -184,6 +184,10 @@
     <string name="tmdb_key_sub">Gratuita su themoviedb.org → Impostazioni → API. Dettagli, immagini e trailer.</string>
     <string name="omdb_key">Chiave API di OMDb</string>
     <string name="omdb_key_sub">Gratuita su omdbapi.com. Valutazioni di IMDb e Rotten Tomatoes.</string>
+    <string name="keys_title">Dettagli e valutazioni</string>
+    <string name="keys_body">Glint prende titoli, trame, cast, locandine, immagini e trailer da TMDB, e i punteggi di IMDb e Rotten Tomatoes da OMDb. Sono entrambi gratuiti: crea un account su ciascun sito, copia la tua chiave API e inseriscila qui sotto. Glint verifica ogni chiave appena finisci di scriverla.</string>
+    <string name="keys_later">Puoi saltare questo passo e aggiungere le chiavi più tardi in Impostazioni → Metadati e immagini. Fino ad allora i film mostrano le locandine e i dati .nfo del tuo NAS e i nomi dei file.</string>
+    <string name="keys_continue">Continua</string>
     <string name="key_checking">Verifica in corso…</string>
     <string name="key_ok">La chiave funziona</string>
     <string name="key_bad">Questa chiave non funziona</string>

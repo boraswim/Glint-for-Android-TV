@@ -184,6 +184,10 @@
     <string name="tmdb_key_sub">Bezpłatny na themoviedb.org → Ustawienia → API. Szczegóły, grafiki i zwiastuny.</string>
     <string name="omdb_key">Klucz API OMDb</string>
     <string name="omdb_key_sub">Bezpłatny na omdbapi.com. Oceny IMDb i Rotten Tomatoes.</string>
+    <string name="keys_title">Szczegóły i oceny</string>
+    <string name="keys_body">Glint pobiera tytuły, opisy, obsadę, plakaty, grafiki i zwiastuny z TMDB, a oceny IMDb i Rotten Tomatoes z OMDb. Oba są bezpłatne: załóż konto na każdej stronie, skopiuj klucz API i wpisz go poniżej. Glint sprawdza każdy klucz po zakończeniu wpisywania.</string>
+    <string name="keys_later">Możesz to pominąć i dodać klucze później w Ustawienia → Metadane i grafiki. Do tego czasu filmy pokazują plakaty i dane .nfo z NAS oraz nazwy plików.</string>
+    <string name="keys_continue">Dalej</string>
     <string name="key_checking">Sprawdzanie…</string>
     <string name="key_ok">Klucz działa</string>
     <string name="key_bad">Ten klucz nie działa</string>

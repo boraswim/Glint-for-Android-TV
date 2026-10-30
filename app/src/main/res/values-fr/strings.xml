@@ -184,6 +184,10 @@
     <string name="tmdb_key_sub">Gratuite sur themoviedb.org → Paramètres → API. Détails, images et bandes-annonces.</string>
     <string name="omdb_key">Clé API OMDb</string>
     <string name="omdb_key_sub">Gratuite sur omdbapi.com. Notes IMDb et Rotten Tomatoes.</string>
+    <string name="keys_title">Détails et notes</string>
+    <string name="keys_body">Glint récupère titres, résumés, distribution, affiches, images et bandes-annonces sur TMDB, et les notes IMDb et Rotten Tomatoes via OMDb. Les deux sont gratuits : créez un compte sur chaque site, copiez votre clé API et saisissez-la ci-dessous. Glint vérifie chaque clé dès que vous avez fini de la saisir.</string>
+    <string name="keys_later">Vous pouvez passer cette étape et ajouter les clés plus tard dans Réglages → Métadonnées et visuels. En attendant, les films affichent les affiches et informations .nfo de votre NAS et leurs noms de fichier.</string>
+    <string name="keys_continue">Continuer</string>
     <string name="key_checking">Vérification…</string>
     <string name="key_ok">La clé fonctionne</string>
     <string name="key_bad">Cette clé ne fonctionne pas</string>

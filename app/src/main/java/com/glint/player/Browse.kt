@@ -138,10 +138,12 @@ fun HomeScreen(nav: Nav) {
     // Until focus has settled, a card or tile already on screen takes it without the list moving: the TV would
     // otherwise park a Favorites tile a third of the way down, pushing Watching off the top.
     var settling by remember { mutableStateOf(true) }
+    // No card or tile to go back to (nothing in Watching yet): the TV would give focus to the top bar's first button.
+    val noTarget = remember { wanted == null }
     LaunchedEffect(Unit) {
         delay(400)
         // If nothing claimed focus (empty rows, slow load), start on the first Favorites tile, never the top bar.
-        if (!anyFocus) runCatching { firstTile.requestFocus() }
+        if (!anyFocus || noTarget) runCatching { firstTile.requestFocus() }
         delay(400)
         settling = false
     }

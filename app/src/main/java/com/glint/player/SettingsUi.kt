@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.verticalScroll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -216,12 +217,8 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         ListRow(stringResource(R.string.prefer_local_metadata), onOff(s.preferLocalMetadata), sub = stringResource(R.string.prefer_local_metadata_sub)) { change { s.preferLocalMetadata = !s.preferLocalMetadata } }
                         ListRow(stringResource(R.string.show_ratings), onOff(s.showRatings)) { change { s.showRatings = !s.showRatings } }
                         // The viewer's own keys: TMDB for details, artwork and trailers; OMDb for IMDb and Rotten Tomatoes.
-                        ApiKeyField(R.string.tmdb_key, R.string.tmdb_key_sub, s.tmdbKey, { s.tmdbKey = it }) { key ->
-                            Tmdb({ key }, { s.language }).works().also { if (it) lib.scanAll() }   // match the library now it can be
-                        }
-                        ApiKeyField(R.string.omdb_key, R.string.omdb_key_sub, s.omdbKey, { s.omdbKey = it }) { key ->
-                            Omdb.works(key).also { if (it) Omdb.clear(App.instance) }
-                        }
+                        TmdbKeyField()
+                        OmdbKeyField()
                     }
                 }
                 5 -> item {
@@ -332,7 +329,7 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
  * [check] (off the main thread) whether the service accepts it, and says so below.
  */
 @Composable
-private fun ApiKeyField(label: Int, sub: Int, value: String, onSave: (String) -> Unit, check: (String) -> Boolean) {
+private fun ApiKeyField(label: Int, sub: Int, value: String, onSave: (String) -> Unit, modifier: Modifier = Modifier, check: (String) -> Boolean) {
     var text by remember { mutableStateOf(value) }
     var state by remember { mutableStateOf<Boolean?>(null) }     // null: not checked; true/false: works or not
     var checking by remember { mutableStateOf(false) }
@@ -341,7 +338,7 @@ private fun ApiKeyField(label: Int, sub: Int, value: String, onSave: (String) ->
         Txt(stringResource(label), Type.Heading)
         Txt(stringResource(sub), Type.Small, maxLines = 2)
         Gap(8.dp)
-        TextInput(text, { text = it.trim(); onSave(text); state = null }, "", Modifier.fillMaxWidth(), keyboard = androidx.compose.ui.text.input.KeyboardType.Ascii, onDone = {
+        TextInput(text, { text = it.trim(); onSave(text); state = null }, "", modifier.fillMaxWidth(), keyboard = androidx.compose.ui.text.input.KeyboardType.Ascii, onDone = {
             if (text.isEmpty()) return@TextInput   // cleared: nothing to check
             checking = true
             scope.launch { state = withContext(Dispatchers.IO) { check(text) }; checking = false }
@@ -351,5 +348,46 @@ private fun ApiKeyField(label: Int, sub: Int, value: String, onSave: (String) ->
             state == true -> Txt(stringResource(R.string.key_ok), Type.Small.copy(color = Palette.Accent))
             state == false -> Txt(stringResource(R.string.key_bad), Type.Small.copy(color = Color(0xFFE5484D)))
         }
+    }
+}
+
+/** The viewer's TMDB key; once TMDB accepts it, a library update matches the films. */
+@Composable
+fun TmdbKeyField(modifier: Modifier = Modifier) {
+    val lib = App.library
+    val s = lib.settings
+    ApiKeyField(R.string.tmdb_key, R.string.tmdb_key_sub, s.tmdbKey, { s.tmdbKey = it }, modifier) { key ->
+        Tmdb({ key }, { s.language }).works().also { if (it) lib.scanAll() }   // match the library now it can be
+    }
+}
+
+/** The viewer's OMDb key, for IMDb and Rotten Tomatoes scores. */
+@Composable
+fun OmdbKeyField(modifier: Modifier = Modifier) {
+    val s = App.library.settings
+    ApiKeyField(R.string.omdb_key, R.string.omdb_key_sub, s.omdbKey, { s.omdbKey = it }, modifier) { key ->
+        Omdb.works(key).also { if (it) Omdb.clear(App.instance) }
+    }
+}
+
+/**
+ * Right after the first share is added (when there's no TMDB key yet): what the two free keys bring, with their
+ * fields. Continue, or Back, goes on to Home; the keys stay in Settings → Metadata & Artwork for later.
+ */
+@Composable
+fun KeysScreen(nav: Nav) {
+    androidx.activity.compose.BackHandler { nav.tab(Screen.Home) }
+    Column(Modifier.fillMaxSize().screenBackground().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(horizontal = 160.dp, vertical = 48.dp)) {
+        Txt(stringResource(R.string.keys_title), Type.Hero)
+        Gap(12.dp)
+        Txt(stringResource(R.string.keys_body), Type.Body.copy(fontSize = 17.sp, lineHeight = 24.sp))
+        Gap(24.dp)
+        TmdbKeyField(FocusFirst())
+        Gap(8.dp)
+        OmdbKeyField()
+        Gap(20.dp)
+        Txt(stringResource(R.string.keys_later), Type.Small)
+        Gap(16.dp)
+        PillButton(stringResource(R.string.keys_continue), Modifier.padding(start = 22.dp), primary = true) { nav.tab(Screen.Home) }
     }
 }

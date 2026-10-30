@@ -184,6 +184,10 @@
     <string name="tmdb_key_sub">Gratis en themoviedb.org → Ajustes → API. Detalles, imágenes y tráileres.</string>
     <string name="omdb_key">Clave de API de OMDb</string>
     <string name="omdb_key_sub">Gratis en omdbapi.com. Valoraciones de IMDb y Rotten Tomatoes.</string>
+    <string name="keys_title">Detalles y puntuaciones</string>
+    <string name="keys_body">Glint obtiene títulos, sinopsis, reparto, pósteres, imágenes y tráileres de TMDB, y las puntuaciones de IMDb y Rotten Tomatoes de OMDb. Ambos son gratuitos: crea una cuenta en cada sitio, copia tu clave de API e introdúcela abajo. Glint comprueba cada clave al terminar de escribirla.</string>
+    <string name="keys_later">Puedes omitirlo y añadir las claves más tarde en Ajustes → Metadatos e imágenes. Hasta entonces, las películas muestran los pósteres y datos .nfo de tu NAS y sus nombres de archivo.</string>
+    <string name="keys_continue">Continuar</string>
     <string name="key_checking">Comprobando…</string>
     <string name="key_ok">La clave funciona</string>
     <string name="key_bad">Esta clave no funciona</string>

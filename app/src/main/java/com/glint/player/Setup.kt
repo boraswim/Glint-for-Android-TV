@@ -220,7 +220,7 @@ fun EditSourceScreen(nav: Nav, id: String?) {
                     val first = lib.sources.value.isEmpty()
                     lib.saveSource(d)
                     lib.scanAll()
-                    if (first) nav.tab(Screen.Home) else nav.pop()
+                    if (first) firstShareAdded(nav) else nav.pop()
                 }
             }.onFailure { error = it.message ?: it.javaClass.simpleName }
         }
@@ -230,7 +230,7 @@ fun EditSourceScreen(nav: Nav, id: String?) {
         val first = lib.sources.value.isEmpty()
         lib.saveSource(draft(share).copy(folder = path))
         lib.scanAll()
-        if (first) nav.tab(Screen.Home) else nav.pop()
+        if (first) firstShareAdded(nav) else nav.pop()
     }
 
     Column(Modifier.fillMaxSize().screenBackground()) {
@@ -481,4 +481,10 @@ fun FolderScreen(nav: Nav, screen: Screen.Folder) {
             }
         }
     }
+}
+
+/** After the first share: Home, with the key setup on top when there's no TMDB key yet (Back from it goes Home). */
+private fun firstShareAdded(nav: Nav) {
+    nav.tab(Screen.Home)
+    if (App.library.settings.tmdbKey.isBlank()) nav.push(Screen.Keys)
 }

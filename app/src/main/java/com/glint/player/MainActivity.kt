@@ -79,6 +79,7 @@ sealed interface Screen {
     data class Collection(val id: Int) : Screen
     data class EditSource(val id: String?) : Screen
     data class Match(val id: String, val tv: Boolean) : Screen
+    data object Keys : Screen
 }
 
 /** What a screen needs to move around: push, pop, and remember which card was focused. */
@@ -147,6 +148,7 @@ class MainActivity : ComponentActivity() {
                         is Screen.Collection -> CollectionScreen(nav, screen.id)
                         is Screen.EditSource -> EditSourceScreen(nav, screen.id)
                         is Screen.Match -> MatchScreen(nav, screen)
+                        Screen.Keys -> KeysScreen(nav)
                     }
                 }
                 ResumePrompt(nav)
