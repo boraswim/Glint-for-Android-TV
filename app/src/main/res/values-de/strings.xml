@@ -359,7 +359,7 @@
     <string name="color_green">Grün</string>
     <string name="app_language">App-Sprache</string>
     <string name="type_usb">USB-Laufwerk</string>
-    <string name="usb_permission_sub">Erlaube Glint, USB-Laufwerke an diesem Fernseher zu lesen, damit ihre Filme wie eine Freigabe durchsucht werden.</string>
+    <string name="usb_permission_sub">Erlaube Glint, Videos und Bilder auf USB-Laufwerken an diesem Fernseher zu lesen, damit ihre Filme wie eine Freigabe durchsucht werden. Untertitel- (.srt) und .nfo-Dateien auf dem Laufwerk können nicht gelesen werden; Untertitel im Video funktionieren weiter.</string>
     <string name="usb_permission">Zugriff auf USB-Laufwerke erlauben</string>
     <string name="usb_found">Laufwerke an diesem Fernseher</string>
     <string name="usb_none">Kein USB-Laufwerk gefunden. Schließe eines an und suche erneut.</string>

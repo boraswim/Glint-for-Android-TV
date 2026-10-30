@@ -359,7 +359,7 @@
     <string name="color_green">Vert</string>
     <string name="app_language">Langue de l\'appli</string>
     <string name="type_usb">Disque USB</string>
-    <string name="usb_permission_sub">Autorisez Glint à lire les disques USB branchés sur ce téléviseur pour analyser leurs films comme un partage.</string>
+    <string name="usb_permission_sub">Autorisez Glint à lire les vidéos et images des disques USB branchés sur ce téléviseur pour analyser leurs films comme un partage. Les fichiers de sous-titres (.srt) et .nfo du disque ne peuvent pas être lus ; les sous-titres intégrés à la vidéo fonctionnent toujours.</string>
     <string name="usb_permission">Autoriser l\'accès aux disques USB</string>
     <string name="usb_found">Disques sur ce téléviseur</string>
     <string name="usb_none">Aucun disque USB trouvé. Branchez-en un puis recherchez à nouveau.</string>

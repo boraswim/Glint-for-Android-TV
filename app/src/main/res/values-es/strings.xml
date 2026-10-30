@@ -359,7 +359,7 @@
     <string name="color_green">Verde</string>
     <string name="app_language">Idioma de la app</string>
     <string name="type_usb">Disco USB</string>
-    <string name="usb_permission_sub">Permite que Glint lea los discos USB conectados a esta TV para escanear sus películas como una carpeta compartida.</string>
+    <string name="usb_permission_sub">Permite que Glint lea los vídeos e imágenes de los discos USB conectados a esta TV para escanear sus películas como una carpeta compartida. Los archivos de subtítulos (.srt) y .nfo del disco no se pueden leer; los subtítulos dentro del vídeo siguen funcionando.</string>
     <string name="usb_permission">Permitir acceso a discos USB</string>
     <string name="usb_found">Discos en esta TV</string>
     <string name="usb_none">No se encontró ningún disco USB. Conecta uno y vuelve a buscar.</string>

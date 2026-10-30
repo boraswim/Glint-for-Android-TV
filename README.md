@@ -26,7 +26,8 @@ YouTube when you open a trailer.
   [TMDB](https://www.themoviedb.org/). Local `.nfo` files and artwork next to your files are used too.
 - **Ratings:** IMDb, TMDB and Rotten Tomatoes scores on every film page.
 - **Shares:** SMB (with a selectable SMB version for older NAS boxes), WebDAV, FTP, FTPS, SFTP, NFS and
-  UPnP/DLNA, and USB disks plugged into the TV (new, lightly tested).
+  UPnP/DLNA, and USB disks plugged into the TV (new, lightly tested; subtitle and .nfo files on a USB disk
+  aren't read, since Glint only asks Android for its videos and pictures).
 - **Playback:** seek previews while scrubbing, chapters, resume points, skip intro and credits,
   subtitle styling and timing, audio sync, and quick switching of audio, subtitles and titles from the
   playbar.

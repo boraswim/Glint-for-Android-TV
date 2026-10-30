@@ -131,10 +131,15 @@ object UsbDisks {
         }
     }
 
-    /** True when Glint may read the disks: all-files access, or (older Android) the storage permission. */
+    /** The permissions that let Glint read the disks' videos, pictures and dub audio on this Android version. */
+    val PERMISSIONS: Array<String> =
+        if (android.os.Build.VERSION.SDK_INT >= 33) arrayOf(
+            android.Manifest.permission.READ_MEDIA_VIDEO, android.Manifest.permission.READ_MEDIA_IMAGES, android.Manifest.permission.READ_MEDIA_AUDIO,
+        ) else arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+
+    /** True when Glint may read the disks; videos are what matter, so that permission alone counts. */
     fun canRead(context: android.content.Context): Boolean =
-        if (android.os.Build.VERSION.SDK_INT >= 30 && android.os.Environment.isExternalStorageManager()) true
-        else context.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        context.checkSelfPermission(PERMISSIONS[0]) == android.content.pm.PackageManager.PERMISSION_GRANTED
 }
 
 private object SmbRemote : Remote {

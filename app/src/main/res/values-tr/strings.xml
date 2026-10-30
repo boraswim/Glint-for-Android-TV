@@ -366,7 +366,7 @@
     <string name="color_green">Yeşil</string>
     <string name="app_language">Uygulama dili</string>
     <string name="type_usb">USB disk</string>
-    <string name="usb_permission_sub">Glint\'in bu TV\'ye takılı USB diskleri okumasına izin verin; içindeki filmler paylaşım gibi taranır.</string>
+    <string name="usb_permission_sub">Glint\'in bu TV\'ye takılı USB disklerdeki video ve resimleri okumasına izin verin; içindeki filmler paylaşım gibi taranır. Diskteki altyazı (.srt) ve .nfo dosyaları okunamaz; videonun içindeki altyazılar yine çalışır.</string>
     <string name="usb_permission">USB disklere erişime izin ver</string>
     <string name="usb_found">Bu TV\'deki diskler</string>
     <string name="usb_none">USB disk bulunamadı. Bir disk takın ve yeniden arayın.</string>

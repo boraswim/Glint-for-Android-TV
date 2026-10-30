@@ -359,7 +359,7 @@
     <string name="color_green">Zielony</string>
     <string name="app_language">Język aplikacji</string>
     <string name="type_usb">Dysk USB</string>
-    <string name="usb_permission_sub">Pozwól Glint odczytywać dyski USB podłączone do tego telewizora, aby skanować ich filmy jak udział.</string>
+    <string name="usb_permission_sub">Pozwól Glint odczytywać filmy i obrazy z dysków USB podłączonych do tego telewizora, aby skanować je jak udział. Pliki napisów (.srt) i .nfo na dysku nie mogą być odczytane; napisy wbudowane w wideo nadal działają.</string>
     <string name="usb_permission">Zezwól na dostęp do dysków USB</string>
     <string name="usb_found">Dyski w tym telewizorze</string>
     <string name="usb_none">Nie znaleziono dysku USB. Podłącz dysk i wyszukaj ponownie.</string>

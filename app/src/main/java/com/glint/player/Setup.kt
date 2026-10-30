@@ -152,14 +152,9 @@ fun EditSourceScreen(nav: Nav, id: String?) {
     var disks by remember { mutableStateOf<List<Pair<String, String>>?>(null) }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     var canRead by remember { mutableStateOf(UsbDisks.canRead(ctx)) }
-    val askStorage = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { canRead = UsbDisks.canRead(ctx) }
-    val askAllFiles = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) { canRead = UsbDisks.canRead(ctx) }
-    // Access to USB disks: the all-files screen where the TV has one, else the storage permission.
-    fun askForDisks() {
-        val intent = android.content.Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:" + ctx.packageName))
-        if (android.os.Build.VERSION.SDK_INT >= 30 && intent.resolveActivity(ctx.packageManager) != null) askAllFiles.launch(intent)
-        else askStorage.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-    }
+    val askMedia = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { canRead = UsbDisks.canRead(ctx) }
+    // Access to USB disks: the TV's own "photos and videos" permission prompt.
+    fun askForDisks() = askMedia.launch(UsbDisks.PERMISSIONS)
     var shares by remember { mutableStateOf<List<String>?>(null) }
     // The share and folder open in the folder picker, and the folders in it.
     var browse by remember { mutableStateOf<Pair<String, String>?>(null) }

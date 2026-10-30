@@ -359,7 +359,7 @@
     <string name="color_green">Зелёный</string>
     <string name="app_language">Язык приложения</string>
     <string name="type_usb">USB-диск</string>
-    <string name="usb_permission_sub">Разрешите Glint читать USB-диски, подключённые к этому телевизору, чтобы сканировать фильмы на них как в сетевой папке.</string>
+    <string name="usb_permission_sub">Разрешите Glint читать видео и изображения на USB-дисках, подключённых к этому телевизору, чтобы сканировать фильмы на них как в сетевой папке. Файлы субтитров (.srt) и .nfo на диске прочитать нельзя; встроенные в видео субтитры работают.</string>
     <string name="usb_permission">Разрешить доступ к USB-дискам</string>
     <string name="usb_found">Диски на этом телевизоре</string>
     <string name="usb_none">USB-диск не найден. Подключите диск и повторите поиск.</string>

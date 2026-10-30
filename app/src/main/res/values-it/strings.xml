@@ -359,7 +359,7 @@
     <string name="color_green">Verde</string>
     <string name="app_language">Lingua dell\'app</string>
     <string name="type_usb">Disco USB</string>
-    <string name="usb_permission_sub">Consenti a Glint di leggere i dischi USB collegati a questa TV, così i loro film vengono analizzati come una condivisione.</string>
+    <string name="usb_permission_sub">Consenti a Glint di leggere video e immagini dei dischi USB collegati a questa TV, così i loro film vengono analizzati come una condivisione. I file di sottotitoli (.srt) e .nfo sul disco non possono essere letti; i sottotitoli nel video funzionano comunque.</string>
     <string name="usb_permission">Consenti l\'accesso ai dischi USB</string>
     <string name="usb_found">Dischi su questa TV</string>
     <string name="usb_none">Nessun disco USB trovato. Collegane uno e cerca di nuovo.</string>

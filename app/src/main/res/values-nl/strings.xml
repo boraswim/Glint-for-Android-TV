@@ -359,7 +359,7 @@
     <string name="color_green">Groen</string>
     <string name="app_language">App-taal</string>
     <string name="type_usb">USB-schijf</string>
-    <string name="usb_permission_sub">Sta Glint toe USB-schijven op deze tv te lezen, zodat de films erop als een share worden gescand.</string>
+    <string name="usb_permission_sub">Sta Glint toe video\'s en afbeeldingen op USB-schijven op deze tv te lezen, zodat de films erop als een share worden gescand. Ondertitel- (.srt) en .nfo-bestanden op de schijf kunnen niet worden gelezen; ondertitels in de video werken wel.</string>
     <string name="usb_permission">Toegang tot USB-schijven toestaan</string>
     <string name="usb_found">Schijven op deze tv</string>
     <string name="usb_none">Geen USB-schijf gevonden. Sluit er een aan en zoek opnieuw.</string>

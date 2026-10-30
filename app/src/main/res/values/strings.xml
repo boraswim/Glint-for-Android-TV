@@ -379,7 +379,7 @@
     <string name="color_green">Green</string>
     <string name="app_language">App language</string>
     <string name="type_usb">USB disk</string>
-    <string name="usb_permission_sub">Allow Glint to read USB disks plugged into this TV, so their films can be scanned like a share.</string>
+    <string name="usb_permission_sub">Allow Glint to read the videos and pictures on USB disks plugged into this TV, so their films can be scanned like a share. Subtitle (.srt) and .nfo files on the disk can\'t be read; subtitles inside the video still work.</string>
     <string name="usb_permission">Allow access to USB disks</string>
     <string name="usb_found">Disks on this TV</string>
     <string name="usb_none">No USB disk found. Plug one in, then look again.</string>
