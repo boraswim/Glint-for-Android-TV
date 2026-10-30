@@ -1,5 +1,7 @@
 package com.glint.player
 
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -173,10 +175,55 @@ object Type {
 /** The page background: a soft grey gradient. */
 @Composable
 fun ScreenBackground(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Palette.Top, Palette.Bottom))))
+    Box(modifier.fillMaxSize().screenBackground())
 }
 
-fun Modifier.screenBackground() = this.background(Brush.verticalGradient(listOf(Palette.Top, Palette.Bottom)))
+fun Modifier.screenBackground() = this.then(Modifier.drawBehind {
+    val h = size.height.toInt().coerceAtLeast(1)
+    val tile = DitheredGradient.of(Palette.Top, Palette.Bottom, h)
+    var x = 0
+    while (x < size.width) {
+        drawImage(tile, dstOffset = androidx.compose.ui.unit.IntOffset(x, 0), dstSize = androidx.compose.ui.unit.IntSize(tile.width, h),
+            filterQuality = androidx.compose.ui.graphics.FilterQuality.None)
+        x += tile.width
+    }
+})
+
+/**
+ * The background's top-to-bottom fade, dithered. The dark grey's two ends are only about 40 shades apart, so drawn
+ * plainly over a 1080-line screen it shows as horizontal bands; a fine grain of ±1 shade blends them into a smooth
+ * fade. Made once per colours and height as a 256-pixel-wide strip, tiled across the screen.
+ */
+private object DitheredGradient {
+    private var key: Triple<Color, Color, Int>? = null
+    private var image: androidx.compose.ui.graphics.ImageBitmap? = null
+
+    @Synchronized
+    fun of(top: Color, bottom: Color, height: Int): androidx.compose.ui.graphics.ImageBitmap {
+        val k = Triple(top, bottom, height)
+        image?.takeIf { key == k }?.let { return it }
+        val w = 256
+        val px = IntArray(w * height)
+        val rnd = java.util.Random(7)
+        val a = floatArrayOf(top.red, top.green, top.blue).map { it * 255f }
+        val b = floatArrayOf(bottom.red, bottom.green, bottom.blue).map { it * 255f }
+        for (y in 0 until height) {
+            val t = if (height > 1) y.toFloat() / (height - 1) else 0f
+            val base = FloatArray(3) { a[it] + (b[it] - a[it]) * t }
+            for (x in 0 until w) {
+                // Triangular noise (two uniforms) hides the steps without a visible pattern.
+                val n = rnd.nextFloat() - rnd.nextFloat()
+                val r = (base[0] + n).roundToIntClamped(); val g = (base[1] + n).roundToIntClamped(); val bl = (base[2] + n).roundToIntClamped()
+                px[y * w + x] = (0xFF shl 24) or (r shl 16) or (g shl 8) or bl
+            }
+        }
+        val bmp = android.graphics.Bitmap.createBitmap(px, w, height, android.graphics.Bitmap.Config.ARGB_8888).asImageBitmap()
+        key = k; image = bmp
+        return bmp
+    }
+
+    private fun Float.roundToIntClamped() = Math.round(this).coerceIn(0, 255)
+}
 
 @Composable
 fun Txt(

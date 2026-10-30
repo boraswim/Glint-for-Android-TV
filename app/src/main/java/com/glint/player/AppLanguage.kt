@@ -15,8 +15,11 @@ object AppLanguage {
     /** The TV's own language, as it was before Glint set its pick as the default: "Same as TV" means this. */
     val system: Locale = Locale.getDefault()
 
-    /** Set just before the screen is rebuilt for a new language, so it opens on Settings → Language again. */
-    @Volatile var reopenOnLanguagePage = false
+    /**
+     * Set just before the screen is rebuilt for a new language or appearance: the Settings page (section index) it
+     * opens on again, or -1 for Home.
+     */
+    @Volatile var reopenOnSection = -1
 
     fun code(context: Context): String =
         context.getSharedPreferences("settings", Context.MODE_PRIVATE).getString("appLanguage", "")!!

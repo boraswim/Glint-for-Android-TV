@@ -219,10 +219,23 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         ListRow(stringResource(R.string.show_filenames), onOff(s.showFilenames)) { change { s.showFilenames = !s.showFilenames } }
                         ListRow(stringResource(R.string.list_view), onOff(s.listView)) { change { s.listView = !s.listView } }
                         val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
-                        ListRow(stringResource(R.string.appearance), stringResource(listOf(R.string.theme_black, R.string.dark, R.string.light)[s.theme.coerceIn(0, 2)])) {
-                            s.theme = (s.theme + 1) % 3
-                            Palette.light = s.theme == 2; Palette.black = s.theme == 0
-                            activity?.recreate()
+                        // OK opens the three appearances to pick from (ticked: the one in use); picking redraws the app.
+                        val themes = listOf(R.string.theme_black, R.string.dark, R.string.light).map { stringResource(it) }
+                        var pickingTheme by remember { mutableStateOf(false) }
+                        ListRow(stringResource(R.string.appearance), themes[s.theme.coerceIn(0, 2)]) { pickingTheme = true }
+                        if (pickingTheme) androidx.compose.ui.window.Dialog({ pickingTheme = false }, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+                            TvScale {
+                                OptionSheet(stringResource(R.string.appearance), themes.mapIndexed { i, name ->
+                                    ((if (s.theme == i) "✓  " else "") + name) to {
+                                        if (s.theme != i) {
+                                            s.theme = i
+                                            Palette.light = i == 2; Palette.black = i == 0
+                                            AppLanguage.reopenOnSection = SECTIONS.indexOf(R.string.general)
+                                            activity?.recreate()
+                                        }
+                                    }
+                                }) { pickingTheme = false }
+                            }
                         }
                         ListRow(stringResource(R.string.theme_color), stringResource(ACCENTS[s.accent.coerceIn(0, ACCENTS.lastIndex)].first)) {
                             change { s.accent = (s.accent + 1) % ACCENTS.size; Palette.accent = s.accent }
@@ -318,7 +331,7 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                                 if (code != s.appLanguage) {
                                     s.appLanguage = code
                                     AppLanguage.apply(App.instance)
-                                    AppLanguage.reopenOnLanguagePage = true
+                                    AppLanguage.reopenOnSection = LANGUAGE_SECTION
                                     activity?.recreate()
                                 }
                             }

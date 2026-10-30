@@ -121,10 +121,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             val nav = remember {
                 Nav().apply {
-                    // Rebuilt for a language just picked: back to the Language page, not Home.
-                    if (AppLanguage.reopenOnLanguagePage) {
-                        AppLanguage.reopenOnLanguagePage = false
-                        push(Screen.Settings); push(Screen.SettingsSection(LANGUAGE_SECTION))
+                    // Rebuilt for a language or appearance just picked: back to that Settings page, not Home.
+                    val section = AppLanguage.reopenOnSection
+                    if (section >= 0) {
+                        AppLanguage.reopenOnSection = -1
+                        push(Screen.Settings); push(Screen.SettingsSection(section))
                     }
                 }
             }
