@@ -11,11 +11,16 @@ stay out of the listing.
 | `icon-512.png` | App icon | 512×512 |
 | `feature-graphic-1024x500.png` | Feature graphic | 1024×500 |
 | `tv-banner-1280x720.png` | Android TV banner | 1280×720 |
-| `screenshot-1-home.png`, `screenshot-2-films.png`, `screenshot-3-film.png` | Android TV screenshots | 1920×1080 |
+| `screenshots-en/*.png` | Android TV screenshots (English listing) | 1920×1080 |
+| `screenshots-tr/*.png` | Android TV screenshots (Turkish listing) | 1920×1080 |
+| `promo-video.mp4` | Promo video: upload to YouTube, paste the link | 1920×1080, 31 s |
 
-The screenshots show film posters and artwork from a real library. Those belong to their studios, and Play can
-reject a listing over other people's artwork; a library of freely licensed films (Big Buck Bunny, Sintel, Tears of
-Steel) avoids that.
+The screenshots and the video show a demo library of the Blender Foundation's open films, so no studio artwork
+appears. Their licence (CC BY) asks for credit, which the video's last card carries and the descriptions below
+repeat. The app's own screens are in English in both sets; only the headlines are translated.
+
+For the video on YouTube: upload as public or unlisted (not private), with ads off, and put the credit line in its
+description.
 
 ## English
 
@@ -52,6 +57,8 @@ FOR EVERYONE AT HOME
 • Back up profiles, watch history and settings to your NAS.
 
 Glint uses the TMDB API but is not endorsed or certified by TMDB.
+Films shown in the screenshots and video: Sintel, Tears of Steel, Big Buck Bunny, Elephants Dream and Caminandes,
+© Blender Foundation, CC BY.
 
 ## Türkçe
 
@@ -89,6 +96,8 @@ EVDEKİ HERKES İÇİN
 • Profilleri, izleme geçmişini ve ayarları NAS'ınıza yedekleyin.
 
 Glint, TMDB API'sini kullanır ancak TMDB tarafından onaylanmamış veya sertifikalandırılmamıştır.
+Ekran görüntülerinde ve videoda görünen filmler: Sintel, Tears of Steel, Big Buck Bunny, Elephants Dream ve
+Caminandes, © Blender Foundation, CC BY.
 
 ## Other Play Console fields
 
