@@ -583,22 +583,53 @@ fun GridScreen(nav: Nav, kind: Kind) {
     }
     Box(Modifier.fillMaxSize()) {
         ScreenBackground()
+        val wide = kind == Kind.Others
+        // The side docks (letters on the right, sort and filter on the left), open: the cards give up focus to them,
+        // and take it back (the last one) when they close.
+        var lettersOpen by remember { mutableStateOf(false) }
+        var toolsOpen by remember { mutableStateOf(false) }
+        val wanted = if (lettersOpen || toolsOpen) null else nav.focused(screen) ?: items.firstOrNull()?.id
+        // Coming back from a title: open scrolled to it (a row above it showing), so its card exists to take focus again.
+        val at = remember { items.indexOfFirst { it.id == wanted }.coerceAtLeast(0) }
+        val cols = if (wide) 4 else 6
+        val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState((at / cols - 1).coerceAtLeast(0) * cols)
+        val scope = androidx.compose.runtime.rememberCoroutineScope()
+        // A grid's letters live in a dock on the right, its sort and filter in one on the left; list view keeps its
+        // buttons at the top.
+        val grid = !(s.listView && !wide)
+        val docked = grid
+        // A filter that leaves nothing has no card to press Right from: the dock opens by itself to change it.
+        LaunchedEffect(items.isEmpty()) { if (docked && items.isEmpty()) toolsOpen = true }
+        var focusedIndex by remember { mutableStateOf(-1) }
+        // A to Z in the dock, for a grid sorted by title or file name: a letter jumps to the first one starting with it.
+        val byFile = s.sortOrder == 5
+        val firsts = if ((s.sortOrder == 0 || byFile) && grid && !wide && items.size > 30) remember(items, byFile) {
+            val m = LinkedHashMap<Char, Int>()
+            items.forEachIndexed { i, it ->
+                val name = if (byFile) (it as? Item.MovieItem)?.movie?.file?.name ?: it.title else sortTitle(it.title)
+                m.getOrPut(letterOf(name)) { i }
+            }
+            m
+        } else null
+        fun jump(i: Int) {
+            if (i !in items.indices) return
+            lettersOpen = false
+            scope.launch { gridState.scrollToItem((i / cols - 1).coerceAtLeast(0) * cols) }
+            nav.remember(screen, items[i].id)   // its card takes focus as soon as it's there
+        }
         Column(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxWidth()) {
                 val shown = if (filter == 0) title else "$title  ·  ${filterLabel(filter)}"
                 ScreenTitle("$shown  ·  ${items.size}")
-                Row(Modifier.align(Alignment.CenterEnd).padding(end = 80.dp, top = 22.dp)) {
-                    IconCircle(Icons.AutoMirrored.Filled.Sort, size = 46.dp) { sorting = true }
-                    Spacer(Modifier.width(14.dp))
-                    IconCircle(Icons.Filled.FilterList, size = 46.dp, active = filter != 0) { filtering = true }
+                if (!docked) {
+                    Row(Modifier.align(Alignment.CenterEnd).padding(end = 80.dp, top = 22.dp)) {
+                        IconCircle(Icons.AutoMirrored.Filled.Sort, size = 46.dp) { sorting = true }
+                        Spacer(Modifier.width(14.dp))
+                        IconCircle(Icons.Filled.FilterList, size = 46.dp, active = filter != 0) { filtering = true }
+                    }
                 }
             }
             if (items.isEmpty()) Txt(stringResource(R.string.nothing_here), Type.Body, Modifier.fillMaxWidth().padding(top = 40.dp), align = TextAlign.Center)
-            val wide = kind == Kind.Others
-            val wanted = nav.focused(screen) ?: items.firstOrNull()?.id
-            // Coming back from a title: open scrolled to it (a row above it showing), so its card exists to take focus again.
-            val at = remember { items.indexOfFirst { it.id == wanted }.coerceAtLeast(0) }
-            val cols = if (wide) 4 else 6
             if (s.listView && !wide) {
                 LazyColumn(Modifier.fillMaxSize().padding(horizontal = 160.dp), androidx.compose.foundation.lazy.rememberLazyListState((at - 1).coerceAtLeast(0)), contentPadding = PaddingValues(top = 14.dp, bottom = 60.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(items, key = { it.id }) { item ->
@@ -606,7 +637,6 @@ fun GridScreen(nav: Nav, kind: Kind) {
                     }
                 }
             } else {
-            val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState((at / cols - 1).coerceAtLeast(0) * cols)
             val ctx = androidx.compose.ui.platform.LocalContext.current
             val cardDp = if (wide) 255 else 177
             fun picture(i: Item) = if (wide) i.backdrop ?: i.poster else i.poster
@@ -628,19 +658,42 @@ fun GridScreen(nav: Nav, kind: Kind) {
             }
             LazyVerticalGrid(
                 GridCells.Fixed(cols),
-                Modifier.fillMaxSize(),
+                // Right from a card in the last column opens the letters; Left from the first column, sort and filter.
+                Modifier.fillMaxSize().onPreviewKeyEvent { e ->
+                    when {
+                        !docked || lettersOpen || toolsOpen || e.type != KeyEventType.KeyDown -> false
+                        e.key == Key.DirectionRight && focusedIndex % cols == cols - 1 && firsts != null -> { lettersOpen = true; true }
+                        e.key == Key.DirectionLeft && focusedIndex % cols == 0 -> { toolsOpen = true; true }
+                        else -> false
+                    }
+                },
                 gridState,
                 // Six 177dp posters across the 1280dp screen; 34dp gaps fit the focused one's 10% zoom.
                 contentPadding = if (wide) PaddingValues(start = 80.dp, end = 80.dp, top = 18.dp, bottom = 60.dp) else PaddingValues(start = 24.dp, end = 24.dp, top = 18.dp, bottom = 60.dp),
                 horizontalArrangement = Arrangement.spacedBy(if (wide) 26.dp else 34.dp),
                 verticalArrangement = Arrangement.spacedBy(30.dp),
             ) {
-                items(items, key = { it.id }) { item ->
-                    if (wide) WideCard(item, width = 255.dp, wanted = wanted, label = (item as? Item.MovieItem)?.movie?.file?.name, onLongClick = { sheet = it }, onFocus = { nav.remember(screen, it.id) }, onClick = { play(nav, it) })
-                    else PosterCard(item, width = 177.dp, wanted = wanted, onLongClick = { sheet = it }, onFocus = { nav.remember(screen, it.id) }, onClick = nav::open)
+                items(items.size, key = { items[it].id }) { i ->
+                    val item = items[i]
+                    val focus: (Item) -> Unit = { focusedIndex = i; nav.remember(screen, it.id) }
+                    if (wide) WideCard(item, width = 255.dp, wanted = wanted, label = (item as? Item.MovieItem)?.movie?.file?.name, onLongClick = { sheet = it }, onFocus = focus, onClick = { play(nav, it) })
+                    else PosterCard(item, width = 177.dp, wanted = wanted, onLongClick = { sheet = it }, onFocus = focus, onClick = nav::open)
                 }
             }
             }
+        }
+        if (docked && firsts != null) EdgeDock(lettersOpen, right = true, menuOpen = false, onClose = { lettersOpen = false }, Modifier.align(Alignment.CenterEnd)) { first ->
+            for (letter in LETTERS) {
+                val index = firsts[letter]
+                // Focus starts on the first letter any title starts with.
+                val start = index != null && LETTERS.first { firsts[it] != null } == letter
+                LetterCell(letter, index, Modifier.size(44.dp, 21.dp).then(if (start) first else Modifier), ::jump)
+            }
+        }
+        if (docked) EdgeDock(toolsOpen, right = false, menuOpen = sorting || filtering, onClose = { toolsOpen = false }, Modifier.align(Alignment.CenterStart)) { first ->
+            IconCircle(Icons.AutoMirrored.Filled.Sort, first, size = 40.dp) { sorting = true }
+            Gap(12.dp)
+            IconCircle(Icons.Filled.FilterList, size = 40.dp, active = filter != 0) { filtering = true }
         }
         sheet?.let { ItemMenu(it, nav) { sheet = null } }
         if (sorting) SortSheet { sorting = false; sortTick++ }
@@ -706,6 +759,69 @@ private fun PosterRow(item: Item, modifier: Modifier, onLongClick: () -> Unit, o
 
 /** "The Matrix" sorts under M. */
 fun sortTitle(t: String) = t.lowercase().removePrefix("the ").removePrefix("a ").removePrefix("an ").trim()
+
+/** The A–Z letter a name is filed under: accents dropped (Ç → C, ı → I), anything else '#'. */
+private fun letterOf(name: String): Char {
+    val c = java.text.Normalizer.normalize(name.trim().take(1), java.text.Normalizer.Form.NFD).firstOrNull() ?: return '#'
+    val up = if (c == 'ı') 'I' else c.uppercaseChar()
+    return if (up in 'A'..'Z') up else '#'
+}
+
+/** The letters down the right dock: A to Z, then one entry for titles starting with a number. */
+private val LETTERS = ('A'..'Z') + '#'
+
+/**
+ * A small panel at the middle of the grid's right or left edge. Closed, it's a faint line; Right from the last
+ * column (or Left from the first) opens it over the cards, focus on its first entry; the opposite arrow or Back
+ * closes it again. [content] is laid out in a column and puts the given modifier on the entry focus starts on.
+ */
+@Composable
+private fun EdgeDock(open: Boolean, right: Boolean, menuOpen: Boolean, onClose: () -> Unit, modifier: Modifier, content: @Composable (first: Modifier) -> Unit) {
+    Box(modifier.fillMaxHeight().width(90.dp), contentAlignment = if (right) Alignment.CenterEnd else Alignment.CenterStart) {
+        if (!open) Box(Modifier.padding(horizontal = 6.dp).size(4.dp, 220.dp).clip(RoundedCornerShape(2.dp)).background(Color.White.copy(alpha = 0.18f)))
+        androidx.compose.animation.AnimatedVisibility(
+            open,
+            enter = androidx.compose.animation.slideInHorizontally { if (right) it else -it } + androidx.compose.animation.fadeIn(),
+            exit = androidx.compose.animation.slideOutHorizontally { if (right) it else -it } + androidx.compose.animation.fadeOut(),
+        ) {
+            val panel = remember { FocusRequester() }
+            // Focus goes to the panel's first entry on opening, and back there after a menu opened from it closes.
+            LaunchedEffect(menuOpen) { if (!menuOpen) { delay(60); runCatching { panel.requestFocus() } } }
+            BackHandler(onBack = onClose)
+            val back = if (right) Key.DirectionLeft else Key.DirectionRight
+            Column(
+                Modifier.padding(horizontal = 18.dp)
+                    .shadow(16.dp, RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xF0161618))
+                    .onPreviewKeyEvent { e -> if (e.type == KeyEventType.KeyDown && e.key == back) { onClose(); true } else false }
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) { content(Modifier.focusRequester(panel)) }
+        }
+    }
+}
+
+/** One letter of the dock; letters no title starts with are dimmed and skipped by the remote. */
+@Composable
+private fun LetterCell(letter: Char, index: Int?, modifier: Modifier, onPick: (Int) -> Unit) {
+    val source = remember { MutableInteractionSource() }
+    val focused by source.collectIsFocusedAsState()
+    Box(
+        modifier.clip(RoundedCornerShape(8.dp))
+            .background(if (focused) Color.White else Color.Transparent)
+            .then(if (index != null) Modifier.clickable(source, indication = null) { onPick(index) } else Modifier),
+        contentAlignment = Alignment.Center,
+    ) {
+        Txt(
+            if (letter == '#') "0–9" else letter.toString(),
+            Type.Meta.copy(
+                fontSize = 15.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                color = when { focused -> Color.Black; index != null -> Palette.Text; else -> Palette.Faint.copy(alpha = 0.45f) },
+            ),
+        )
+    }
+}
 
 // ---- By genre ----
 
