@@ -23,8 +23,8 @@ android {
         applicationId = "com.glint.player"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.2.1"
         // Mi Box S is 32-bit ARM; arm64 covers newer boxes. Skipping x86 keeps libVLC's size down.
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
     }
@@ -48,6 +48,9 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName(if (releaseKey != null) "release" else "debug")
+            // The native libraries' symbol tables go into the bundle, so Play can name the functions in native
+            // crash and ANR reports (it warns when they're missing).
+            ndk { debugSymbolLevel = "SYMBOL_TABLE" }
         }
     }
 
