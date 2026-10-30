@@ -137,6 +137,8 @@
     <string name="up_next_in">Далее через %1$d</string>
     <string name="play_now">Смотреть сейчас</string>
     <string name="cancel">Отмена</string>
+    <string name="privacy_policy">Политика конфиденциальности</string>
+    <string name="no_browser">На этом телевизоре нет браузера. Политика находится по адресу %1$s</string>
     <string name="reset_all">Удалить все данные</string>
     <string name="reset_all_sub">Удаляет всё, что Glint хранит на этом телевизоре: папки, ключи, профили, историю, списки и настройки. Резервная копия на NAS остаётся. Затем Glint запускается заново.</string>
     <string name="reset_all_confirm">Удалить всё и начать заново?</string>

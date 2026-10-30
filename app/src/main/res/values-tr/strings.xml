@@ -137,6 +137,8 @@
     <string name="up_next_in">Sıradaki %1$d sn içinde</string>
     <string name="play_now">Şimdi oynat</string>
     <string name="cancel">İptal</string>
+    <string name="privacy_policy">Gizlilik politikası</string>
+    <string name="no_browser">Bu TV\'de web tarayıcısı yok. Politika şu adreste: %1$s</string>
     <string name="reset_all">Tüm verileri sil</string>
     <string name="reset_all_sub">Glint\'in bu TV\'de tuttuğu her şeyi siler: paylaşımlar, anahtarlar, profiller, izleme geçmişi, listeler ve ayarlar. NAS\'ınızdaki yedek kalır. Glint ardından ilk günkü gibi açılır.</string>
     <string name="reset_all_confirm">Her şey silinip baştan başlansın mı?</string>

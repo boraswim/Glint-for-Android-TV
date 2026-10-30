@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,6 +47,9 @@ private val SECTIONS = listOf(
 
 /** Index of Settings → Language in [SECTIONS]. */
 val LANGUAGE_SECTION = SECTIONS.indexOf(R.string.language)
+
+/** Glint's privacy policy, as published for Google Play (the same text as PRIVACY.md in the repo). */
+const val PRIVACY_URL = "https://boraswim.github.io/glint/privacy/"
 
 private val LANGS = listOf("en", "tr", "de", "fr", "es", "it", "pt", "nl", "sv", "pl", "ru", "ar", "ja", "ko", "zh")
 private val TMDB_REGION = mapOf("en" to "US", "pt" to "BR", "sv" to "SE", "ar" to "SA", "ja" to "JP", "ko" to "KR", "zh" to "CN")
@@ -385,6 +389,14 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         Gap(6.dp)
                         Txt(stringResource(R.string.license_notice), Type.Body, align = TextAlign.Center)
                         if (!lib.tmdb.enabled) { Gap(6.dp); Txt(stringResource(R.string.tmdb_missing), Type.Body.copy(color = Palette.Accent)) }
+                        // The privacy policy, as Google Play asks: its address is shown, and OK opens it where the TV
+                        // has a browser (many don't, hence the address on screen).
+                        Gap(20.dp)
+                        val ctx = androidx.compose.ui.platform.LocalContext.current
+                        ListRow(stringResource(R.string.privacy_policy), sub = PRIVACY_URL, modifier = Modifier.widthIn(max = 720.dp)) {
+                            runCatching { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(PRIVACY_URL))) }
+                                .onFailure { android.widget.Toast.makeText(ctx, ctx.getString(R.string.no_browser, PRIVACY_URL), android.widget.Toast.LENGTH_LONG).show() }
+                        }
                     }
                 }
             }

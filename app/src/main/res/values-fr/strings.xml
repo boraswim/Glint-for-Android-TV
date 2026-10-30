@@ -137,6 +137,8 @@
     <string name="up_next_in">À suivre dans %1$d</string>
     <string name="play_now">Lire maintenant</string>
     <string name="cancel">Annuler</string>
+    <string name="privacy_policy">Politique de confidentialité</string>
+    <string name="no_browser">Aucun navigateur sur ce téléviseur. La politique se trouve à %1$s</string>
     <string name="reset_all">Supprimer toutes les données</string>
     <string name="reset_all_sub">Supprime tout ce que Glint garde sur ce téléviseur : partages, clés, profils, historique, listes et réglages. La sauvegarde sur votre NAS est conservée. Glint redémarre ensuite comme neuf.</string>
     <string name="reset_all_confirm">Tout supprimer et recommencer ?</string>

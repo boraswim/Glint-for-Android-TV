@@ -137,6 +137,8 @@
     <string name="up_next_in">Il prossimo tra %1$d</string>
     <string name="play_now">Riproduci ora</string>
     <string name="cancel">Annulla</string>
+    <string name="privacy_policy">Informativa sulla privacy</string>
+    <string name="no_browser">Nessun browser su questo televisore. L\'informativa è su %1$s</string>
     <string name="reset_all">Elimina tutti i dati</string>
     <string name="reset_all_sub">Elimina tutto ciò che Glint conserva su questa TV: condivisioni, chiavi, profili, cronologia, elenchi e impostazioni. Il backup sul tuo NAS resta. Poi Glint riparte da zero.</string>
     <string name="reset_all_confirm">Eliminare tutto e ricominciare?</string>

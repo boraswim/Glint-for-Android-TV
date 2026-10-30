@@ -137,6 +137,8 @@
     <string name="up_next_in">Hierna over %1$d</string>
     <string name="play_now">Nu afspelen</string>
     <string name="cancel">Annuleren</string>
+    <string name="privacy_policy">Privacybeleid</string>
+    <string name="no_browser">Geen webbrowser op deze tv. Het beleid staat op %1$s</string>
     <string name="reset_all">Alle gegevens wissen</string>
     <string name="reset_all_sub">Wist alles wat Glint op deze tv bewaart: shares, sleutels, profielen, kijkgeschiedenis, lijsten en instellingen. Een back-up op je NAS blijft staan. Daarna begint Glint opnieuw.</string>
     <string name="reset_all_confirm">Alles wissen en opnieuw beginnen?</string>

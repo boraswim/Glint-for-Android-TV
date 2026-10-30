@@ -176,6 +176,9 @@ fun Welcome(onAdd: () -> Unit) {
         Txt(stringResource(R.string.welcome_body), Type.Body.copy(fontSize = 18.sp), Modifier.widthIn(max = 640.dp))
         Gap(32.dp)
         PillButton(stringResource(R.string.add_source), Modifier.focusRequester(r), primary = true, onClick = onAdd)
+        // A video link plays without adding a share: a first look at the player (and what app reviewers use).
+        Gap(16.dp)
+        UrlRow()
     }
 }
 

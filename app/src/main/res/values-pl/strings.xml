@@ -137,6 +137,8 @@
     <string name="up_next_in">Następny za %1$d</string>
     <string name="play_now">Odtwórz teraz</string>
     <string name="cancel">Anuluj</string>
+    <string name="privacy_policy">Polityka prywatności</string>
+    <string name="no_browser">Ten telewizor nie ma przeglądarki. Polityka jest pod adresem %1$s</string>
     <string name="reset_all">Usuń wszystkie dane</string>
     <string name="reset_all_sub">Usuwa wszystko, co Glint przechowuje na tym telewizorze: udziały, klucze, profile, historię, listy i ustawienia. Kopia zapasowa na NAS zostaje. Potem Glint startuje od nowa.</string>
     <string name="reset_all_confirm">Usunąć wszystko i zacząć od nowa?</string>

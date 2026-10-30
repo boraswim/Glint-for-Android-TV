@@ -118,9 +118,9 @@ private fun SpeedTestRow() {
     }
 }
 
-/** "Play a URL": type or paste a link and play it straight away. */
+/** "Play a URL": type or paste a link and play it straight away. Also on the Welcome screen, before any share. */
 @Composable
-private fun UrlRow() {
+fun UrlRow() {
     var url by remember { mutableStateOf("") }
     Column(Modifier.padding(top = 24.dp)) {
         Txt(stringResource(R.string.direct_url), Type.Meta, Modifier.padding(bottom = 8.dp))
