@@ -236,7 +236,7 @@ private fun RatingSheet(id: String, title: String, onDismiss: () -> Unit) {
     val lib = App.library
     val options = (5 downTo 1).map { n -> ("★".repeat(n) + "☆".repeat(5 - n)) to { lib.rate(id, n) } } +
         (stringResource(R.string.rating_clear) to { lib.rate(id, 0) })
-    OptionSheet(title, options, onDismiss)
+    OptionSheet(title, options, onDismiss = onDismiss)
 }
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)

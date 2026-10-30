@@ -361,7 +361,7 @@ fun PinSheet(key: String, label: String, onDismiss: () -> Unit) {
     OptionSheet(label, listOf(
         stringResource(R.string.pin_as_favorite) to { lib.pin(Pin(key, label, row = false)) },
         stringResource(R.string.pin_as_list) to { lib.pin(Pin(key, label, row = true)) },
-    ), onDismiss)
+    ), onDismiss = onDismiss)
 }
 
 @Composable
@@ -410,9 +410,9 @@ fun EmptyLibrary() {
 
 // ---- Overlays ----
 
-/** A centred list of choices over a dimmed screen; Back closes it. */
+/** A centred list of choices over a dimmed screen; Back closes it. [message] sits under the title; option [danger] is red. */
 @Composable
-fun OptionSheet(title: String, options: List<Pair<String, () -> Unit>>, onDismiss: () -> Unit) {
+fun OptionSheet(title: String, options: List<Pair<String, () -> Unit>>, message: String? = null, danger: Int = -1, onDismiss: () -> Unit) {
     BackHandler(onBack = onDismiss)
     // A sheet opened by holding OK still gets that press's repeats and its release; without this
     // the first option would fire when the button is let go. Only a fresh press counts.
@@ -432,8 +432,9 @@ fun OptionSheet(title: String, options: List<Pair<String, () -> Unit>>, onDismis
         androidx.compose.runtime.CompositionLocalProvider(LocalTextScale provides 1f) {
             Column(Modifier.width(520.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xF2303236)).padding(26.dp)) {
                 Txt(title, Type.Heading, Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 2, align = TextAlign.Center)
+                if (message != null) Txt(message, Type.Small, Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 12)
                 options.forEachIndexed { i, (label, action) ->
-                    ListRow(label, modifier = if (i == 0) FocusFirst() else Modifier) { action(); onDismiss() }
+                    ListRow(label, modifier = if (i == 0) FocusFirst() else Modifier, danger = i == danger) { action(); onDismiss() }
                     Gap(8.dp)
                 }
             }
@@ -477,7 +478,8 @@ fun ItemMenu(item: Item, nav: Nav, onDismiss: () -> Unit) {
             add(stringResource(R.string.change_backdrop) to { nav.push(Screen.Artwork(art.first, art.second, backdrop = true)) })
         }
     }
-    OptionSheet(item.title, options, onDismiss)
+    // "Add to collection" opens a second window, so this menu stays up to show it.
+    OptionSheet(item.title, options, onDismiss = { if (!adding) onDismiss() })
 }
 
 /** Choices of a grid's filter button; [GridScreen] applies them by index. */
@@ -495,7 +497,7 @@ private fun filterLabel(i: Int) = when (i) {
 fun SortSheet(onDismiss: () -> Unit) {
     val s = App.library.settings
     val labels = listOf(R.string.sort_title, R.string.sort_added, R.string.sort_year, R.string.sort_rating, R.string.sort_duration, R.string.sort_file_name)
-    OptionSheet(stringResource(R.string.sort_order), labels.mapIndexed { i, r -> ((if (s.sortOrder == i) "✓  " else "") + stringResource(r)) to { s.sortOrder = i } }, onDismiss)
+    OptionSheet(stringResource(R.string.sort_order), labels.mapIndexed { i, r -> ((if (s.sortOrder == i) "✓  " else "") + stringResource(r)) to { s.sortOrder = i } }, onDismiss = onDismiss)
 }
 
 // ---- Grids ----
@@ -943,6 +945,7 @@ fun SearchScreen(nav: Nav) {
     val lib = App.library
     val data by lib.data.collectAsState()
     var query by rememberSaveable { mutableStateOf("") }
+    var sheet by remember { mutableStateOf<Item?>(null) }
     val results = remember(data, query) {
         val q = Names.normalise(query)
         if (q.length < 2) emptyList() else {
@@ -968,8 +971,9 @@ fun SearchScreen(nav: Nav) {
                 horizontalArrangement = Arrangement.spacedBy(34.dp),
                 verticalArrangement = Arrangement.spacedBy(30.dp),
             ) {
-                items(results, key = { it.id }) { item -> PosterCard(item, width = 177.dp, wanted = nav.focused(Screen.Search), onFocus = { nav.remember(Screen.Search, it.id) }, onClick = nav::open) }
+                items(results, key = { it.id }) { item -> PosterCard(item, width = 177.dp, wanted = nav.focused(Screen.Search), onLongClick = { sheet = it }, onFocus = { nav.remember(Screen.Search, it.id) }, onClick = nav::open) }
             }
         }
+        sheet?.let { ItemMenu(it, nav) { sheet = null } }
     }
 }

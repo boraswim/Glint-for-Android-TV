@@ -340,7 +340,9 @@ class SizedPosterFetcher(private val data: SizedPoster, private val options: coi
         }
         /** Keeps the folder under [limit] bytes, dropping the least recently used files first. */
         fun trim(ctx: android.content.Context, limit: Long = 400L shl 20) {
-            val files = dir(ctx).listFiles()?.sortedBy { it.lastModified() } ?: return
+            // Times read once first: posters loading meanwhile touch their files, and a sort whose keys change
+            // under it throws ("Comparison method violates its general contract").
+            val files = dir(ctx).listFiles()?.map { it to it.lastModified() }?.sortedBy { it.second }?.map { it.first } ?: return
             var total = files.sumOf { it.length() }
             for (f in files) { if (total <= limit) break; total -= f.length(); f.delete() }
         }
