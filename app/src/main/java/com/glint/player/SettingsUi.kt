@@ -234,11 +234,19 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                                             activity?.recreate()
                                         }
                                     }
-                                }) { pickingTheme = false }
+                                }, start = s.theme.coerceIn(0, 2)) { pickingTheme = false }
                             }
                         }
-                        ListRow(stringResource(R.string.theme_color), stringResource(ACCENTS[s.accent.coerceIn(0, ACCENTS.lastIndex)].first)) {
-                            change { s.accent = (s.accent + 1) % ACCENTS.size; Palette.accent = s.accent }
+                        // OK opens the colours to pick from (ticked: the one in use); the colour changes at once.
+                        val accents = ACCENTS.map { stringResource(it.first) }
+                        var pickingAccent by remember { mutableStateOf(false) }
+                        ListRow(stringResource(R.string.theme_color), accents[s.accent.coerceIn(0, ACCENTS.lastIndex)]) { pickingAccent = true }
+                        if (pickingAccent) androidx.compose.ui.window.Dialog({ pickingAccent = false }, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+                            TvScale {
+                                OptionSheet(stringResource(R.string.theme_color), accents.mapIndexed { i, name ->
+                                    ((if (s.accent == i) "✓  " else "") + name) to { change { s.accent = i; Palette.accent = i } }
+                                }, start = s.accent.coerceIn(0, ACCENTS.lastIndex)) { pickingAccent = false }
+                            }
                         }
                         val ctx = androidx.compose.ui.platform.LocalContext.current
                         ListRow(stringResource(R.string.app_logo), stringResource(if (AppLogo.isWhite(ctx)) R.string.app_logo_white else R.string.app_logo_black), sub = stringResource(R.string.app_logo_sub)) {

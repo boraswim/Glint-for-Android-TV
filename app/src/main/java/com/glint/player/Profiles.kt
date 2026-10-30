@@ -48,9 +48,13 @@ private val PROFILE_COLORS = listOf(
 
 @Composable
 fun Avatar(p: Profile, size: androidx.compose.ui.unit.Dp) {
+    // The main profile wears the theme colour (Settings → General); the others the colour picked for them.
+    val main = p.id == "main"
+    val colors = if (main) listOf(Palette.Accent, androidx.compose.ui.graphics.lerp(Palette.Accent, Color.White, 0.35f))
+        else PROFILE_COLORS[p.color % PROFILE_COLORS.size]
     Box(Modifier.size(size)) {
-        Box(Modifier.fillMaxSize().clip(CircleShape).background(Brush.linearGradient(PROFILE_COLORS[p.color % PROFILE_COLORS.size])), contentAlignment = Alignment.Center) {
-            Txt(p.name.take(1).uppercase(), Type.Hero.copy(fontSize = (size.value * 0.42f).sp))
+        Box(Modifier.fillMaxSize().clip(CircleShape).background(Brush.linearGradient(colors)), contentAlignment = Alignment.Center) {
+            Txt(p.name.take(1).uppercase(), Type.Hero.copy(fontSize = (size.value * 0.42f).sp, color = if (main) Palette.OnAccent else Palette.Text))
         }
         if (p.restricted) Box(Modifier.align(Alignment.BottomEnd).size(size * 0.28f).clip(CircleShape).background(Color(0xCC000000)), contentAlignment = Alignment.Center) {
             Icon(Icons.Filled.Lock, Color.White, Modifier.size(size * 0.16f))
@@ -170,8 +174,11 @@ private fun ProfileEditor(start: Profile, onDone: () -> Unit) {
             Gap(16.dp)
             TextInput(p.name, { p = p.copy(name = it.take(20)) }, stringResource(R.string.field_name), FocusFirst().fillMaxWidth())
             Gap(10.dp)
-            ListRow(stringResource(R.string.profile_color)) { p = p.copy(color = (p.color + 1) % PROFILE_COLORS.size) }
-            Gap(8.dp)
+            // The main profile follows the theme colour, so only the others pick their own.
+            if (p.id != "main") {
+                ListRow(stringResource(R.string.profile_color)) { p = p.copy(color = (p.color + 1) % PROFILE_COLORS.size) }
+                Gap(8.dp)
+            }
             ListRow(stringResource(R.string.restrictions), App.instance.getString(if (p.restricted) R.string.on else R.string.off), sub = stringResource(R.string.restrictions_sub)) { p = p.copy(restricted = !p.restricted) }
             if (p.restricted) {
                 Gap(8.dp)

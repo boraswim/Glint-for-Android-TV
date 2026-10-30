@@ -417,9 +417,12 @@ fun EmptyLibrary() {
 
 // ---- Overlays ----
 
-/** A centred list of choices over a dimmed screen; Back closes it. [message] sits under the title; option [danger] is red. */
+/**
+ * A centred list of choices over a dimmed screen; Back closes it. [message] sits under the title; option [danger] is
+ * red; focus starts on option [start].
+ */
 @Composable
-fun OptionSheet(title: String, options: List<Pair<String, () -> Unit>>, message: String? = null, danger: Int = -1, onDismiss: () -> Unit) {
+fun OptionSheet(title: String, options: List<Pair<String, () -> Unit>>, message: String? = null, danger: Int = -1, start: Int = 0, onDismiss: () -> Unit) {
     BackHandler(onBack = onDismiss)
     // A sheet opened by holding OK still gets that press's repeats and its release; without this
     // the first option would fire when the button is let go. Only a fresh press counts.
@@ -449,7 +452,7 @@ fun OptionSheet(title: String, options: List<Pair<String, () -> Unit>>, message:
                 options.forEachIndexed { i, (label, action) ->
                     ListRow(
                         label, danger = i == danger,
-                        modifier = (if (i == 0) FocusFirst() else Modifier).focusRequester(rows[i]).onFocusChanged { if (it.isFocused) at = i },
+                        modifier = (if (i == start.coerceIn(0, options.lastIndex)) FocusFirst() else Modifier).focusRequester(rows[i]).onFocusChanged { if (it.isFocused) at = i },
                     ) { action(); onDismiss() }
                     Gap(8.dp)
                 }
