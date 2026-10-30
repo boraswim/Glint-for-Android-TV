@@ -437,6 +437,13 @@ fun PosterCard(item: Item, width: Dp = 160.dp, wanted: String? = null, onLongCli
     val progress by lib.progress.collectAsState()
     val s = lib.settings
     var hasFocus by remember { mutableStateOf(false) }
+    // A poster that keeps focus for a moment is likely to be opened: its page's backdrop (a large original) starts
+    // loading now, so the page opens with it in place. Passing over posters while scrolling fetches nothing.
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    if (hasFocus) LaunchedEffect(item.id) {
+        kotlinx.coroutines.delay(350)
+        item.backdrop?.let { coil.Coil.imageLoader(ctx).enqueue(fullScreenRequest(ctx, it)) }
+    }
     Column(Modifier.width(width).onFocusChanged { hasFocus = it.hasFocus }, horizontalAlignment = Alignment.CenterHorizontally) {
         FocusCard(
             Modifier.restoreFocus(item.id, wanted).fillMaxWidth().aspectRatio(2f / 3f),
@@ -655,9 +662,15 @@ fun ListRow(label: String, value: String = "", modifier: Modifier = Modifier, su
 fun fullScreen(model: Any): coil.request.ImageRequest {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val m = ctx.resources.displayMetrics
-    return remember(model, m.widthPixels, m.heightPixels) {
-        coil.request.ImageRequest.Builder(ctx).data(sharper(model)).size(m.widthPixels, m.heightPixels).build()
-    }
+    return remember(model, m.widthPixels, m.heightPixels) { fullScreenRequest(ctx, model) }
+}
+
+/** The same request outside a composable, so a focused poster can load its page's backdrop ahead of time. */
+fun fullScreenRequest(ctx: android.content.Context, model: Any): coil.request.ImageRequest {
+    val m = ctx.resources.displayMetrics
+    // Scale is fixed to what the pages' ContentScale.Crop asks for, so the page finds this one in the memory cache.
+    return coil.request.ImageRequest.Builder(ctx).data(sharper(model)).size(m.widthPixels, m.heightPixels)
+        .scale(coil.size.Scale.FILL).build()
 }
 
 /** Full-bleed backdrop that fades into the page on the left and bottom. */
