@@ -338,6 +338,10 @@
     <string name="size_xlarge">Очень большой</string>
     <string name="none_choice">Нет</string>
     <string name="theme_color">Цвет темы</string>
+    <string name="app_logo">Логотип приложения</string>
+    <string name="app_logo_black">Чёрный</string>
+    <string name="app_logo_white">Белый</string>
+    <string name="app_logo_sub">Фон значка и баннера Glint на главном экране телевизора</string>
     <string name="color_orange">Оранжевый</string>
     <string name="color_red">Красный</string>
     <string name="color_pink">Розовый</string>

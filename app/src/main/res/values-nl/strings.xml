@@ -338,6 +338,10 @@
     <string name="size_xlarge">Extra groot</string>
     <string name="none_choice">Geen</string>
     <string name="theme_color">Themakleur</string>
+    <string name="app_logo">App-logo</string>
+    <string name="app_logo_black">Zwart</string>
+    <string name="app_logo_white">Wit</string>
+    <string name="app_logo_sub">De achtergrond van het pictogram en de banner van Glint op het startscherm van de tv</string>
     <string name="color_orange">Oranje</string>
     <string name="color_red">Rood</string>
     <string name="color_pink">Roze</string>

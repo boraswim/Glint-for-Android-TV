@@ -345,6 +345,10 @@
     <string name="size_xlarge">Çok büyük</string>
     <string name="none_choice">Hiçbiri</string>
     <string name="theme_color">Tema rengi</string>
+    <string name="app_logo">Uygulama logosu</string>
+    <string name="app_logo_black">Siyah</string>
+    <string name="app_logo_white">Beyaz</string>
+    <string name="app_logo_sub">Glint simgesinin ve afişinin TV ana ekranındaki arka planı</string>
     <string name="color_orange">Turuncu</string>
     <string name="color_red">Kırmızı</string>
     <string name="color_pink">Pembe</string>

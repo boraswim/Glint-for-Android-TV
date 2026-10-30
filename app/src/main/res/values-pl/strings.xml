@@ -338,6 +338,10 @@
     <string name="size_xlarge">Bardzo duży</string>
     <string name="none_choice">Brak</string>
     <string name="theme_color">Kolor motywu</string>
+    <string name="app_logo">Logo aplikacji</string>
+    <string name="app_logo_black">Czarne</string>
+    <string name="app_logo_white">Białe</string>
+    <string name="app_logo_sub">Tło ikony i banera Glint na ekranie głównym telewizora</string>
     <string name="color_orange">Pomarańczowy</string>
     <string name="color_red">Czerwony</string>
     <string name="color_pink">Różowy</string>

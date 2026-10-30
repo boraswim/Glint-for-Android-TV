@@ -199,6 +199,10 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         ListRow(stringResource(R.string.theme_color), stringResource(ACCENTS[s.accent.coerceIn(0, ACCENTS.lastIndex)].first)) {
                             change { s.accent = (s.accent + 1) % ACCENTS.size; Palette.accent = s.accent }
                         }
+                        val ctx = androidx.compose.ui.platform.LocalContext.current
+                        ListRow(stringResource(R.string.app_logo), stringResource(if (AppLogo.isWhite(ctx)) R.string.app_logo_white else R.string.app_logo_black), sub = stringResource(R.string.app_logo_sub)) {
+                            change { AppLogo.set(ctx, !AppLogo.isWhite(ctx)) }
+                        }
                         ListRow(stringResource(R.string.restore_tiles), sub = stringResource(R.string.restore_tiles_sub)) { lib.showAllTiles() }
                         ListRow(stringResource(R.string.hide_spoilers), onOff(s.hideSpoilers), sub = stringResource(R.string.hide_spoilers_sub)) { change { s.hideSpoilers = !s.hideSpoilers } }
                         val sorts = listOf(R.string.sort_title, R.string.sort_added, R.string.sort_year, R.string.sort_rating, R.string.sort_duration, R.string.sort_file_name)

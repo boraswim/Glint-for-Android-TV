@@ -338,6 +338,10 @@
     <string name="size_xlarge">Muito grande</string>
     <string name="none_choice">Nenhum</string>
     <string name="theme_color">Cor do tema</string>
+    <string name="app_logo">Logotipo do app</string>
+    <string name="app_logo_black">Preto</string>
+    <string name="app_logo_white">Branco</string>
+    <string name="app_logo_sub">O fundo do ícone e do banner do Glint na tela inicial da TV</string>
     <string name="color_orange">Laranja</string>
     <string name="color_red">Vermelho</string>
     <string name="color_pink">Rosa</string>

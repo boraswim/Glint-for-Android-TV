@@ -338,6 +338,10 @@
     <string name="size_xlarge">Sehr groß</string>
     <string name="none_choice">Keine</string>
     <string name="theme_color">Designfarbe</string>
+    <string name="app_logo">App-Logo</string>
+    <string name="app_logo_black">Schwarz</string>
+    <string name="app_logo_white">Weiß</string>
+    <string name="app_logo_sub">Hintergrund von Glints Symbol und Banner auf dem Startbildschirm des Fernsehers</string>
     <string name="color_orange">Orange</string>
     <string name="color_red">Rot</string>
     <string name="color_pink">Pink</string>

@@ -358,6 +358,10 @@
     <string name="size_xlarge">Extra large</string>
     <string name="none_choice">None</string>
     <string name="theme_color">Theme colour</string>
+    <string name="app_logo">App logo</string>
+    <string name="app_logo_black">Black</string>
+    <string name="app_logo_white">White</string>
+    <string name="app_logo_sub">The background of Glint\'s icon and banner on the TV\'s home screen</string>
     <string name="color_orange">Orange</string>
     <string name="color_red">Red</string>
     <string name="color_pink">Pink</string>
