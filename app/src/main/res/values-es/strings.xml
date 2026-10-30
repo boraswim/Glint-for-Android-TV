@@ -202,6 +202,11 @@
     <string name="trailer">Tráiler</string>
     <string name="resume_long">Reanudar %1$s</string>
     <string name="edit_metadata">Editar metadatos</string>
+    <string name="change_poster">Cambiar póster</string>
+    <string name="change_backdrop">Cambiar fondo</string>
+    <string name="artwork_automatic">Automático</string>
+    <string name="artwork_none">TMDB no tiene más imágenes de este título.</string>
+    <string name="artwork_needs_match">Las imágenes vienen de TMDB: añade tu clave de TMDB o busca este título con Editar metadatos.</string>
     <string name="down_for_info">Pulsa abajo para ver la info</string>
     <string name="video">Vídeo</string>
     <string name="skip_intro">Saltar intro</string>

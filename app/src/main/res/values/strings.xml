@@ -215,6 +215,11 @@
     <string name="trailer">Trailer</string>
     <string name="resume_long">Resume %1$s</string>
     <string name="edit_metadata">Edit Metadata</string>
+    <string name="change_poster">Change poster</string>
+    <string name="change_backdrop">Change background</string>
+    <string name="artwork_automatic">Automatic</string>
+    <string name="artwork_none">TMDB has no other pictures for this title.</string>
+    <string name="artwork_needs_match">Pictures come from TMDB: add your TMDB key, or find this title with Edit Metadata.</string>
     <string name="down_for_info">Press down for Info</string>
     <string name="video">Video</string>
     <string name="skip_intro">Skip Intro</string>

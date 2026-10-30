@@ -44,7 +44,9 @@ class Library(private val context: Context) {
     private val _sources = MutableStateFlow(load("sources.json") { emptyList<Source>() })
     val sources: StateFlow<List<Source>> = _sources
 
-    private val _data = MutableStateFlow(load("library.json") { LibraryData() })
+    // Posters and backgrounds the viewer picked, by film id or series key; laid over every scan by [withArt].
+    private var artwork: Map<String, Art> = load("artwork.json") { emptyMap() }
+    private val _data = MutableStateFlow(withArt(load("library.json") { LibraryData() }))
     // What this profile may see: everything, or only titles within its age limit.
     private val _visible = MutableStateFlow(visible(_data.value))
     val data: StateFlow<LibraryData> = _visible
@@ -685,10 +687,37 @@ class Library(private val context: Context) {
         publish(LibraryData())
     }
 
-    private fun publish(d: LibraryData) {
+    private fun publish(data: LibraryData) {
+        val d = withArt(data)
         _data.value = d
         _visible.value = visible(d)
         store("library.json", d)
+    }
+
+    // ---- pictures the viewer chose ----
+
+    /** The viewer's poster and background for a film id or series key; null fields follow TMDB and the NAS. */
+    fun artOf(id: String): Art? = artwork[id]
+
+    /** Sets (or with null, drops) the chosen poster or background of a film or series; every screen follows. */
+    fun setArtwork(id: String, backdrop: Boolean, url: String?) = scope.launch {
+        val old = artwork[id] ?: Art()
+        val new = if (backdrop) old.copy(backdrop = url) else old.copy(poster = url)
+        artwork = if (new == Art()) artwork - id else artwork + (id to new)
+        store("artwork.json", artwork)
+        publish(_data.value)
+    }
+
+    private fun withArt(d: LibraryData): LibraryData {
+        fun <T> pick(id: String, now: Pair<String?, String?>, copy: (String?, String?) -> T, same: T): T {
+            val a = artwork[id]
+            val want = a?.poster to a?.backdrop
+            return if (want == now) same else copy(want.first, want.second)
+        }
+        return d.copy(
+            movies = d.movies.map { m -> pick(m.id, m.chosenPoster to m.chosenBackdrop, { p, b -> m.copy(chosenPoster = p, chosenBackdrop = b) }, m) },
+            shows = d.shows.map { s -> pick(s.key, s.chosenPoster to s.chosenBackdrop, { p, b -> s.copy(chosenPoster = p, chosenBackdrop = b) }, s) },
+        )
     }
 
     // ---- storage ----

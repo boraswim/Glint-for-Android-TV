@@ -202,6 +202,11 @@
     <string name="trailer">Trailer</string>
     <string name="resume_long">Riprendi %1$s</string>
     <string name="edit_metadata">Modifica metadati</string>
+    <string name="change_poster">Cambia poster</string>
+    <string name="change_backdrop">Cambia sfondo</string>
+    <string name="artwork_automatic">Automatico</string>
+    <string name="artwork_none">TMDB non ha altre immagini per questo titolo.</string>
+    <string name="artwork_needs_match">Le immagini arrivano da TMDB: aggiungi la tua chiave TMDB o trova il titolo con Modifica metadati.</string>
     <string name="down_for_info">Premi giù per le info</string>
     <string name="video">Video</string>
     <string name="skip_intro">Salta intro</string>

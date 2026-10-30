@@ -79,6 +79,8 @@ sealed interface Screen {
     data class Collection(val id: Int) : Screen
     data class EditSource(val id: String?) : Screen
     data class Match(val id: String, val tv: Boolean) : Screen
+    /** Choosing a film's or series' poster, or with [backdrop] its background. */
+    data class Artwork(val id: String, val tv: Boolean, val backdrop: Boolean) : Screen
     data object Keys : Screen
 }
 
@@ -148,6 +150,7 @@ class MainActivity : ComponentActivity() {
                         is Screen.Collection -> CollectionScreen(nav, screen.id)
                         is Screen.EditSource -> EditSourceScreen(nav, screen.id)
                         is Screen.Match -> MatchScreen(nav, screen)
+                        is Screen.Artwork -> ArtworkScreen(nav, screen)
                         Screen.Keys -> KeysScreen(nav)
                     }
                 }

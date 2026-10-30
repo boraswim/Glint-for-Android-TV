@@ -202,6 +202,11 @@
     <string name="trailer">Трейлер</string>
     <string name="resume_long">Продолжить %1$s</string>
     <string name="edit_metadata">Изменить метаданные</string>
+    <string name="change_poster">Сменить постер</string>
+    <string name="change_backdrop">Сменить фон</string>
+    <string name="artwork_automatic">Автоматически</string>
+    <string name="artwork_none">У TMDB нет других изображений для этого названия.</string>
+    <string name="artwork_needs_match">Изображения берутся из TMDB: добавьте ключ TMDB или найдите название через «Изменить метаданные».</string>
     <string name="down_for_info">Нажмите вниз для информации</string>
     <string name="video">Видео</string>
     <string name="skip_intro">Пропустить заставку</string>

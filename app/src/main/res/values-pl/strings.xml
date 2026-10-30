@@ -202,6 +202,11 @@
     <string name="trailer">Zwiastun</string>
     <string name="resume_long">Wznów %1$s</string>
     <string name="edit_metadata">Edytuj metadane</string>
+    <string name="change_poster">Zmień plakat</string>
+    <string name="change_backdrop">Zmień tło</string>
+    <string name="artwork_automatic">Automatycznie</string>
+    <string name="artwork_none">TMDB nie ma innych grafik dla tego tytułu.</string>
+    <string name="artwork_needs_match">Grafiki pochodzą z TMDB: dodaj klucz TMDB lub znajdź tytuł przez Edytuj metadane.</string>
     <string name="down_for_info">Naciśnij w dół, aby zobaczyć informacje</string>
     <string name="video">Wideo</string>
     <string name="skip_intro">Pomiń czołówkę</string>

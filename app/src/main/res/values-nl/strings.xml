@@ -202,6 +202,11 @@
     <string name="trailer">Trailer</string>
     <string name="resume_long">%1$s hervatten</string>
     <string name="edit_metadata">Metadata bewerken</string>
+    <string name="change_poster">Poster wijzigen</string>
+    <string name="change_backdrop">Achtergrond wijzigen</string>
+    <string name="artwork_automatic">Automatisch</string>
+    <string name="artwork_none">TMDB heeft geen andere afbeeldingen voor deze titel.</string>
+    <string name="artwork_needs_match">Afbeeldingen komen van TMDB: voeg je TMDB-sleutel toe of zoek de titel via Metadata bewerken.</string>
     <string name="down_for_info">Druk omlaag voor info</string>
     <string name="video">Video</string>
     <string name="skip_intro">Intro overslaan</string>

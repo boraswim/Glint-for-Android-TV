@@ -202,6 +202,11 @@
     <string name="trailer">Fragman</string>
     <string name="resume_long">Devam et %1$s</string>
     <string name="edit_metadata">Bilgileri Düzenle</string>
+    <string name="change_poster">Posteri değiştir</string>
+    <string name="change_backdrop">Arka planı değiştir</string>
+    <string name="artwork_automatic">Otomatik</string>
+    <string name="artwork_none">TMDB\'de bu başlık için başka görsel yok.</string>
+    <string name="artwork_needs_match">Görseller TMDB\'den gelir: TMDB anahtarınızı ekleyin ya da başlığı Bilgileri Düzenle ile bulun.</string>
     <string name="down_for_info">Bilgi için aşağı basın</string>
     <string name="video">Görüntü</string>
     <string name="skip_intro">İntroyu Atla</string>

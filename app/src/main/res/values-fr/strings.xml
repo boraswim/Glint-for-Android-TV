@@ -202,6 +202,11 @@
     <string name="trailer">Bande-annonce</string>
     <string name="resume_long">Reprendre %1$s</string>
     <string name="edit_metadata">Modifier les métadonnées</string>
+    <string name="change_poster">Changer l\'affiche</string>
+    <string name="change_backdrop">Changer l\'arrière-plan</string>
+    <string name="artwork_automatic">Automatique</string>
+    <string name="artwork_none">TMDB n\'a pas d\'autres images pour ce titre.</string>
+    <string name="artwork_needs_match">Les images viennent de TMDB : ajoutez votre clé TMDB ou trouvez ce titre avec Modifier les métadonnées.</string>
     <string name="down_for_info">Appuyez sur bas pour les infos</string>
     <string name="video">Vidéo</string>
     <string name="skip_intro">Passer l\'intro</string>

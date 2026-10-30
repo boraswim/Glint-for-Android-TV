@@ -87,6 +87,8 @@ data class Movie(
     val collectionPoster: String? = null,
     val collectionBackdrop: String? = null,
     val releaseDate: String = "",
+    val chosenPoster: String? = null,      // picked by the viewer; wins over TMDB and the NAS (see Library.setArtwork)
+    val chosenBackdrop: String? = null,
 ) {
     val id get() = file.key
 
@@ -131,6 +133,8 @@ data class Show(
     val cast: List<Person> = emptyList(),
     val seasonPosters: Map<Int, String> = emptyMap(),
     val episodes: List<Episode> = emptyList(),
+    val chosenPoster: String? = null,
+    val chosenBackdrop: String? = null,
 ) {
     val seasons get() = episodes.map { it.season }.distinct().sorted()
 }
@@ -171,6 +175,10 @@ data class UserData(
 @Serializable
 data class Pin(val key: String, val label: String, val row: Boolean)
 
+/** A poster and background picked in Glint for one film or series (TMDB addresses); null keeps the automatic one. */
+@Serializable
+data class Art(val poster: String? = null, val backdrop: String? = null)
+
 @Serializable
 data class LibraryData(
     val movies: List<Movie> = emptyList(),
@@ -208,9 +216,10 @@ sealed interface Item {
     data class MovieItem(val movie: Movie) : Item {
         override val id get() = movie.id
         override val title get() = movie.title
-        // The NAS poster wins: it's the one the owner picked. TMDB fills in when a file has none.
-        override val poster: Any? get() = movie.file.localPoster?.let { nasUri(movie.file, it) } ?: movie.poster
-        override val backdrop: Any? get() = movie.backdrop ?: movie.file.localBackdrop?.let { nasUri(movie.file, it) }
+        // A picture chosen in Glint comes first. Then the NAS poster: it's the one the owner put there; TMDB fills in
+        // when a file has none.
+        override val poster: Any? get() = movie.chosenPoster ?: movie.file.localPoster?.let { nasUri(movie.file, it) } ?: movie.poster
+        override val backdrop: Any? get() = movie.chosenBackdrop ?: movie.backdrop ?: movie.file.localBackdrop?.let { nasUri(movie.file, it) }
         val logo: Any? get() = movie.file.localLogo?.let { nasUri(movie.file, it) } ?: movie.logo
     }
 
@@ -218,8 +227,8 @@ sealed interface Item {
     data class ShowItem(val show: Show, val season: Int? = null) : Item {
         override val id get() = if (season == null) show.key else "season:${show.key}#$season"
         override val title get() = show.title
-        override val poster: Any? get() = season?.let { show.seasonPosters[it] } ?: show.poster ?: show.episodes.firstNotNullOfOrNull { e -> e.file.localPoster?.let { nasUri(e.file, it) } }
-        override val backdrop: Any? get() = show.backdrop ?: show.episodes.firstNotNullOfOrNull { e -> e.file.localBackdrop?.let { nasUri(e.file, it) } }
+        override val poster: Any? get() = season?.let { show.seasonPosters[it] } ?: show.chosenPoster ?: show.poster ?: show.episodes.firstNotNullOfOrNull { e -> e.file.localPoster?.let { nasUri(e.file, it) } }
+        override val backdrop: Any? get() = show.chosenBackdrop ?: show.backdrop ?: show.episodes.firstNotNullOfOrNull { e -> e.file.localBackdrop?.let { nasUri(e.file, it) } }
     }
 
     data class EpisodeItem(val show: Show, val episode: Episode) : Item {

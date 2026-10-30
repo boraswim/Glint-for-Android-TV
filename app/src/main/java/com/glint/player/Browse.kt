@@ -466,6 +466,16 @@ fun ItemMenu(item: Item, nav: Nav, onDismiss: () -> Unit) {
             add(stringResource(R.string.remove_from_watching) to { lib.setWatched(ids, false) })
         if (item !is Item.CollectionItem) add(stringResource(if (listId in user.watchlist) R.string.watchlist_remove else R.string.watchlist_add) to { lib.toggleWatchlist(listId) })
         if (item is Item.MovieItem || item is Item.ShowItem) add(stringResource(R.string.add_to_collection) to { adding = true })
+        // A season's card shows the season's own poster, so the choice is for the whole series and films.
+        val art = when (item) {
+            is Item.MovieItem -> item.movie.id to false
+            is Item.ShowItem -> if (item.season == null) item.show.key to true else null
+            else -> null
+        }
+        if (art != null) {
+            add(stringResource(R.string.change_poster) to { nav.push(Screen.Artwork(art.first, art.second, backdrop = false)) })
+            add(stringResource(R.string.change_backdrop) to { nav.push(Screen.Artwork(art.first, art.second, backdrop = true)) })
+        }
     }
     OptionSheet(item.title, options, onDismiss)
 }

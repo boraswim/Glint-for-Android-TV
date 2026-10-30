@@ -223,6 +223,25 @@ class Tmdb(private val keyOf: () -> String, private val language: () -> String, 
         logo(o)
     }.getOrNull()
 
+    /**
+     * Every poster (or background) TMDB has for a title, to choose from. Posters in the artwork language come first,
+     * then English and ones without text; backgrounds without text come first. Best voted first within each.
+     */
+    fun images(tmdbId: Int, tv: Boolean, backdrops: Boolean): List<String> {
+        val iso = lang().substringBefore('-')
+        val art = artLanguage().let { if (it == "original") iso else it.substringBefore('-') }
+        val o = JSONObject(get("${if (tv) "tv" else "movie"}/$tmdbId/images?include_image_language=${listOf(art, iso, "en").distinct().joinToString(",")},null"))
+        val order = if (backdrops) listOf("", art, iso, "en") else listOf(art, iso, "en", "")   // "": no text
+        fun rank(p: JSONObject): Int {
+            val i = order.indexOf(if (p.isNull("iso_639_1")) "" else p.optString("iso_639_1"))
+            return if (i < 0) order.size else i
+        }
+        return o.optJSONArray(if (backdrops) "backdrops" else "posters")?.objects().orEmpty()
+            .sortedWith(compareBy<JSONObject>(::rank).thenByDescending { it.optDouble("vote_average") })
+            .mapNotNull { it.img("file_path", if (backdrops) "w1280" else "w500") }
+            .distinct().take(80)
+    }
+
     private fun logo(o: JSONObject): String? {
         val logos = o.optJSONObject("images")?.optJSONArray("logos")?.objects() ?: return null
         val iso = o.optString("_art").ifBlank { lang().substringBefore('-') }

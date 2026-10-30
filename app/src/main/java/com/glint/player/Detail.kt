@@ -520,6 +520,8 @@ fun MovieDetailScreen(nav: Nav, id: String) {
             if (resume) add(stringResource(R.string.start_over) to { play(nav, item, fromStart = true) })
             add(stringResource(R.string.add_to_playlist) to { adding = R.string.add_to_playlist })
             add(stringResource(R.string.add_to_collection) to { adding = R.string.add_to_collection })
+            add(stringResource(R.string.change_poster) to { nav.push(Screen.Artwork(id, tv = false, backdrop = false)) })
+            add(stringResource(R.string.change_backdrop) to { nav.push(Screen.Artwork(id, tv = false, backdrop = true)) })
             add(stringResource(R.string.edit_metadata) to { nav.push(Screen.Match(id, tv = false)) })
             if (collection != null) add(collection.name to { nav.push(Screen.Collection(collection.collectionId)) })
         }) { more = false }
@@ -623,6 +625,8 @@ fun ShowDetailScreen(nav: Nav, key: String, openSeason: Int? = null) {
         if (more) OptionSheet(show.title, listOf(
             stringResource(R.string.add_to_collection) to { adding = key },
             stringResource(R.string.add_season_to_collection, if (season == 0) stringResource(R.string.specials) else stringResource(R.string.season_n, season)) to { adding = "season:$key#$season" },
+            stringResource(R.string.change_poster) to { nav.push(Screen.Artwork(key, tv = true, backdrop = false)) },
+            stringResource(R.string.change_backdrop) to { nav.push(Screen.Artwork(key, tv = true, backdrop = true)) },
             stringResource(R.string.edit_metadata) to { nav.push(Screen.Match(key, tv = true)) },
             stringResource(if (allWatched) R.string.mark_all_unwatched else R.string.mark_all_watched) to { lib.setWatched(episodes.map { it.id }, !allWatched) },
         )) { more = false }
