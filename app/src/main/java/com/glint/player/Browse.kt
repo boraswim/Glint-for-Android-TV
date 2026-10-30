@@ -229,6 +229,12 @@ private fun HomeTopBar(nav: Nav, search: FocusRequester) {
     }
 }
 
+/** Names of the built-in Favorites tiles, in their list order (a tile's id is its place here). */
+val FAVORITE_TILE_NAMES = listOf(
+    R.string.shelf_collections, R.string.tab_movies, R.string.tab_shows, R.string.shelf_other_videos,
+    R.string.by_genre, R.string.shelf_watchlist, R.string.playlists, R.string.tab_folders,
+)
+
 /** The coloured shortcut tiles: built-in categories, minus hidden ones, plus pinned categories and folders. */
 @Composable
 private fun FavoritesRow(nav: Nav, first: FocusRequester, wanted: String?) {

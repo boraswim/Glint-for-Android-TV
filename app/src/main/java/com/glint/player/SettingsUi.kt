@@ -244,7 +244,25 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         ListRow(stringResource(R.string.app_logo), stringResource(if (AppLogo.isWhite(ctx)) R.string.app_logo_white else R.string.app_logo_black), sub = stringResource(R.string.app_logo_sub)) {
                             change { AppLogo.set(ctx, !AppLogo.isWhite(ctx)) }
                         }
-                        ListRow(stringResource(R.string.restore_tiles), sub = stringResource(R.string.restore_tiles_sub)) { lib.showAllTiles() }
+                        // OK lists the hidden tiles; each pick brings that one back and the list stays open for more
+                        // (Back closes it). On the right, how many are hidden.
+                        val user by lib.user.collectAsState()
+                        val hidden = user.hiddenTiles.filter { it in FAVORITE_TILE_NAMES.indices }.sorted()
+                        var restoring by remember { mutableStateOf(false) }
+                        var keepOpen by remember { mutableStateOf(false) }
+                        ListRow(stringResource(R.string.restore_tiles), if (hidden.isEmpty()) "" else "${hidden.size}", sub = stringResource(R.string.restore_tiles_sub)) {
+                            if (hidden.isNotEmpty()) restoring = true
+                        }
+                        if (restoring && hidden.isNotEmpty()) androidx.compose.ui.window.Dialog({ restoring = false }, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+                            TvScale {
+                                // Keyed on the list, so after a pick the sheet is rebuilt with the rest, focus on the first.
+                                androidx.compose.runtime.key(hidden) {
+                                    OptionSheet(stringResource(R.string.restore_tiles), hidden.map { i ->
+                                        stringResource(FAVORITE_TILE_NAMES[i]) to { keepOpen = hidden.size > 1; lib.showTile(i) }
+                                    }) { if (keepOpen) keepOpen = false else restoring = false }
+                                }
+                            }
+                        }
                         ListRow(stringResource(R.string.hide_spoilers), onOff(s.hideSpoilers), sub = stringResource(R.string.hide_spoilers_sub)) { change { s.hideSpoilers = !s.hideSpoilers } }
                         val sorts = listOf(R.string.sort_title, R.string.sort_added, R.string.sort_year, R.string.sort_rating, R.string.sort_duration, R.string.sort_file_name)
                         ListRow(stringResource(R.string.sort_order), stringResource(sorts[s.sortOrder.coerceIn(0, sorts.lastIndex)])) { change { s.sortOrder = (s.sortOrder + 1) % sorts.size } }

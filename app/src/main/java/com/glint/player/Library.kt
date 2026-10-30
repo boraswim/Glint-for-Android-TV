@@ -80,7 +80,7 @@ class Library(private val context: Context) {
     fun pin(p: Pin) = editUser { it.copy(pins = it.pins.filter { x -> x.key != p.key || x.row != p.row } + p) }
     fun unpin(p: Pin) = editUser { it.copy(pins = it.pins - p) }
     fun hideTile(i: Int) = editUser { it.copy(hiddenTiles = (it.hiddenTiles + i).distinct()) }
-    fun showAllTiles() = editUser { it.copy(hiddenTiles = emptyList()) }
+    fun showTile(i: Int) = editUser { it.copy(hiddenTiles = it.hiddenTiles - i) }
     fun setTileOrder(ids: List<String>) = editUser { it.copy(tileOrder = ids) }
 
     /** The titles a pinned category stands for. */
