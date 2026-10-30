@@ -559,7 +559,8 @@ fun ShowDetailScreen(nav: Nav, key: String, openSeason: Int? = null) {
 
     Box(Modifier.fillMaxSize()) {
         ScreenBackground()
-        Backdrop(if (spoiler) Item.ShowItem(show).backdrop else shown.still ?: Item.ShowItem(show).backdrop)
+        // A background chosen for the series stays put; otherwise the episode in view shows its own still.
+        Backdrop(if (spoiler || show.chosenBackdrop != null) Item.ShowItem(show).backdrop else shown.still ?: Item.ShowItem(show).backdrop)
         val scroll = rememberScrollState()
         val scope = rememberCoroutineScope()
         MinimalScroll { Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
