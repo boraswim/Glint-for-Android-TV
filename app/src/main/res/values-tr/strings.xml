@@ -297,7 +297,7 @@
     <string name="pin_as_list">Ana sayfaya liste olarak ekle</string>
     <string name="list_view">Liste görünümü</string>
     <string name="appearance">Görünüm</string>
-    <string name="light">Açık</string>
+    <string name="light">Beyaz</string>
     <string name="dark">Koyu gri</string>
     <string name="restore_tiles">Gizlenen favorileri göster</string>
     <string name="restore_tiles_sub">Kaldırdığınız ana sayfa kutularını geri getirir. Sabitlemek veya kaldırmak için bir kutuda, türde, listede veya klasörde OK tuşuna basılı tutun.</string>

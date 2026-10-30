@@ -65,6 +65,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.layout
@@ -436,7 +437,7 @@ fun OptionSheet(title: String, options: List<Pair<String, () -> Unit>>, message:
     ) {
         // Opened from the Home rows, the sheet would otherwise take their enlarged text.
         androidx.compose.runtime.CompositionLocalProvider(LocalTextScale provides 1f) {
-            Column(Modifier.width(520.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xF2303236)).padding(26.dp)) {
+            Column(Modifier.width(520.dp).clip(RoundedCornerShape(22.dp)).background(Palette.Sheet).padding(26.dp)) {
                 Txt(title, Type.Heading, Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 2, align = TextAlign.Center)
                 if (message != null) Txt(message, Type.Small, Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 12)
                 options.forEachIndexed { i, (label, action) ->
@@ -818,7 +819,7 @@ private val LETTERS = ('A'..'Z') + '#'
 @Composable
 private fun EdgeDock(open: Boolean, right: Boolean, menuOpen: Boolean, onClose: () -> Unit, modifier: Modifier, content: @Composable (first: Modifier) -> Unit) {
     Box(modifier.fillMaxHeight().width(90.dp), contentAlignment = if (right) Alignment.CenterEnd else Alignment.CenterStart) {
-        if (!open) Box(Modifier.padding(horizontal = 6.dp).size(4.dp, 220.dp).clip(RoundedCornerShape(2.dp)).background(Color.White.copy(alpha = 0.18f)))
+        if (!open) Box(Modifier.padding(horizontal = 6.dp).size(4.dp, 220.dp).clip(RoundedCornerShape(2.dp)).background(Palette.Text.copy(alpha = 0.18f)))
         androidx.compose.animation.AnimatedVisibility(
             open,
             enter = androidx.compose.animation.slideInHorizontally { if (right) it else -it } + androidx.compose.animation.fadeIn(),
@@ -833,7 +834,7 @@ private fun EdgeDock(open: Boolean, right: Boolean, menuOpen: Boolean, onClose: 
                 Modifier.padding(horizontal = 18.dp)
                     .shadow(16.dp, RoundedCornerShape(20.dp))
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color(0xF0161618))
+                    .background(Palette.Dock)
                     .onPreviewKeyEvent { e -> if (e.type == KeyEventType.KeyDown && e.key == back) { onClose(); true } else false }
                     .padding(horizontal = 8.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -847,8 +848,10 @@ private fun EdgeDock(open: Boolean, right: Boolean, menuOpen: Boolean, onClose: 
 private fun LetterCell(letter: Char, index: Int?, modifier: Modifier, onPick: (Int) -> Unit) {
     val source = remember { MutableInteractionSource() }
     val focused by source.collectIsFocusedAsState()
+    // Grows a little when focused, like the dock's sort and filter buttons.
+    val scale by androidx.compose.animation.core.animateFloatAsState(if (focused) 1.25f else 1f, label = "letter")
     Box(
-        modifier.clip(RoundedCornerShape(8.dp))
+        modifier.then(Modifier.zIndex(if (focused) 1f else 0f)).scale(scale).clip(RoundedCornerShape(8.dp))
             .background(if (focused) Color.White else Color.Transparent)
             .then(if (index != null) Modifier.clickable(source, indication = null) { onPick(index) } else Modifier),
         contentAlignment = Alignment.Center,
@@ -856,7 +859,7 @@ private fun LetterCell(letter: Char, index: Int?, modifier: Modifier, onPick: (I
         Txt(
             if (letter == '#') "0–9" else letter.toString(),
             Type.Meta.copy(
-                fontSize = 15.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                fontSize = 15.sp, fontWeight = if (focused) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.SemiBold,
                 color = when { focused -> Color.Black; index != null -> Palette.Text; else -> Palette.Faint.copy(alpha = 0.45f) },
             ),
         )

@@ -221,7 +221,7 @@ fun AddToListSheet(what: Int, id: String, title: String, onDismiss: () -> Unit) 
     } else {
         androidx.activity.compose.BackHandler { onDismiss() }
         Box(Modifier.fillMaxSize().background(Color(0xB3000000)), contentAlignment = Alignment.Center) {
-            Column(Modifier.width(560.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xF2303236)).padding(26.dp)) {
+            Column(Modifier.width(560.dp).clip(RoundedCornerShape(22.dp)).background(Palette.Sheet).padding(26.dp)) {
                 Txt(stringResource(if (playlist) R.string.new_playlist else R.string.new_collection), Type.Heading, Modifier.fillMaxWidth().padding(bottom = 16.dp), align = TextAlign.Center)
                 TextInput(name, { name = it }, title, FocusFirst().fillMaxWidth(), onDone = { if (name.isNotBlank()) { add(name.trim()); onDismiss() } })
                 Gap(14.dp)

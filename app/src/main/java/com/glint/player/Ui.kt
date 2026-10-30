@@ -125,9 +125,14 @@ object Palette {
     @Volatile var black = true
 
     // Slate greys like the tvOS dark appearance (or light greys), with an orange accent for progress and unwatched marks.
-    val Top get() = if (light) Color(0xFFF4F5F7) else if (black) Color.Black else Color(0xFF45484E)
-    val Bottom get() = if (light) Color(0xFFD5D8DD) else if (black) Color.Black else Color(0xFF1C1D20)
-    val Background get() = if (light) Color(0xFFE6E8EB) else if (black) Color.Black else Color(0xFF26282C)
+    // Light: white, only a breath of grey at the very bottom so cards still stand off it.
+    val Top get() = if (light) Color.White else if (black) Color.Black else Color(0xFF45484E)
+    val Bottom get() = if (light) Color(0xFFF1F2F4) else if (black) Color.Black else Color(0xFF1C1D20)
+    val Background get() = if (light) Color(0xFFFAFAFB) else if (black) Color.Black else Color(0xFF26282C)
+    /** Pop-up windows over the app (menus, the A–Z dock): light grey on the white theme, dark glass otherwise. */
+    // A mid grey on the white theme, so the white of the focused row or letter stands out from it.
+    val Sheet get() = if (light) Color(0xF7BFC3CA) else Color(0xF2303236)
+    val Dock get() = if (light) Color(0xF7BFC3CA) else Color(0xF0161618)
     val Surface get() = if (light) Color(0x1F000000) else Color(0x33FFFFFF)
     val SurfaceHigh get() = if (light) Color(0x33000000) else Color(0x4DFFFFFF)
     val Text get() = if (light) Color(0xFF1B1C1F) else Color(0xFFF4F5F7)

@@ -99,7 +99,7 @@ fun PinPrompt(pin: String, onDismiss: () -> Unit, onOk: () -> Unit) {
     var wrong by remember { mutableStateOf(false) }
     BackHandler(onBack = onDismiss)
     Box(Modifier.fillMaxSize().background(Color(0xCC000000)), contentAlignment = Alignment.Center) {
-        Column(Modifier.width(480.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xF2303236)).padding(26.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(Modifier.width(480.dp).clip(RoundedCornerShape(22.dp)).background(Palette.Sheet).padding(26.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Txt(stringResource(R.string.enter_pin), Type.Heading)
             Gap(14.dp)
             TextInput(entry, { entry = it.filter(Char::isDigit).take(8) }, "••••", FocusFirst().fillMaxWidth(), password = true, keyboard = KeyboardType.NumberPassword) {
@@ -162,7 +162,7 @@ private fun ProfileEditor(start: Profile, onDone: () -> Unit) {
     Box(Modifier.fillMaxSize().background(Color(0xE6000000)), contentAlignment = Alignment.Center) {
         // Scrolls: with restrictions on, the options are taller than a 1080p screen.
         Column(
-            Modifier.width(640.dp).heightIn(max = 640.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xF2303236))
+            Modifier.width(640.dp).heightIn(max = 640.dp).clip(RoundedCornerShape(22.dp)).background(Palette.Sheet)
                 .verticalScroll(rememberScrollState()).padding(26.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
