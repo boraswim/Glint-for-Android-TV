@@ -149,6 +149,10 @@
     <string name="up_next_in">Up next in %1$d</string>
     <string name="play_now">Play now</string>
     <string name="cancel">Cancel</string>
+    <string name="reset_all">Delete all data</string>
+    <string name="reset_all_sub">Deletes everything Glint keeps on this TV: shares, keys, profiles, watch history, lists and settings. A backup on your NAS stays. Glint then starts as new.</string>
+    <string name="reset_all_confirm">Delete everything and start fresh?</string>
+    <string name="reset_all_yes">Delete everything</string>
     <string name="shelf_other_videos">Other Videos</string>
     <string name="speed_test">Connection speed to NAS</string>
     <string name="speed_testing">Testing…</string>

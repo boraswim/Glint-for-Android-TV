@@ -137,6 +137,10 @@
     <string name="up_next_in">À suivre dans %1$d</string>
     <string name="play_now">Lire maintenant</string>
     <string name="cancel">Annuler</string>
+    <string name="reset_all">Supprimer toutes les données</string>
+    <string name="reset_all_sub">Supprime tout ce que Glint garde sur ce téléviseur : partages, clés, profils, historique, listes et réglages. La sauvegarde sur votre NAS est conservée. Glint redémarre ensuite comme neuf.</string>
+    <string name="reset_all_confirm">Tout supprimer et recommencer ?</string>
+    <string name="reset_all_yes">Tout supprimer</string>
     <string name="shelf_other_videos">Autres vidéos</string>
     <string name="speed_test">Débit de connexion au NAS</string>
     <string name="speed_testing">Test en cours…</string>

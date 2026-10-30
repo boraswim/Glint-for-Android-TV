@@ -93,6 +93,23 @@ fun SettingsScreen(nav: Nav) {
                     nav.push(if (SECTIONS[i] == R.string.sources) Screen.Folder() else Screen.SettingsSection(i))
                 }
             }
+            // Last, apart from the sections, in red: everything Glint keeps on this TV, after a confirmation that
+            // starts on "Cancel".
+            item {
+                var asking by remember { mutableStateOf(false) }
+                val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
+                Gap(14.dp)
+                ListRow(stringResource(R.string.reset_all), sub = stringResource(R.string.reset_all_sub), danger = true) { asking = true }
+                // In its own window, over the whole screen; drawn in the list it would sit inside this row.
+                if (asking) androidx.compose.ui.window.Dialog({ asking = false }, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+                    TvScale {
+                        OptionSheet(stringResource(R.string.reset_all_confirm), listOf(
+                            stringResource(R.string.cancel) to {},
+                            stringResource(R.string.reset_all_yes) to { activity?.let { App.instance.startFresh(it) } },
+                        )) { asking = false }
+                    }
+                }
+            }
         }
     }
     }

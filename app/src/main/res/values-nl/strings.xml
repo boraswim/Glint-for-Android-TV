@@ -137,6 +137,10 @@
     <string name="up_next_in">Hierna over %1$d</string>
     <string name="play_now">Nu afspelen</string>
     <string name="cancel">Annuleren</string>
+    <string name="reset_all">Alle gegevens wissen</string>
+    <string name="reset_all_sub">Wist alles wat Glint op deze tv bewaart: shares, sleutels, profielen, kijkgeschiedenis, lijsten en instellingen. Een back-up op je NAS blijft staan. Daarna begint Glint opnieuw.</string>
+    <string name="reset_all_confirm">Alles wissen en opnieuw beginnen?</string>
+    <string name="reset_all_yes">Alles wissen</string>
     <string name="shelf_other_videos">Overige video\'s</string>
     <string name="speed_test">Verbindingssnelheid met de NAS</string>
     <string name="speed_testing">Testen…</string>

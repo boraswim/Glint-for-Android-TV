@@ -250,8 +250,9 @@ private fun FavoritesRow(nav: Nav, first: FocusRequester, wanted: String?) {
         val (spec, action) = tiles[i]
         Entry("tile:$i", stringResource(spec.first), spec.second, spec.third, null, { lib.hideTile(i) }, action)
     } + pinned.map { p -> Entry("pin:${p.key}", p.label, pinIcon(p.key), pinColors(p.key), pinArt(p.key), { lib.unpin(p) }, { openPin(nav, p.key) }) }
-    // The viewer's order first; tiles it doesn't name yet (new pins) keep their place after them.
-    var order by remember(user.tileOrder) { mutableStateOf(user.tileOrder) }
+    // The viewer's order first; tiles it doesn't name yet (new pins) keep their place after them. Until the
+    // viewer moves one, Films comes first (tile ids are list positions, which saved orders depend on).
+    var order by remember(user.tileOrder) { mutableStateOf(user.tileOrder.ifEmpty { listOf("tile:1", "tile:0") }) }
     val sorted = entries.sortedBy { e -> order.indexOf(e.id).let { if (it < 0) Int.MAX_VALUE else it } }
     var menu by remember { mutableStateOf<Entry?>(null) }
     var moving by remember { mutableStateOf<String?>(null) }

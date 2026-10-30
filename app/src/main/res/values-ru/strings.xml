@@ -137,6 +137,10 @@
     <string name="up_next_in">Далее через %1$d</string>
     <string name="play_now">Смотреть сейчас</string>
     <string name="cancel">Отмена</string>
+    <string name="reset_all">Удалить все данные</string>
+    <string name="reset_all_sub">Удаляет всё, что Glint хранит на этом телевизоре: папки, ключи, профили, историю, списки и настройки. Резервная копия на NAS остаётся. Затем Glint запускается заново.</string>
+    <string name="reset_all_confirm">Удалить всё и начать заново?</string>
+    <string name="reset_all_yes">Удалить всё</string>
     <string name="shelf_other_videos">Другие видео</string>
     <string name="speed_test">Скорость соединения с NAS</string>
     <string name="speed_testing">Проверка…</string>

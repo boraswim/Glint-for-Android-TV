@@ -137,6 +137,10 @@
     <string name="up_next_in">Sıradaki %1$d sn içinde</string>
     <string name="play_now">Şimdi oynat</string>
     <string name="cancel">İptal</string>
+    <string name="reset_all">Tüm verileri sil</string>
+    <string name="reset_all_sub">Glint\'in bu TV\'de tuttuğu her şeyi siler: paylaşımlar, anahtarlar, profiller, izleme geçmişi, listeler ve ayarlar. NAS\'ınızdaki yedek kalır. Glint ardından ilk günkü gibi açılır.</string>
+    <string name="reset_all_confirm">Her şey silinip baştan başlansın mı?</string>
+    <string name="reset_all_yes">Hepsini sil</string>
     <string name="shelf_other_videos">Diğer Videolar</string>
     <string name="speed_test">NAS bağlantı hızı</string>
     <string name="speed_testing">Ölçülüyor…</string>

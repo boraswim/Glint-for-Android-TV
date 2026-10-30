@@ -16,6 +16,7 @@ import coil.request.Options
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
 import java.io.File
+import android.content.Intent
 import java.security.MessageDigest
 
 class App : Application(), ImageLoaderFactory {
@@ -31,6 +32,19 @@ class App : Application(), ImageLoaderFactory {
         Palette.black = library.settings.theme == 0
         Palette.accent = library.settings.accent
         Thread { SizedPosterFetcher.trim(this) }.start()
+    }
+
+    /**
+     * Settings → Library → Delete all data: everything Glint keeps on this TV goes (shares, keys, profiles, watch
+     * history, lists, settings, cached pictures), and Glint opens again as on its first day. A backup on the NAS
+     * stays. The new start is asked for before this process ends, so Android brings Glint back up in a fresh one.
+     */
+    fun startFresh(activity: android.app.Activity) {
+        if (AppLogo.isWhite(this)) AppLogo.set(this, white = false)
+        File(dataDir, "shared_prefs").list()?.forEach { deleteSharedPreferences(it.removeSuffix(".xml")) }
+        for (dir in listOfNotNull(filesDir, cacheDir, codeCacheDir, externalCacheDir)) dir.listFiles()?.forEach { it.deleteRecursively() }
+        activity.startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+        Runtime.getRuntime().exit(0)
     }
 
     override fun newImageLoader() = ImageLoader.Builder(this)
