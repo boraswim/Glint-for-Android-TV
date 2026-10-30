@@ -417,10 +417,16 @@ fun OptionSheet(title: String, options: List<Pair<String, () -> Unit>>, message:
     // A sheet opened by holding OK still gets that press's repeats and its release; without this
     // the first option would fire when the button is let go. Only a fresh press counts.
     var fresh by remember { mutableStateOf(false) }
+    // Down from the last option goes round to the first, Up from the first to the last.
+    val rows = remember(options.size) { List(options.size) { FocusRequester() } }
+    var at by remember { mutableStateOf(0) }
     Box(
         Modifier.fillMaxSize().background(Color(0xB3000000)).onPreviewKeyEvent { e ->
             val ok = e.key == Key.Enter || e.key == Key.DirectionCenter || e.key == Key.NumPadEnter
+            val down = e.type == KeyEventType.KeyDown
             when {
+                down && e.key == Key.DirectionDown && at == rows.lastIndex && rows.size > 1 -> { runCatching { rows.first().requestFocus() }; true }
+                down && e.key == Key.DirectionUp && at == 0 && rows.size > 1 -> { runCatching { rows.last().requestFocus() }; true }
                 !ok -> false
                 e.type == KeyEventType.KeyDown && e.nativeKeyEvent.repeatCount == 0 -> { fresh = true; false }
                 else -> !fresh
@@ -434,7 +440,10 @@ fun OptionSheet(title: String, options: List<Pair<String, () -> Unit>>, message:
                 Txt(title, Type.Heading, Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 2, align = TextAlign.Center)
                 if (message != null) Txt(message, Type.Small, Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 12)
                 options.forEachIndexed { i, (label, action) ->
-                    ListRow(label, modifier = if (i == 0) FocusFirst() else Modifier, danger = i == danger) { action(); onDismiss() }
+                    ListRow(
+                        label, danger = i == danger,
+                        modifier = (if (i == 0) FocusFirst() else Modifier).focusRequester(rows[i]).onFocusChanged { if (it.isFocused) at = i },
+                    ) { action(); onDismiss() }
                     Gap(8.dp)
                 }
             }
@@ -678,8 +687,14 @@ fun GridScreen(nav: Nav, kind: Kind) {
                 GridCells.Fixed(cols),
                 // Right from a card in the last column opens the letters; Left from the first column, sort and filter.
                 Modifier.fillMaxSize().onPreviewKeyEvent { e ->
+                    val lastRow = items.isNotEmpty() && focusedIndex / cols == items.lastIndex / cols
                     when {
-                        !docked || lettersOpen || toolsOpen || e.type != KeyEventType.KeyDown -> false
+                        lettersOpen || toolsOpen || e.type != KeyEventType.KeyDown || items.isEmpty() || focusedIndex < 0 -> false
+                        // Round and round: Down from the last row goes back to the first title, Up from the first row
+                        // (when nothing sits above it) to the last.
+                        e.key == Key.DirectionDown && lastRow -> { jump(0); true }
+                        e.key == Key.DirectionUp && focusedIndex < cols && docked -> { jump(items.lastIndex); true }
+                        !docked -> false
                         e.key == Key.DirectionRight && focusedIndex % cols == cols - 1 && firsts != null -> { lettersOpen = true; true }
                         e.key == Key.DirectionLeft && focusedIndex % cols == 0 -> { toolsOpen = true; true }
                         else -> false

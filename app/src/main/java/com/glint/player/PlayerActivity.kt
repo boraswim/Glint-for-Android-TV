@@ -1087,8 +1087,9 @@ class PlayerActivity : ComponentActivity() {
         if (event.action == KeyEvent.ACTION_UP) return true
         // In a track pop-up: up and down walk the list, OK picks; left and right close it and move to the next button.
         if (trackPopup >= 0) when (code) {
-            KeyEvent.KEYCODE_DPAD_UP -> { popupFocus = (popupFocus - 1).coerceAtLeast(0); return true }
-            KeyEvent.KEYCODE_DPAD_DOWN -> { popupFocus = (popupFocus + 1).coerceAtMost(popupRows().lastIndex.coerceAtLeast(0)); return true }
+            // Round and round: past the last row back to the first, and the other way.
+            KeyEvent.KEYCODE_DPAD_UP -> { val n = popupRows().size; if (n > 0) popupFocus = (popupFocus - 1 + n) % n; return true }
+            KeyEvent.KEYCODE_DPAD_DOWN -> { val n = popupRows().size; if (n > 0) popupFocus = (popupFocus + 1) % n; return true }
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> trackPopup = -1
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
                 if (event.repeatCount == 0) pickPopup()
