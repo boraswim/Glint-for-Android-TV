@@ -79,6 +79,9 @@ Requires the Android SDK and JDK 17 (Android Studio brings both).
 
    No API keys are built in: enter yours in the app, as above.
 
+For Google Play, `./gradlew bundleRelease` makes the App Bundle (`app/build/outputs/bundle/release/app-release.aab`),
+signed with the `release.*` key from `local.properties` as the upload key.
+
 Unit tests run with `./gradlew testReleaseUnitTest`.
 
 ## Code

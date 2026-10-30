@@ -22,7 +22,7 @@ android {
     defaultConfig {
         applicationId = "com.glint.player"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 3
         versionName = "1.2.0"
         // Mi Box S is 32-bit ARM; arm64 covers newer boxes. Skipping x86 keeps libVLC's size down.

@@ -14,6 +14,8 @@
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
+    <!-- enableOnBackInvokedCallback: the player reads the Back key itself (PlayerActivity.dispatchKeyEvent), which
+         Android 16 stops sending to apps that target it unless they keep the classic Back handling. -->
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -22,6 +24,7 @@
         android:label="@string/app_name"
         android:largeHeap="true"
         android:usesCleartextTraffic="true"
+        android:enableOnBackInvokedCallback="false"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
 
         <activity
