@@ -47,6 +47,7 @@
     <string name="filter_unwatched">Não assistidos</string>
     <string name="filter_watched">Assistidos</string>
     <string name="filter_in_progress">Em andamento</string>
+    <string name="filter_not_4k">Não 4K</string>
     <string name="filter_title">Mostrar</string>
     <string name="search_hint">Títulos, pessoas, gêneros</string>
     <string name="search_none">Nada na sua biblioteca corresponde.</string>

@@ -468,13 +468,13 @@ fun ItemMenu(item: Item, nav: Nav, onDismiss: () -> Unit) {
 }
 
 /** Choices of a grid's filter button; [GridScreen] applies them by index. */
-private val FILTERS = listOf(R.string.filter_all, R.string.filter_unwatched, R.string.filter_watched, R.string.filter_in_progress, 0, 0, 0)
+private val FILTERS = listOf(R.string.filter_all, R.string.filter_unwatched, R.string.filter_watched, R.string.filter_in_progress, 0, R.string.filter_not_4k, 0, 0)
 
 @Composable
 private fun filterLabel(i: Int) = when (i) {
     4 -> "4K"
-    5 -> "Dolby Vision"
-    6 -> "HDR"
+    6 -> "Dolby Vision"
+    7 -> "HDR"
     else -> stringResource(FILTERS[i])
 }
 
@@ -503,7 +503,7 @@ fun GridScreen(nav: Nav, kind: Kind) {
     var sheet by remember { mutableStateOf<Item?>(null) }
 
     val items = remember(data, progress, user, filter, sortTick, sorting) {
-        // The filter menu's choices, in FILTERS order: all, unwatched, watched, in progress, 4K, Dolby Vision, HDR.
+        // The filter menu's choices, in FILTERS order: all, unwatched, watched, in progress, 4K, not 4K, Dolby Vision, HDR.
         fun keep(id: String, fileName: String): Boolean {
             val p = progress[id]
             val b by lazy { badges(fileName) }
@@ -512,8 +512,9 @@ fun GridScreen(nav: Nav, kind: Kind) {
                 2 -> p?.watched == true
                 3 -> p?.inProgress == true
                 4 -> "4K" in b
-                5 -> "Dolby Vision" in b
-                6 -> "HDR" in b || "HDR10+" in b
+                5 -> "4K" !in b
+                6 -> "Dolby Vision" in b
+                7 -> "HDR" in b || "HDR10+" in b
                 else -> true
             }
         }

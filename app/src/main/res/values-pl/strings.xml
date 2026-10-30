@@ -47,6 +47,7 @@
     <string name="filter_unwatched">Nieobejrzane</string>
     <string name="filter_watched">Obejrzane</string>
     <string name="filter_in_progress">Rozpoczęte</string>
+    <string name="filter_not_4k">Nie 4K</string>
     <string name="filter_title">Pokaż</string>
     <string name="search_hint">Tytuły, osoby, gatunki</string>
     <string name="search_none">Nic w bibliotece nie pasuje.</string>

@@ -47,6 +47,7 @@
     <string name="filter_unwatched">Niet bekeken</string>
     <string name="filter_watched">Bekeken</string>
     <string name="filter_in_progress">Begonnen</string>
+    <string name="filter_not_4k">Geen 4K</string>
     <string name="filter_title">Tonen</string>
     <string name="search_hint">Titels, personen, genres</string>
     <string name="search_none">Niets in je bibliotheek komt overeen.</string>

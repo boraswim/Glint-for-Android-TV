@@ -47,6 +47,7 @@
     <string name="filter_unwatched">İzlenmemiş</string>
     <string name="filter_watched">İzlenmiş</string>
     <string name="filter_in_progress">Devam eden</string>
+    <string name="filter_not_4k">4K olmayan</string>
     <string name="filter_title">Göster</string>
     <string name="search_hint">Film, kişi, tür</string>
     <string name="search_none">Kütüphanenizde eşleşen bir şey yok.</string>

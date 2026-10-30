@@ -47,6 +47,7 @@
     <string name="filter_unwatched">Non vus</string>
     <string name="filter_watched">Vus</string>
     <string name="filter_in_progress">En cours</string>
+    <string name="filter_not_4k">Pas en 4K</string>
     <string name="filter_title">Afficher</string>
     <string name="search_hint">Titres, personnes, genres</string>
     <string name="search_none">Rien ne correspond dans votre médiathèque.</string>

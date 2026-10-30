@@ -47,6 +47,7 @@
     <string name="filter_unwatched">Non visti</string>
     <string name="filter_watched">Visti</string>
     <string name="filter_in_progress">Iniziati</string>
+    <string name="filter_not_4k">Non 4K</string>
     <string name="filter_title">Mostra</string>
     <string name="search_hint">Titoli, persone, generi</string>
     <string name="search_none">Nessun risultato nella libreria.</string>

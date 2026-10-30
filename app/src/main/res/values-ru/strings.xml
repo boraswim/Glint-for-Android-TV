@@ -47,6 +47,7 @@
     <string name="filter_unwatched">Непросмотренные</string>
     <string name="filter_watched">Просмотренные</string>
     <string name="filter_in_progress">Начатые</string>
+    <string name="filter_not_4k">Не 4K</string>
     <string name="filter_title">Показать</string>
     <string name="search_hint">Названия, люди, жанры</string>
     <string name="search_none">В медиатеке ничего не найдено.</string>
