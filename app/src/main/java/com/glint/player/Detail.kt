@@ -145,7 +145,7 @@ private fun DetailHeaderText(
         Gap(8.dp)
         Txt("★".repeat(myStars) + "☆".repeat(5 - myStars), Type.Heading.copy(color = Palette.Accent, fontSize = 18.sp))
     }
-    if (overview.isNotBlank()) { Gap(8.dp); Txt(overview, Type.Body.copy(fontSize = 16.sp, lineHeight = 23.sp, color = Color(0xFFDADCE0)), Modifier.widthIn(max = 660.dp), maxLines = 3) }
+    if (overview.isNotBlank()) { Gap(8.dp); Txt(overview, Type.Body.copy(fontSize = 16.sp, lineHeight = 23.sp, color = if (Palette.light) Palette.Text else Color(0xFFDADCE0)), Modifier.widthIn(max = 660.dp), maxLines = 3) }
 }
 
 /**
@@ -286,7 +286,12 @@ private fun MovieHero(
     }
     Box(Modifier.fillMaxWidth().height(720.dp).onFocusChanged { if (it.hasFocus) onFocusIn() }) {
         if (backdrop != null) AsyncImage(fullScreen(backdrop), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.4f to Color.Transparent, 0.72f to Color.Black.copy(alpha = 0.6f), 1f to Palette.Bottom)))
+        // The title, buttons and plot are white on the darkened lower part. On the white theme the page colour would
+        // wash that out, so the dark holds almost to the edge there and turns to the page only at the very bottom.
+        Box(Modifier.fillMaxSize().background(
+            if (Palette.light) Brush.verticalGradient(0.4f to Color.Transparent, 0.7f to Color.Black.copy(alpha = 0.6f), 0.95f to Color.Black.copy(alpha = 0.78f), 1f to Palette.Bottom)
+            else Brush.verticalGradient(0.4f to Color.Transparent, 0.72f to Color.Black.copy(alpha = 0.6f), 1f to Palette.Bottom),
+        ))
         Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to Color.Black.copy(alpha = 0.3f), 0.45f to Color.Transparent)))
         if (shownLogo != null && s.showLogos) AsyncImage(
             shownLogo, movie.title, Modifier.padding(start = 76.dp, top = 33.dp).size(330.dp, 105.dp),
