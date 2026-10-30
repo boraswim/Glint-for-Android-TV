@@ -14,7 +14,7 @@ Mastered for Android 11 and built on a 4K Philips Android 11 TV. It runs on Andr
 
 Glint plays your own files and has no account, no server and no tracking. The only online lookups are
 the film details from TMDB and the ratings from OMDb, both with free keys you enter yourself, and
-YouTube when you open a trailer.
+YouTube when you open a trailer. The [privacy policy](PRIVACY.md) has the details.
 
 ## Features
 
