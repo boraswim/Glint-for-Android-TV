@@ -111,7 +111,8 @@ fun PlayerOverlay(p: PlayerActivity) {
                                 // The button's own size (its focused size), so the pop-up stands above it rather than growing the row.
                                 Box(Modifier.size(54.dp), contentAlignment = Alignment.Center) {
                                     TrackIcon(icon, focused = p.trackFocus == i)
-                                    if (p.trackPopup == tab && p.trackFocus == i) TrackPopup(p, Modifier.align(Alignment.BottomEnd))
+                                    // Search results (5) open from the subtitle button, above it.
+                                    if ((p.trackPopup == tab || (tab == 3 && p.trackPopup == 5)) && p.trackFocus == i) TrackPopup(p, Modifier.align(Alignment.BottomEnd))
                                 }
                             }
                         }
@@ -187,7 +188,8 @@ private fun TrackPopup(p: PlayerActivity, modifier: Modifier) {
         modifier.wrapContentSize(Alignment.BottomEnd, unbounded = true).offset(x = 14.dp, y = -68.dp)
             .shadow(24.dp, RoundedCornerShape(20.dp)).clip(RoundedCornerShape(20.dp)).background(Color(0xF02A2B2E)),
     ) {
-        androidx.compose.foundation.lazy.LazyColumn(Modifier.width(360.dp).heightIn(max = 420.dp).padding(8.dp), state = list) {
+        // Subtitle search results carry release names and frame rates: a wider card.
+        androidx.compose.foundation.lazy.LazyColumn(Modifier.width(if (p.trackPopup == 5) 720.dp else 360.dp).heightIn(max = 420.dp).padding(8.dp), state = list) {
             items(rows.size) { i ->
                 val (label, on) = rows[i]
                 val focused = i == p.popupFocus

@@ -92,7 +92,9 @@ class PlayerActivity : ComponentActivity() {
     var trackFocus by mutableIntStateOf(-1)
 
     /** The buttons above the timeline: chapters (menu tab 1), other titles (4), subtitles (3), audio (2). */
-    fun trackButtons() = listOfNotNull(if (chapters.size > 1) 1 else null, 4, if (subtitleTracks.isNotEmpty()) 3 else null, 2)
+    fun trackButtons() = listOfNotNull(if (chapters.size > 1) 1 else null, 4, if (subtitleTracks.isNotEmpty() || canSearchSubtitles) 3 else null, 2)
+    /** A film or episode from the library (not a typed link): its subtitle list ends with "Search subtitles". */
+    private val canSearchSubtitles get() = now?.file != null
     /**
      * OK on the subtitle, audio or titles button pops its list up over the button (2 audio, 3 subtitles,
      * 4 other titles; -1 closed). Up and down move [popupFocus], OK picks, Back closes. Chapters open the full menu.
@@ -119,10 +121,96 @@ class PlayerActivity : ComponentActivity() {
     /** The open pop-up's rows: label and whether it's the track playing. Subtitles start with None. */
     fun popupRows(): List<Pair<String, Boolean>> = when (trackPopup) {
         2 -> audioTracks.map { it.label to (it.id == audioTrack) }
-        3 -> listOf(getString(R.string.none_choice) to (subtitleTrack == -1)) + subtitleTracks.map { it.label to (it.id == subtitleTrack) }
+        3 -> listOf(getString(R.string.none_choice) to (subtitleTrack == -1)) + subtitleTracks.map { it.label to (it.id == subtitleTrack) } +
+            listOfNotNull(if (canSearchSubtitles) getString(R.string.search_subtitles) to false else null)
         4 -> quickItems.map { it.second to (it.first == now?.key) }
+        // OpenSubtitles results, or one line saying what's happening (searching, downloading, an error).
+        5 -> osStatus?.let { listOf(it to false) } ?: osHits.map { h ->
+            listOfNotNull(
+                langName(h.language), h.release.take(70),
+                h.fps.takeIf { it > 0 }?.let { String.format(Locale.ROOT, "%.3f fps", it).replace(".000 ", " ") },
+                if (h.hearingImpaired) "SDH" else null, "↓ ${h.downloads}",
+            ).joinToString("  ·  ") to false
+        }
         else -> emptyList()
     }
+
+    /** "Search subtitles": the results (pop-up 5) and a line shown instead of them while busy or after an error. */
+    private var osHits by mutableStateOf<List<OpenSubtitles.Hit>>(emptyList())
+    private var osStatus by mutableStateOf<String?>(null)
+
+    private fun searchSubtitles() {
+        osHits = emptyList()
+        if (!OpenSubtitles.configured) { osStatus = getString(R.string.os_not_set_up); trackPopup = 5; popupFocus = 0; return }
+        osStatus = getString(R.string.searching); trackPopup = 5; popupFocus = 0
+        val key = now?.key ?: return
+        val movie = lib.findMovie(key)
+        val ep = lib.findEpisode(key)
+        lifecycleScope.launch {
+            val r = withContext(Dispatchers.IO) {
+                runCatching {
+                    // By name, as the video's file gives it (usually the original title; the library's may be
+                    // translated): the film's with its year, or the series' with the episode's season and number.
+                    val parsed = now?.file?.let { Names.parse(it.path) }
+                    val name = (parsed as? Parsed.MovieName)?.title ?: (parsed as? Parsed.EpisodeName)?.show
+                        ?: movie?.title ?: ep?.first?.title ?: now?.title.orEmpty()
+                    val year = (parsed as? Parsed.MovieName)?.year?.ifBlank { null } ?: movie?.year.orEmpty()
+                    OpenSubtitles.search(name, year, ep?.second?.season ?: 0, ep?.second?.number ?: 0, ep?.first?.tmdbId ?: movie?.tmdbId ?: 0)
+                }
+            }
+            if (trackPopup != 5) return@launch
+            r.onSuccess { osHits = it; osStatus = if (it.isEmpty()) getString(R.string.os_none_found) else null }
+                .onFailure { osStatus = it.message ?: it.javaClass.simpleName }
+        }
+    }
+
+    /** Downloads the picked subtitle, keeps it with this title for next time and switches to it. */
+    private fun downloadSubtitle(h: OpenSubtitles.Hit) {
+        val key = now?.key ?: return
+        osStatus = getString(R.string.os_downloading); popupFocus = 0
+        lifecycleScope.launch {
+            val r = withContext(Dispatchers.IO) {
+                runCatching {
+                    val dir = savedSubtitleDir(key).apply { mkdirs() }
+                    val name = h.release.replace(Regex("""[\\/:*?"<>|]"""), "_").take(80)
+                    File(dir, "${dir.list()?.size ?: 0}-$name.${h.language}.srt").also { it.writeText(decodeSubtitle(OpenSubtitles.download(h.fileId)), Charsets.UTF_8) }
+                }
+            }
+            r.onSuccess { f ->
+                trackPopup = -1
+                addSubtitle(f)
+                android.widget.Toast.makeText(this@PlayerActivity, getString(R.string.os_added, langName(h.language)), android.widget.Toast.LENGTH_SHORT).show()
+            }.onFailure { osStatus = it.message ?: it.javaClass.simpleName }
+        }
+    }
+
+    /** Where subtitles downloaded for a title are kept (app storage, so they come back with the film next time). */
+    private fun savedSubtitleDir(key: String) = File(filesDir, "opensubtitles/" + java.security.MessageDigest.getInstance("MD5")
+        .digest(key.toByteArray()).joinToString("") { "%02x".format(it) })
+
+    /** Adds a subtitle file to the film playing and selects it. */
+    private fun addSubtitle(f: File) {
+        val copy = File(File(cacheDir, "subs").apply { mkdirs() }, "${subtitleFiles.size}os-${f.name.substringAfter('-')}").also { f.copyTo(it, overwrite = true) }
+        subtitleFiles = subtitleFiles + copy
+        externalSubs = subtitleFiles.size
+        val e = exo
+        if (e != null) {
+            // Media3 takes its subtitle files when the film opens: reopen it where it is, now with this one, and pick it.
+            val (src, share, path) = playingFrom ?: return
+            pickLastSubtitle = true
+            e.load(src, share, path, subtitleFiles, subtitleFiles.map { subtitleLabel(it) }, now?.file?.dubs.orEmpty(), position)
+        } else {
+            player.addSlave(IMedia.Slave.Type.Subtitle, Uri.fromFile(copy), true)
+        }
+    }
+
+    /** Set when Media3 reopened with a new subtitle: select the last subtitle once its tracks are known. */
+    private var pickLastSubtitle = false
+    /** Where the film playing comes from, for reopening it in Media3. */
+    private var playingFrom: Triple<Source, String, String>? = null
+
+    private fun langName(code: String) = Locale.forLanguageTag(code.substringBefore('-')).getDisplayLanguage(Locale.getDefault())
+        .replaceFirstChar { it.titlecase(Locale.getDefault()) }.ifBlank { code }
 
     private fun openPopup(tab: Int) {
         if (tab == 4) quickItems = quickList() else refreshTracks()
@@ -134,7 +222,13 @@ class PlayerActivity : ComponentActivity() {
         val i = popupFocus
         when (trackPopup) {
             2 -> audioTracks.getOrNull(i)?.let { chooseAudio(it.id) }
-            3 -> if (i == 0) chooseSubtitle(-1) else subtitleTracks.getOrNull(i - 1)?.let { chooseSubtitle(it.id) }
+            3 -> when {
+                i == 0 -> chooseSubtitle(-1)
+                i > subtitleTracks.size -> { searchSubtitles(); return }
+                else -> subtitleTracks.getOrNull(i - 1)?.let { chooseSubtitle(it.id) }
+            }
+            // A result downloads (the pop-up shows progress, then closes); a status line just closes.
+            5 -> if (osStatus == null) { osHits.getOrNull(i)?.let { downloadSubtitle(it) }; return }
             // Another title: this one's place is kept, the new one starts where it was left.
             4 -> quickItems.getOrNull(i)?.first?.takeIf { it != now?.key }?.let { key ->
                 saveProgress(force = true)
@@ -314,6 +408,7 @@ class PlayerActivity : ComponentActivity() {
         if (src == null || parts.size < 3) { error = getString(R.string.source_missing); return }
         val share = parts[1]
         val path = parts[2]
+        playingFrom = Triple(src, share, path)
         now = describe(key, path)
         thumbs?.release()
         thumbs = if (src.type == "smb") SeekThumbs(src, share, path) else null
@@ -322,7 +417,11 @@ class PlayerActivity : ComponentActivity() {
         lifecycleScope.launch {
             // Sidecar subtitles: fetched and converted to UTF-8 (Turkish .srt files are often Windows-1254).
             val dubs = now?.file?.dubs.orEmpty()
-            val subs = withContext(Dispatchers.IO) { runCatching { fetchSubtitles(src, share, path, dubs) }.getOrDefault(emptyList()) }
+            val subs = withContext(Dispatchers.IO) { runCatching { fetchSubtitles(src, share, path, dubs) }.getOrDefault(emptyList()) } +
+                // Subtitles downloaded for this title before (Search subtitles), after the ones on the NAS.
+                savedSubtitleDir(key).listFiles().orEmpty().sortedBy { it.name }.mapIndexed { i, f ->
+                    File(File(cacheDir, "subs"), "${100 + i}os-${f.name.substringAfter('-')}").also { f.copyTo(it, overwrite = true) }
+                }
             externalSubs = subs.size
             subtitleFiles = subs
             dubLabels = dubs.map { getString(R.string.dub_track, Dubs.label(it, path.substringAfterLast('/'))) }
@@ -481,6 +580,7 @@ class PlayerActivity : ComponentActivity() {
             spuIds = subtitleTracks.map { it.id }
             audioTrack = e.selected(androidx.media3.common.C.TRACK_TYPE_AUDIO)
             subtitleTrack = e.selected(androidx.media3.common.C.TRACK_TYPE_TEXT)
+            if (pickLastSubtitle && subtitleTracks.isNotEmpty()) { pickLastSubtitle = false; chooseSubtitle(subtitleTracks.last().id) }
             chapters = exoChapters
             return
         }

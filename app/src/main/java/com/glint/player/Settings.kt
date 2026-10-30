@@ -27,6 +27,24 @@ class Settings(context: Context) {
         get() = prefs.getString("omdbKey", "")!!
         set(v) = prefs.edit().putString("omdbKey", v.trim()).apply()
 
+    /** OpenSubtitles.com: the viewer's API key and account, for searching subtitles from the player. */
+    var osApiKey: String
+        get() = prefs.getString("osApiKey", "")!!
+        set(v) = prefs.edit().putString("osApiKey", v.trim()).remove("osToken").apply()
+    var osUser: String
+        get() = prefs.getString("osUser", "")!!
+        set(v) = prefs.edit().putString("osUser", v.trim()).remove("osToken").apply()
+    var osPassword: String
+        get() = prefs.getString("osPassword", "")!!
+        set(v) = prefs.edit().putString("osPassword", v).remove("osToken").apply()
+    /** The login's token and the server it named, kept for a day (OpenSubtitles' tokens last 24 hours). */
+    var osToken: String
+        get() = prefs.getString("osToken", "")!!.takeIf { System.currentTimeMillis() - prefs.getLong("osTokenAt", 0) < 20 * 3600_000L }.orEmpty()
+        set(v) = prefs.edit().putString("osToken", v).putLong("osTokenAt", System.currentTimeMillis()).apply()
+    var osBaseUrl: String
+        get() = prefs.getString("osBaseUrl", "")!!
+        set(v) = prefs.edit().putString("osBaseUrl", v).apply()
+
     /** Send Dolby/DTS bitstreams to the TV or receiver instead of decoding them. */
     var passthrough: Boolean
         get() = prefs.getBoolean("passthrough", false)

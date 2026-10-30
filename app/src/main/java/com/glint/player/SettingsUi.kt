@@ -293,6 +293,8 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         ListRow(stringResource(R.string.subtitle_position), stringResource(listOf(R.string.pos_bottom, R.string.pos_raised, R.string.pos_high)[listOf(0, 60, 140).indexOf(s.subtitlePosition).coerceAtLeast(0)])) { change { s.subtitlePosition = cycle(listOf(0, 60, 140), s.subtitlePosition) } }
                         ListRow(stringResource(R.string.subtitle_outline), stringResource(listOf(R.string.outline_none, R.string.outline_thin, R.string.outline_normal, R.string.outline_thick)[listOf(0, 2, 4, 6).indexOf(s.subtitleOutline).coerceAtLeast(0)])) { change { s.subtitleOutline = cycle(listOf(4, 6, 0, 2), s.subtitleOutline) } }
                         ListRow(stringResource(R.string.subtitle_bold), onOff(s.subtitleBold)) { change { s.subtitleBold = !s.subtitleBold } }
+                        Gap(10.dp)
+                        OpenSubtitlesAccount()
                     }
                 }
                 9 -> item {
@@ -385,6 +387,50 @@ fun TmdbKeyField(modifier: Modifier = Modifier) {
     val s = lib.settings
     ApiKeyField(R.string.tmdb_key, R.string.tmdb_key_sub, s.tmdbKey, { s.tmdbKey = it }, modifier) { key ->
         Tmdb({ key }, { s.language }).works().also { if (it) lib.scanAll() }   // match the library now it can be
+    }
+}
+
+/**
+ * OpenSubtitles.com, for "Search subtitles" in the player: the viewer's API key, then their account. Entered once;
+ * the user name and password are checked by logging in when the password is done.
+ */
+@Composable
+private fun OpenSubtitlesAccount() {
+    val s = App.library.settings
+    var user by remember { mutableStateOf(s.osUser) }
+    var pass by remember { mutableStateOf(s.osPassword) }
+    var result by remember { mutableStateOf<String?>(null) }
+    var ok by remember { mutableStateOf(false) }
+    var checking by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    fun check() {
+        if (s.osApiKey.isBlank() || user.isBlank() || pass.isEmpty()) return
+        checking = true
+        scope.launch {
+            val r = withContext(Dispatchers.IO) { runCatching { OpenSubtitles.login() } }
+            ok = r.isSuccess
+            result = r.fold({ ctx.getString(R.string.os_logged_in, it) }, { it.message ?: it.javaClass.simpleName })
+            checking = false
+        }
+    }
+    Column(Modifier.fillMaxWidth()) {
+        Txt(stringResource(R.string.opensubtitles), Type.Title, Modifier.padding(horizontal = 22.dp, vertical = 4.dp))
+        Txt(stringResource(R.string.opensubtitles_sub), Type.Small, Modifier.padding(horizontal = 22.dp), maxLines = 3)
+        ApiKeyField(R.string.os_api_key, R.string.os_api_key_sub, s.osApiKey, { s.osApiKey = it }) { OpenSubtitles.works(it) }
+        Column(Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 6.dp)) {
+            Txt(stringResource(R.string.os_user), Type.Heading)
+            Gap(8.dp)
+            TextInput(user, { user = it.trim(); s.osUser = user; result = null }, "", Modifier.fillMaxWidth(), keyboard = androidx.compose.ui.text.input.KeyboardType.Email, onDone = ::check)
+            Gap(12.dp)
+            Txt(stringResource(R.string.os_password), Type.Heading)
+            Gap(8.dp)
+            TextInput(pass, { pass = it; s.osPassword = it; result = null }, "", Modifier.fillMaxWidth(), password = true, onDone = ::check)
+            when {
+                checking -> Txt(stringResource(R.string.key_checking), Type.Small)
+                result != null -> Txt(result!!, Type.Small.copy(color = if (ok) Palette.Accent else Color(0xFFE5484D)))
+            }
+        }
     }
 }
 

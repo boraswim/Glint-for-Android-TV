@@ -104,7 +104,7 @@ Caminandes, © Blender Foundation, CC BY.
 - **Category:** Video Players & Editors.
 - **Privacy policy URL:** https://github.com/boraswim/Glint-for-Android-TV/blob/main/PRIVACY.md
 - **Contact:** a support email address (required by Play; shown publicly on the listing).
-- **Data safety:** no data collected or shared by the developer. Data goes from the device to TMDB and OMDb only
+- **Data safety:** no data collected or shared by the developer. Data goes from the device to TMDB, OMDb and (when the viewer sets it up) OpenSubtitles only
   as the user's own requests, with the user's own keys (see PRIVACY.md).
 - **Content rating:** answer the questionnaire as a media player; Glint has no content of its own.
 - **Ads:** none.

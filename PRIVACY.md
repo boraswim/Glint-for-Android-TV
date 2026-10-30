@@ -14,7 +14,9 @@ Glint keeps these in its private storage on the TV, where other apps can't read 
 - **Your library:** the films and series found on your shares, with their details and artwork.
 - **Your activity:** profiles (with their PINs), watch progress and history, watchlist, playlists, collections,
   ratings you give, and your settings.
-- **Your API keys:** the TMDB and OMDb keys you enter.
+- **Your API keys:** the TMDB and OMDb keys you enter, and your OpenSubtitles API key, user name and password if you
+  enter them.
+- **Subtitles you download:** kept with the film or episode they're for, so they're there next time.
 
 ## What goes over your home network
 
@@ -27,7 +29,7 @@ so keep access to that share private.
 
 ## What goes to the internet
 
-Glint contacts three services, and only for the reasons below:
+Glint contacts these services, and only for the reasons below:
 
 - **TMDB** (The Movie Database, themoviedb.org), with the API key you enter: Glint sends film and series titles and
   years taken from your file names, and the TMDB id of a title, to get its details, artwork, cast and trailers.
@@ -35,11 +37,16 @@ Glint contacts three services, and only for the reasons below:
   https://www.themoviedb.org/privacy-policy
 - **OMDb** (omdbapi.com), with the API key you enter: Glint sends a title's IMDb id to get its IMDb and Rotten
   Tomatoes scores. OMDb's privacy policy: https://www.omdbapi.com/legal.htm
+- **OpenSubtitles** (opensubtitles.com), only if you enter your API key and use **Search subtitles** in the player:
+  with your key, Glint sends the film's or series' title (with the year, or the season and episode number) and your
+  subtitle languages to find subtitles, and downloads the one you pick. If you also entered your OpenSubtitles user
+  name and password (optional), Glint signs in with them first.
+  OpenSubtitles' privacy policy: https://www.opensubtitles.com/en/privacy
 - **YouTube:** when you open a trailer, Glint hands its link to the YouTube app on your TV. What YouTube does
   then is covered by Google's privacy policy: https://policies.google.com/privacy
 
-These services see your TV's internet address, as any website does. Glint sends them no names, file paths,
-passwords or anything else about you.
+These services see your TV's internet address, as any website does. Glint sends them no file paths or anything
+else about you, and no passwords except your OpenSubtitles one, to OpenSubtitles itself when signing in.
 
 ## Permissions
 
