@@ -178,8 +178,8 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                     item {
                         var size by remember { mutableStateOf(lib.cacheBytes()) }
                         var asking by remember { mutableStateOf(false) }
-                        // OK asks first, starting on "Cancel": a full cache took a long time to build.
-                        ListRow(stringResource(R.string.library_cache), bytes(size), sub = stringResource(R.string.library_cache_sub)) { asking = true }
+                        // In red, and OK asks first, starting on "Cancel": a full cache took a long time to build.
+                        ListRow(stringResource(R.string.library_cache), bytes(size), sub = stringResource(R.string.library_cache_sub), danger = true) { asking = true }
                         if (asking) androidx.compose.ui.window.Dialog({ asking = false }, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
                             TvScale {
                                 OptionSheet(stringResource(R.string.clear_cache_confirm), listOf(
