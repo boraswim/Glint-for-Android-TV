@@ -592,7 +592,10 @@ fun GridScreen(nav: Nav, kind: Kind) {
         // Coming back from a title: open scrolled to it (a row above it showing), so its card exists to take focus again.
         val at = remember { items.indexOfFirst { it.id == wanted }.coerceAtLeast(0) }
         val cols = if (wide) 4 else 6
-        val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState((at / cols - 1).coerceAtLeast(0) * cols)
+        // In a grid the title is its first item (it scrolls away with the cards), so card i is item i + 1; a row
+        // above the wanted card stays in view, or the title when that's the first row.
+        fun rowStart(i: Int) = (i / cols - 1).let { if (it <= 0) 0 else it * cols + 1 }
+        val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState(rowStart(at))
         val scope = androidx.compose.runtime.rememberCoroutineScope()
         // A grid's letters live in a dock on the right, its sort and filter in one on the left; list view keeps its
         // buttons at the top.
@@ -614,19 +617,18 @@ fun GridScreen(nav: Nav, kind: Kind) {
         fun jump(i: Int) {
             if (i !in items.indices) return
             lettersOpen = false
-            scope.launch { gridState.scrollToItem((i / cols - 1).coerceAtLeast(0) * cols) }
+            scope.launch { gridState.scrollToItem(rowStart(i)) }
             nav.remember(screen, items[i].id)   // its card takes focus as soon as it's there
         }
+        val heading = (if (filter == 0) title else "$title  ·  ${filterLabel(filter)}") + "  ·  ${items.size}"
         Column(Modifier.fillMaxSize()) {
-            Box(Modifier.fillMaxWidth()) {
-                val shown = if (filter == 0) title else "$title  ·  ${filterLabel(filter)}"
-                ScreenTitle("$shown  ·  ${items.size}")
-                if (!docked) {
-                    Row(Modifier.align(Alignment.CenterEnd).padding(end = 80.dp, top = 22.dp)) {
-                        IconCircle(Icons.AutoMirrored.Filled.Sort, size = 46.dp) { sorting = true }
-                        Spacer(Modifier.width(14.dp))
-                        IconCircle(Icons.Filled.FilterList, size = 46.dp, active = filter != 0) { filtering = true }
-                    }
+            // List view keeps the title and its buttons fixed at the top; a grid scrolls its title away with the cards.
+            if (!docked) Box(Modifier.fillMaxWidth()) {
+                ScreenTitle(heading)
+                Row(Modifier.align(Alignment.CenterEnd).padding(end = 80.dp, top = 22.dp)) {
+                    IconCircle(Icons.AutoMirrored.Filled.Sort, size = 46.dp) { sorting = true }
+                    Spacer(Modifier.width(14.dp))
+                    IconCircle(Icons.Filled.FilterList, size = 46.dp, active = filter != 0) { filtering = true }
                 }
             }
             if (items.isEmpty()) Txt(stringResource(R.string.nothing_here), Type.Body, Modifier.fillMaxWidth().padding(top = 40.dp), align = TextAlign.Center)
@@ -644,7 +646,7 @@ fun GridScreen(nav: Nav, kind: Kind) {
             // moves; meanwhile any never prepared at this size are made in the background, one at a time.
             LaunchedEffect(items) {
                 var done = IntRange.EMPTY
-                androidx.compose.runtime.snapshotFlow { gridState.firstVisibleItemIndex }.collect { first ->
+                androidx.compose.runtime.snapshotFlow { (gridState.firstVisibleItemIndex - 1).coerceAtLeast(0) }.collect { first ->
                     val (w, h) = PosterPrefetch.sizes[cardDp] ?: return@collect
                     val window = (first - 2 * cols).coerceAtLeast(0)..(first + 7 * cols).coerceAtMost(items.lastIndex)
                     PosterPrefetch.warm(ctx, window.filter { it !in done }.mapNotNull { picture(items[it]) }, w, h)
@@ -669,13 +671,20 @@ fun GridScreen(nav: Nav, kind: Kind) {
                 },
                 gridState,
                 // Six 177dp posters across the 1280dp screen; 34dp gaps fit the focused one's 10% zoom.
-                contentPadding = if (wide) PaddingValues(start = 80.dp, end = 80.dp, top = 18.dp, bottom = 60.dp) else PaddingValues(start = 24.dp, end = 24.dp, top = 18.dp, bottom = 60.dp),
+                contentPadding = if (wide) PaddingValues(start = 80.dp, end = 80.dp, bottom = 60.dp) else PaddingValues(start = 24.dp, end = 24.dp, bottom = 60.dp),
                 horizontalArrangement = Arrangement.spacedBy(if (wide) 26.dp else 34.dp),
                 verticalArrangement = Arrangement.spacedBy(30.dp),
             ) {
+                item(key = "title", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    Txt(heading, Type.Title.copy(color = Palette.Faint, fontSize = 30.sp), Modifier.fillMaxWidth().padding(top = 36.dp), align = TextAlign.Center)
+                }
                 items(items.size, key = { items[it].id }) { i ->
                     val item = items[i]
-                    val focus: (Item) -> Unit = { focusedIndex = i; nav.remember(screen, it.id) }
+                    val focus: (Item) -> Unit = {
+                        focusedIndex = i; nav.remember(screen, it.id)
+                        // Back in the first row: show the title above it again.
+                        if (i < cols && gridState.firstVisibleItemIndex > 0) scope.launch { gridState.animateScrollToItem(0) }
+                    }
                     if (wide) WideCard(item, width = 255.dp, wanted = wanted, label = (item as? Item.MovieItem)?.movie?.file?.name, onLongClick = { sheet = it }, onFocus = focus, onClick = { play(nav, it) })
                     else PosterCard(item, width = 177.dp, wanted = wanted, onLongClick = { sheet = it }, onFocus = focus, onClick = nav::open)
                 }
