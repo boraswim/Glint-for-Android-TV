@@ -39,17 +39,12 @@ YouTube when you open a trailer.
 
 ## Install
 
-1. Download `Glint-<version>.apk` from the
-   [latest release](https://github.com/boraswim/Glint-for-Android-TV/releases/latest).
-2. Install it on your TV, either way:
-   - **With a computer:** turn on developer options and network debugging on the TV, then run
-     `adb connect <TV address>` and `adb install Glint-<version>.apk`.
-   - **With a USB stick:** copy the APK to a USB stick, plug it into the TV and open it with a file
-     manager. Android asks you to allow installs from that app once.
-3. Open Glint from the TV's apps, choose **Add a share**, pick your NAS and the shares to use. The
-   library fills in while the files are matched.
+Glint is coming to Google Play for Android TV. Until then, build it from source (see below) and install
+it on your TV with `adb install`.
 
-Updates install over the old version and keep your library and settings.
+Open Glint from the TV's apps, choose **Add a share**, pick your NAS and the shares to use. The library
+fills in while the files are matched. Updates install over the old version and keep your library and
+settings.
 
 ### Your own API keys
 

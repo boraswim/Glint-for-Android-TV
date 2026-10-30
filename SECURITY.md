@@ -2,13 +2,12 @@
 
 ## Supported versions
 
-Security fixes go into the latest release. If you're on an older version, update by installing the newest
-release's APK over it.
+Security fixes go into the latest version. If you're on an older one, update Glint to the newest version.
 
 | Version | Supported |
 |---|---|
-| Latest release | Yes |
-| Older releases | No |
+| Latest version | Yes |
+| Older versions | No |
 
 ## Reporting a vulnerability
 
