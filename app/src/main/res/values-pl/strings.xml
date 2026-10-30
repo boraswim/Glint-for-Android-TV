@@ -286,6 +286,8 @@
     <string name="extras">Dodatki</string>
     <string name="library_cache">Pamięć podręczna biblioteki</string>
     <string name="library_cache_sub">Plakaty i grafiki zapisane na urządzeniu. Naciśnij OK, aby wyczyścić.</string>
+    <string name="clear_cache_confirm">Wyczyścić zapisane plakaty i grafiki? Zostaną ponownie pobrane z TMDB i NAS.</string>
+    <string name="clear_cache_yes">Wyczyść pamięć</string>
     <string name="backup_now">Kopia zapasowa na NAS</string>
     <string name="backup_sub">Zapisuje profile, historię, listy i ustawienia w Glint/backup.json na Twoim NAS</string>
     <string name="backup_done">Zapisano w %1$s</string>

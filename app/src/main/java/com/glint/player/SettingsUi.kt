@@ -177,7 +177,17 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                     item { ListRow(stringResource(R.string.refresh_metadata), sub = stringResource(R.string.refresh_metadata_sub)) { lib.clearLibrary(); lib.scanAll() } }
                     item {
                         var size by remember { mutableStateOf(lib.cacheBytes()) }
-                        ListRow(stringResource(R.string.library_cache), bytes(size), sub = stringResource(R.string.library_cache_sub)) { lib.clearCache(); size = lib.cacheBytes() }
+                        var asking by remember { mutableStateOf(false) }
+                        // OK asks first, starting on "Cancel": a full cache took a long time to build.
+                        ListRow(stringResource(R.string.library_cache), bytes(size), sub = stringResource(R.string.library_cache_sub)) { asking = true }
+                        if (asking) androidx.compose.ui.window.Dialog({ asking = false }, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+                            TvScale {
+                                OptionSheet(stringResource(R.string.clear_cache_confirm), listOf(
+                                    stringResource(R.string.cancel) to {},
+                                    stringResource(R.string.clear_cache_yes) to { lib.clearCache(); size = lib.cacheBytes() },
+                                )) { asking = false }
+                            }
+                        }
                     }
                     item {
                         var msg by remember { mutableStateOf<String?>(null) }

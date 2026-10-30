@@ -286,6 +286,8 @@
     <string name="extras">Contenuti extra</string>
     <string name="library_cache">Cache della libreria</string>
     <string name="library_cache_sub">Poster e immagini salvati sul dispositivo. Premi OK per svuotare.</string>
+    <string name="clear_cache_confirm">Svuotare poster e immagini salvati? Verranno ricaricati da TMDB e dal NAS.</string>
+    <string name="clear_cache_yes">Svuota cache</string>
     <string name="backup_now">Backup sul NAS</string>
     <string name="backup_sub">Salva profili, cronologia, liste e impostazioni in Glint/backup.json sul NAS</string>
     <string name="backup_done">Salvato in %1$s</string>

@@ -286,6 +286,8 @@
     <string name="extras">Extras</string>
     <string name="library_cache">Mediathek-Cache</string>
     <string name="library_cache_sub">Poster und Bilder auf dem Gerät. OK drücken zum Leeren.</string>
+    <string name="clear_cache_confirm">Gespeicherte Poster und Bilder löschen? Sie werden von TMDB und dem NAS neu geladen.</string>
+    <string name="clear_cache_yes">Cache leeren</string>
     <string name="backup_now">Auf dem NAS sichern</string>
     <string name="backup_sub">Speichert Profile, Verlauf, Listen und Einstellungen in Glint/backup.json auf deinem NAS</string>
     <string name="backup_done">Gespeichert unter %1$s</string>

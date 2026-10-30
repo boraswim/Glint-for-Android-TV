@@ -286,6 +286,8 @@
     <string name="extras">Extras</string>
     <string name="library_cache">Cache da biblioteca</string>
     <string name="library_cache_sub">Pôsteres e imagens guardados no aparelho. Pressione OK para limpar.</string>
+    <string name="clear_cache_confirm">Limpar os pôsteres e imagens guardados? Eles serão carregados de novo do TMDB e do NAS.</string>
+    <string name="clear_cache_yes">Limpar cache</string>
     <string name="backup_now">Fazer backup no NAS</string>
     <string name="backup_sub">Salva perfis, histórico, listas e configurações em Glint/backup.json no seu NAS</string>
     <string name="backup_done">Salvo em %1$s</string>

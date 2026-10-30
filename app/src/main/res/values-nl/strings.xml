@@ -286,6 +286,8 @@
     <string name="extras">Extra\'s</string>
     <string name="library_cache">Bibliotheekcache</string>
     <string name="library_cache_sub">Posters en afbeeldingen op het apparaat. Druk op OK om te wissen.</string>
+    <string name="clear_cache_confirm">Opgeslagen posters en afbeeldingen wissen? Ze worden opnieuw geladen van TMDB en de NAS.</string>
+    <string name="clear_cache_yes">Cache wissen</string>
     <string name="backup_now">Back-up naar NAS</string>
     <string name="backup_sub">Slaat profielen, kijkgeschiedenis, lijsten en instellingen op in Glint/backup.json op je NAS</string>
     <string name="backup_done">Opgeslagen in %1$s</string>

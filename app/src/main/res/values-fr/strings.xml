@@ -286,6 +286,8 @@
     <string name="extras">Bonus</string>
     <string name="library_cache">Cache de la médiathèque</string>
     <string name="library_cache_sub">Affiches et visuels gardés sur l\'appareil. Appuyez sur OK pour vider.</string>
+    <string name="clear_cache_confirm">Vider les affiches et visuels gardés ? Ils seront rechargés depuis TMDB et le NAS.</string>
+    <string name="clear_cache_yes">Vider le cache</string>
     <string name="backup_now">Sauvegarder sur le NAS</string>
     <string name="backup_sub">Enregistre profils, historique, listes et réglages dans Glint/backup.json sur votre NAS</string>
     <string name="backup_done">Enregistré dans %1$s</string>

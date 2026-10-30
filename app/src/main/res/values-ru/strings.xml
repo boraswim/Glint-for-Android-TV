@@ -286,6 +286,8 @@
     <string name="extras">Дополнительные материалы</string>
     <string name="library_cache">Кэш медиатеки</string>
     <string name="library_cache_sub">Постеры и изображения на устройстве. Нажмите OK, чтобы очистить.</string>
+    <string name="clear_cache_confirm">Очистить сохранённые постеры и изображения? Они снова загрузятся из TMDB и с NAS.</string>
+    <string name="clear_cache_yes">Очистить кэш</string>
     <string name="backup_now">Резервная копия на NAS</string>
     <string name="backup_sub">Сохраняет профили, историю, списки и настройки в Glint/backup.json на вашем NAS</string>
     <string name="backup_done">Сохранено в %1$s</string>

@@ -286,6 +286,8 @@
     <string name="extras">Ekstralar</string>
     <string name="library_cache">Kütüphane önbelleği</string>
     <string name="library_cache_sub">Kutuda saklanan afiş ve görseller. Temizlemek için OK.</string>
+    <string name="clear_cache_confirm">Saklanan afişler ve görseller temizlensin mi? TMDB\'den ve NAS\'tan yeniden yüklenirler.</string>
+    <string name="clear_cache_yes">Önbelleği temizle</string>
     <string name="backup_now">NAS\'a yedekle</string>
     <string name="backup_sub">Profilleri, izleme geçmişini, listeleri ve ayarları NAS\'ta Glint/backup.json dosyasına kaydeder</string>
     <string name="backup_done">Kaydedildi: %1$s</string>

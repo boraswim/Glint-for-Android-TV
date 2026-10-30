@@ -299,6 +299,8 @@
     <string name="extras">Extras</string>
     <string name="library_cache">Library cache</string>
     <string name="library_cache_sub">Posters and artwork kept on the box. Press OK to clear.</string>
+    <string name="clear_cache_confirm">Clear the cached posters and artwork? They load again from TMDB and the NAS.</string>
+    <string name="clear_cache_yes">Clear cache</string>
     <string name="backup_now">Back up to NAS</string>
     <string name="backup_sub">Saves profiles, watch history, lists and settings to Glint/backup.json on your NAS</string>
     <string name="backup_done">Saved to %1$s</string>
