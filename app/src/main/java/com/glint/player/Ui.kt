@@ -691,13 +691,14 @@ fun bytes(n: Long): String = when {
 }
 
 /** Quality badges read from the release name: 4K, HDR, Dolby Vision, Atmos, DTS-HD… */
-fun badges(name: String): List<String> {
+fun badges(name: String, resolution: String = ""): List<String> {
     val n = name.lowercase(Locale.ROOT).replace('_', '.').replace(' ', '.')
     val out = ArrayList<String>()
     when {
         "2160p" in n || ".4k." in n || ".uhd." in n -> out += "4K"
         "1080p" in n || "1080i" in n -> out += "1080p"
         "720p" in n -> out += "720p"
+        resolution.isNotEmpty() -> out += resolution   // the name doesn't say; read from the file at scan time
     }
     if (Regex("""\.(dv|dovi)\.|dolby.?vision""").containsMatchIn(n)) out += "Dolby Vision"
     if ("hdr10p" in n || "hdr10+" in n || "hdr10plus" in n) out += "HDR10+"
@@ -716,3 +717,8 @@ fun badges(name: String): List<String> {
     if ("remux" in n) out += "REMUX"
     return out
 }
+
+fun badges(file: VideoFile) = badges(file.name, file.resolution)
+
+/** Whether a file name says its resolution; for the others it's read from the file itself. */
+fun namesResolution(name: String) = badges(name).any { it == "4K" || it == "1080p" || it == "720p" }

@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
-// The TMDB key and the release signing key live in local.properties (git-ignored); a -P flag wins over it.
+// The release signing key lives in local.properties (git-ignored); a -P flag wins over it.
 val localProps = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.reader(Charsets.UTF_8)?.use { load(it) }
 }
@@ -25,8 +25,6 @@ android {
         targetSdk = 35
         versionCode = 3
         versionName = "1.2.0"
-        buildConfigField("String", "TMDB_KEY", "\"${setting("tmdb.apiKey", "")}\"")
-        buildConfigField("boolean", "STORE", "false")
         // Mi Box S is 32-bit ARM; arm64 covers newer boxes. Skipping x86 keeps libVLC's size down.
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
     }
@@ -40,18 +38,6 @@ android {
             storePassword = setting("release.storePassword", "")
             keyAlias = setting("release.keyAlias", "")
             keyPassword = setting("release.keyPassword", "")
-        }
-    }
-
-    // github: what the GitHub releases ship (ratings from IMDb's datasets and Rotten Tomatoes' pages).
-    // store: for app stores; no key built in and ratings only through the viewer's own OMDb key.
-    flavorDimensions += "dist"
-    productFlavors {
-        create("github") { dimension = "dist" }
-        create("store") {
-            dimension = "dist"
-            buildConfigField("boolean", "STORE", "true")
-            buildConfigField("String", "TMDB_KEY", "\"\"")
         }
     }
 

@@ -26,6 +26,27 @@ object MkvChapters {
     private const val NAME = 0x85L
     private const val LIMIT = 64L shl 20   // how far into the file to look
 
+    private const val TRACKS = 0x1654AE6BL
+    private const val TRACK_ENTRY = 0xAEL
+    private const val VIDEO = 0xE0L
+    private const val PIXEL_WIDTH = 0xB0L
+    private const val PIXEL_HEIGHT = 0xBAL
+
+    /**
+     * The picture size of an MKV's first video track, as "4K", "1080p" or "720p" (blank when unknown or smaller):
+     * for files whose name doesn't say. Reads only the start of the file, up to its track list.
+     */
+    fun resolution(src: Source, share: String, path: String): String {
+        if (Names.ext(path) != "mkv") return ""
+        val (w, h) = Fs.open(src, share, path).use { runCatching { Reader(it.buffered(64 * 1024)).videoSize() }.getOrNull() } ?: return ""
+        return when {
+            w >= 3200 || h >= 2000 -> "4K"
+            w >= 1800 || h >= 1000 -> "1080p"
+            w >= 1200 || h >= 700 -> "720p"
+            else -> ""
+        }
+    }
+
     fun read(src: Source, share: String, path: String): List<Pair<String, Long>> {
         if (Names.ext(path) != "mkv") return emptyList()
         return Fs.open(src, share, path).use { runCatching { Reader(it.buffered(64 * 1024)).chapters() }.getOrDefault(emptyList()) }
@@ -42,7 +63,7 @@ object MkvChapters {
         }
 
         fun skipTo(target: Long) {
-            if (target < pos || target > LIMIT) throw IOException("Chapters out of reach")
+            if (target < pos || target > LIMIT) throw IOException("Out of reach")
             while (pos < target) {
                 val n = input.skip(target - pos)
                 if (n > 0) pos += n else byte()
@@ -63,6 +84,50 @@ object MkvChapters {
             var v = 0L
             repeat(size.toInt()) { v = (v shl 8) or byte().toLong() }
             return v
+        }
+
+        /** Width and height of the first video track; the track list comes before the video in a muxed file. */
+        fun videoSize(): Pair<Int, Int>? {
+            if (vint(true) != EBML) return null
+            skipTo(vint(false) + pos)
+            if (vint(true) != SEGMENT) return null
+            vint(false)
+            while (true) {
+                val id = vint(true)
+                val size = vint(false)
+                if (id == CLUSTER || size < 0) return null
+                val end = pos + size
+                if (id == TRACKS) {
+                    while (pos < end) {
+                        val entry = vint(true)
+                        val entryEnd = vint(false) + pos
+                        if (entry == TRACK_ENTRY) {
+                            while (pos < entryEnd) {
+                                val inner = vint(true)
+                                val innerEnd = vint(false) + pos
+                                if (inner == VIDEO) {
+                                    var w = 0L
+                                    var h = 0L
+                                    while (pos < innerEnd) {
+                                        val v = vint(true)
+                                        val vs = vint(false)
+                                        when (v) {
+                                            PIXEL_WIDTH -> w = uint(vs)
+                                            PIXEL_HEIGHT -> h = uint(vs)
+                                            else -> skipTo(pos + vs)
+                                        }
+                                    }
+                                    if (w > 0 && h > 0) return w.toInt() to h.toInt()
+                                }
+                                skipTo(innerEnd)
+                            }
+                        }
+                        skipTo(entryEnd)
+                    }
+                    return null
+                }
+                skipTo(end)
+            }
         }
 
         fun chapters(): List<Pair<String, Long>> {

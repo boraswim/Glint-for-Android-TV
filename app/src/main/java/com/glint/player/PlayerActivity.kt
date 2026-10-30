@@ -385,7 +385,7 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun describe(key: String, path: String): NowPlaying {
-        lib.findMovie(key)?.let { m -> return NowPlaying(key, m.title, listOf(m.year, badges(m.file.name).take(3).joinToString(" ")).filter { it.isNotBlank() }.joinToString("  ·  "), m.file, m.overview) }
+        lib.findMovie(key)?.let { m -> return NowPlaying(key, m.title, listOf(m.year, badges(m.file).take(3).joinToString(" ")).filter { it.isNotBlank() }.joinToString("  ·  "), m.file, m.overview) }
         lib.findEpisode(key)?.let { (s, e) -> return NowPlaying(key, s.title, listOf(e.code, e.title).filter { it.isNotBlank() }.joinToString("  ·  "), e.file, e.overview) }
         return NowPlaying(key, path.substringAfterLast('/').substringBeforeLast('.'), "", null)
     }

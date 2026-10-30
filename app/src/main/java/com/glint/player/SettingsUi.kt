@@ -215,11 +215,11 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         ListRow(stringResource(R.string.show_logos), onOff(s.showLogos), FocusFirst()) { change { s.showLogos = !s.showLogos } }
                         ListRow(stringResource(R.string.prefer_local_metadata), onOff(s.preferLocalMetadata), sub = stringResource(R.string.prefer_local_metadata_sub)) { change { s.preferLocalMetadata = !s.preferLocalMetadata } }
                         ListRow(stringResource(R.string.show_ratings), onOff(s.showRatings)) { change { s.showRatings = !s.showRatings } }
-                        // Keys of the viewer's own: TMDB where the build has none, OMDb for ratings in the store build.
-                        if (BuildConfig.TMDB_KEY.isBlank()) ApiKeyField(R.string.tmdb_key, R.string.tmdb_key_sub, s.tmdbKey, { s.tmdbKey = it }) { key ->
+                        // The viewer's own keys: TMDB for details, artwork and trailers; OMDb for IMDb and Rotten Tomatoes.
+                        ApiKeyField(R.string.tmdb_key, R.string.tmdb_key_sub, s.tmdbKey, { s.tmdbKey = it }) { key ->
                             Tmdb({ key }, { s.language }).works().also { if (it) lib.scanAll() }   // match the library now it can be
                         }
-                        if (BuildConfig.STORE) ApiKeyField(R.string.omdb_key, R.string.omdb_key_sub, s.omdbKey, { s.omdbKey = it }) { key ->
+                        ApiKeyField(R.string.omdb_key, R.string.omdb_key_sub, s.omdbKey, { s.omdbKey = it }) { key ->
                             Omdb.works(key).also { if (it) Omdb.clear(App.instance) }
                         }
                     }
@@ -316,7 +316,7 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         Txt(stringResource(R.string.about, BuildConfig.VERSION_NAME), Type.Heading, modifier = FocusFirst())
                         Gap(10.dp)
                         Txt(stringResource(R.string.tmdb_notice), Type.Body, align = TextAlign.Center)
-                        Txt(stringResource(if (BuildConfig.STORE) R.string.omdb_notice else R.string.imdb_notice), Type.Body, align = TextAlign.Center)
+                        Txt(stringResource(R.string.omdb_notice), Type.Body, align = TextAlign.Center)
                         Gap(6.dp)
                         Txt(stringResource(R.string.license_notice), Type.Body, align = TextAlign.Center)
                         if (!lib.tmdb.enabled) { Gap(6.dp); Txt(stringResource(R.string.tmdb_missing), Type.Body.copy(color = Palette.Accent)) }

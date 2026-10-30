@@ -31,10 +31,9 @@ app from this repository.
 
 - **TMDB:** titles, plots, cast, posters and artwork come from [The Movie Database](https://www.themoviedb.org/).
   This product uses the TMDB API but is not endorsed or certified by TMDB.
-- **IMDb:** ratings come from the IMDb non-commercial datasets. Information courtesy of IMDb
-  (https://www.imdb.com). Used with permission for personal, non-commercial use.
-- **Rotten Tomatoes:** critic and audience scores are read from rottentomatoes.com pages, linked through
-  Wikidata. Rotten Tomatoes is a trademark of Fandango; Glint is not affiliated with it.
+- **OMDb:** IMDb ratings and Rotten Tomatoes critic scores come from the [OMDb API](https://www.omdbapi.com),
+  with the viewer's own key. IMDb and Rotten Tomatoes are trademarks of their owners; Glint is not affiliated
+  with IMDb, Rotten Tomatoes or OMDb.
 - **YouTube:** trailers open in the YouTube app.
 
 Film and series artwork shown in the app and in the screenshots belongs to its respective owners.

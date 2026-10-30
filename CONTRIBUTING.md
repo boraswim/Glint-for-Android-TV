@@ -15,17 +15,17 @@ your TV or box and its Android version, and for playback problems the file's vid
 Glint is an Android TV app in Kotlin with Jetpack Compose. You need the Android SDK and JDK 17 (Android
 Studio brings both).
 
-1. Copy `local.properties.example` to `local.properties` and set `sdk.dir`. A free
-   [TMDB key](https://www.themoviedb.org/settings/api) in `tmdb.apiKey` lets films match their details.
+1. Copy `local.properties.example` to `local.properties` and set `sdk.dir`. No API keys are built in:
+   enter your own free TMDB and OMDb keys in the app's Settings → Metadata & Artwork.
 2. Build and install the release build on a TV or box:
 
    ```
-   ./gradlew assembleGithubRelease
-   adb install -r app/build/outputs/apk/github/release/app-github-release.apk
+   ./gradlew assembleRelease
+   adb install -r app/build/outputs/apk/release/app-release.apk
    ```
 
    Use the release build even for testing: debug builds of Compose are slow on TV boxes.
-3. Run the unit tests with `./gradlew testGithubReleaseUnitTest`.
+3. Run the unit tests with `./gradlew testReleaseUnitTest`.
 
 The README's **Code** table says what each file does.
 

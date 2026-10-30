@@ -504,9 +504,9 @@ fun GridScreen(nav: Nav, kind: Kind) {
 
     val items = remember(data, progress, user, filter, sortTick, sorting) {
         // The filter menu's choices, in FILTERS order: all, unwatched, watched, in progress, 4K, not 4K, Dolby Vision, HDR.
-        fun keep(id: String, fileName: String): Boolean {
+        fun keep(id: String, file: VideoFile): Boolean {
             val p = progress[id]
-            val b by lazy { badges(fileName) }
+            val b by lazy { badges(file) }
             return when (filter) {
                 1 -> p?.watched != true
                 2 -> p?.watched == true
@@ -521,7 +521,7 @@ fun GridScreen(nav: Nav, kind: Kind) {
         fun keepShow(sh: Show) = when (filter) {
             1 -> sh.episodes.any { progress[it.id]?.watched != true }
             2 -> sh.episodes.all { progress[it.id]?.watched == true }
-            else -> sh.episodes.any { keep(it.id, it.file.name) }
+            else -> sh.episodes.any { keep(it.id, it.file) }
         }
         fun sortMovies(list: List<Movie>) = when (s.sortOrder) {
             1 -> list.sortedByDescending { it.file.added }
@@ -539,7 +539,7 @@ fun GridScreen(nav: Nav, kind: Kind) {
             else -> list.sortedBy { sortTitle(it.title) }
         }
         // Smart groups: several copies of one film (cuts, resolutions) show as one poster.
-        val films = data.movies.filter { it.catalogued && keep(it.id, it.file.name) }
+        val films = data.movies.filter { it.catalogued && keep(it.id, it.file) }
             .distinctBy { if (it.tmdbId != 0) "t${it.tmdbId}" else it.id }
         when (kind) {
             Kind.Movies -> {
@@ -560,7 +560,7 @@ fun GridScreen(nav: Nav, kind: Kind) {
                 }
             }
             Kind.Shows -> sortShows(data.shows.filter(::keepShow)).map { Item.ShowItem(it) }
-            Kind.Others -> data.movies.filter { !it.catalogued && keep(it.id, it.file.name) }.sortedByDescending { it.file.modified }.map { Item.MovieItem(it) }
+            Kind.Others -> data.movies.filter { !it.catalogued && keep(it.id, it.file) }.sortedByDescending { it.file.modified }.map { Item.MovieItem(it) }
             Kind.Collections -> lib.collections()
             Kind.Watchlist -> user.watchlist.mapNotNull { id -> lib.findMovie(id)?.let { Item.MovieItem(it) } ?: lib.findShow(id)?.let { Item.ShowItem(it) } }
             Kind.Playlists -> emptyList()

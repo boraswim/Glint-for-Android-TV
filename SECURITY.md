@@ -32,8 +32,8 @@ most useful to report:
   and in the NAS backup (`Glint/backup.json`).
 - **The local relay:** for a share with a fixed SMB version, Glint serves the film to its player through
   an HTTP server on `127.0.0.1` only.
-- **Online lookups:** film details from TMDB, ratings from IMDb's datasets, Wikidata and Rotten
-  Tomatoes, and trailers through YouTube.
+- **Online lookups:** film details from TMDB and ratings from OMDb (with keys the viewer enters, kept
+  in the app's private storage), and trailers through YouTube.
 
 Bugs in the libraries themselves (libVLC, Media3, smbj and others) belong with those projects. Do tell us
 if Glint uses one of them in an unsafe way.

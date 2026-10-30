@@ -115,7 +115,6 @@
     <string name="none">None</string>
     <string name="about">Glint %1$s</string>
     <string name="tmdb_notice">This product uses the TMDB API but is not endorsed or certified by TMDB.</string>
-    <string name="imdb_notice" translatable="false">Information courtesy of IMDb (https://www.imdb.com). Used with permission.</string>
     <string name="omdb_notice" translatable="false">IMDb and Rotten Tomatoes ratings come from the OMDb API (https://www.omdbapi.com) with your own key. Glint is not affiliated with IMDb, Rotten Tomatoes or OMDb.</string>
     <string name="license_notice" translatable="false">Glint is free software under the GNU General Public License v3.0.</string>
     <string name="tmdb_missing">Add your own TMDB key in Settings → Metadata &amp; Artwork to get film details, artwork and trailers.</string>

@@ -47,6 +47,8 @@ data class VideoFile(
     // A DVD (VIDEO_TS) or Blu-ray (BDMV) folder: [path] is the folder, [parts] the files of the main title in order.
     val disc: String = "",
     val parts: List<String> = emptyList(),
+    // "4K", "1080p" or "720p" read from inside the file, for a name that doesn't say ("Open.Matte.HDR.DoVi.mkv").
+    val resolution: String = "",
 ) {
     val key get() = "$source|$share|$path"
     val name get() = path.substringAfterLast('/')

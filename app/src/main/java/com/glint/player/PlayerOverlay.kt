@@ -318,7 +318,7 @@ private fun InfoTab(p: PlayerActivity) {
             if (!n?.overview.isNullOrBlank()) { Gap(8.dp); Txt(n!!.overview, Type.Body.copy(fontSize = 18.sp, lineHeight = 25.sp, color = Color.White), maxLines = 5) }
             Gap(12.dp)
             val file = n?.file
-            val b = file?.let { badges(it.name) }.orEmpty()
+            val b = file?.let { badges(it) }.orEmpty()
             val name = file?.name.orEmpty().lowercase(java.util.Locale.ROOT)
             val codec = when { "hevc" in name || "x265" in name || "h265" in name || "h.265" in name -> "HEVC"; "avc" in name || "x264" in name || "h264" in name || "h.264" in name -> "H.264"; "av1" in name -> "AV1"; else -> "" }
             val pic = listOfNotNull(b.firstOrNull { it in setOf("4K", "1080p", "720p") }, b.firstOrNull { it in setOf("Dolby Vision", "HDR10+", "HDR") }).joinToString(" ")

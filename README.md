@@ -13,7 +13,8 @@ Dolby Vision, HDR10, lossless surround sound and frame-rate matching, straight f
 Mastered for Android 11 and built on a 4K Philips Android 11 TV. It runs on Android 7.0 and later.
 
 Glint plays your own files and has no account, no server and no tracking. The only online lookups are
-the film details from TMDB, the rating scores, and YouTube when you open a trailer.
+the film details from TMDB and the ratings from OMDb, both with free keys you enter yourself, and
+YouTube when you open a trailer.
 
 ## Features
 
@@ -50,9 +51,18 @@ the film details from TMDB, the rating scores, and YouTube when you open a trail
 
 Updates install over the old version and keep your library and settings.
 
-The release APK is built without a TMDB key, so films and series show their NAS posters, `.nfo`
-details and file names, but no TMDB details, artwork or trailers. Build it yourself with your own free
-key to get them (see below).
+### Your own API keys
+
+Film details and ratings come from free services, with keys you get yourself and enter in Glint's
+**Settings → Metadata & Artwork**:
+
+- **TMDB API key**, from [themoviedb.org](https://www.themoviedb.org/settings/api) (free account, then
+  Settings → API): titles, plots, cast, posters, artwork and trailers. Without it, films and series show
+  their NAS posters, `.nfo` details and file names.
+- **OMDb API key**, from [omdbapi.com](https://www.omdbapi.com/apikey.aspx) (free): IMDb and Rotten
+  Tomatoes scores. Without it, film pages show only the TMDB score.
+
+Glint checks each key when you enter it, and a library update then fills in the details.
 
 ## Building from source
 
@@ -60,25 +70,20 @@ Requires the Android SDK and JDK 17 (Android Studio brings both).
 
 1. Copy `local.properties.example` to `local.properties` and fill it in:
    - `sdk.dir`: your Android SDK path (Android Studio sets this for you).
-   - `tmdb.apiKey`: a free key from [themoviedb.org](https://www.themoviedb.org/settings/api). Optional,
-     but without it films show only NAS posters, `.nfo` details and file names.
    - `release.*`: optional, your own signing key. Without it, release builds are signed with the debug key.
 2. Build and install:
 
    ```
-   ./gradlew assembleGithubRelease
-   adb install -r app/build/outputs/apk/github/release/app-github-release.apk
+   ./gradlew assembleRelease
+   adb install -r app/build/outputs/apk/release/app-release.apk
    ```
 
    The release build (shrunk with R8) is the one to use even for testing: debug builds of Compose are
    slow on TV boxes.
 
-There are two builds. **github** is what the releases ship. **store** is meant for app stores: it has no TMDB key built in,
-and its IMDb and Rotten Tomatoes ratings come from the [OMDb API](https://www.omdbapi.com) instead of IMDb's datasets and
-Rotten Tomatoes' pages. Viewers enter their own free TMDB and OMDb keys in Settings → Metadata & Artwork. Build it with
-`./gradlew assembleStoreRelease`.
+   No API keys are built in: enter yours in the app, as above.
 
-Unit tests run with `./gradlew testGithubReleaseUnitTest`.
+Unit tests run with `./gradlew testReleaseUnitTest`.
 
 ## Code
 
@@ -95,7 +100,7 @@ Everything is in `app/src/main/java/com/glint/player/`:
 | `SeekThumbs.kt` | Pictures for the seek preview |
 | `Library.kt` | Scanning shares, the library, watch progress, profiles and backups |
 | `Names.kt`, `Nfo.kt`, `Dubs.kt` | Reading titles, years and episodes from file names, `.nfo` files and dub audio |
-| `Tmdb.kt`, `Imdb.kt` | Film details from TMDB; IMDb and Rotten Tomatoes ratings |
+| `Tmdb.kt`, `Imdb.kt` | Film details from TMDB; IMDb and Rotten Tomatoes ratings from OMDb |
 | `Smb.kt`, `SmbRelay.kt`, `Remote.kt` | SMB and the other kinds of shares, and USB disks |
 | `Setup.kt`, `SettingsUi.kt`, `Settings.kt` | Adding shares, the settings screens and stored settings |
 | `Profiles.kt` | Profiles, PINs and age limits |
@@ -116,7 +121,7 @@ available.
 It is built on open-source libraries, listed with their licenses in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-This product uses the TMDB API but is not endorsed or certified by TMDB. Rating information courtesy of
-IMDb (https://www.imdb.com), used with permission for personal, non-commercial use. Rotten Tomatoes is a
-trademark of Fandango; Glint is not affiliated with it. Film and series artwork belongs to its respective
-owners.
+This product uses the TMDB API but is not endorsed or certified by TMDB. IMDb and Rotten Tomatoes scores
+come from the OMDb API with the viewer's own key; IMDb and Rotten Tomatoes are trademarks of their owners,
+and Glint is not affiliated with IMDb, Rotten Tomatoes or OMDb. Film and series artwork belongs to its
+respective owners.

@@ -3,10 +3,6 @@
 # Android SDK location (Android Studio writes this for you).
 sdk.dir=C\:\Users\<you>\AppData\Local\Android\Sdk
 
-# Free API key from https://www.themoviedb.org/settings/api, used for backdrops, plots, cast and series.
-# Leave empty to build without it (films then show NAS posters and file names only).
-tmdb.apiKey=
-
 # Optional: your own release signing key. Without it, release builds are signed with the debug key.
 # release.storeFile=C:/path/to/glint-release.jks
 # release.storePassword=

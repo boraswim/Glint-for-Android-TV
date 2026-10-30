@@ -30,7 +30,7 @@ class App : Application(), ImageLoaderFactory {
         Palette.light = library.settings.theme == 2
         Palette.black = library.settings.theme == 0
         Palette.accent = library.settings.accent
-        Thread { SizedPosterFetcher.trim(this); if (!BuildConfig.STORE) ImdbRatings.refresh(this) }.start()
+        Thread { SizedPosterFetcher.trim(this) }.start()
     }
 
     override fun newImageLoader() = ImageLoader.Builder(this)

@@ -79,8 +79,8 @@ private fun date(iso: String): String = runCatching {
 }.getOrDefault(iso)
 
 /** Resolution and audio from the file name, as the meta line shows them: "4K", "TrueHD Atmos 7.1". */
-private fun techLine(name: String): List<String> {
-    val b = badges(name)
+private fun techLine(file: VideoFile): List<String> {
+    val b = badges(file)
     val res = b.firstOrNull { it in setOf("4K", "1080p", "720p") }
     val audio = b.filter { it in setOf("TrueHD", "DTS-HD MA", "DTS", "Dolby Digital+", "Atmos", "DTS:X", "7.1", "5.1", "2.0") }.joinToString(" ")
     return listOfNotNull(res, audio.ifBlank { null })
@@ -149,23 +149,20 @@ private fun DetailHeaderText(
 }
 
 /**
- * IMDb and TMDB scores side by side in one glassy capsule, for the top right corner over the fanart.
- * The IMDb score comes from [ImdbRatings] and appears once it's looked up.
+ * IMDb, TMDB and Rotten Tomatoes scores side by side in one glassy capsule, for the top right corner over the
+ * fanart. IMDb and Rotten Tomatoes come from [Omdb] (the viewer's own key) and appear once they're looked up.
  */
 @Composable
 private fun ScoreBadge(tmdbId: Int, tv: Boolean, tmdbRating: Double, modifier: Modifier = Modifier) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    var imdb by remember(tmdbId, tv) { mutableStateOf<ImdbRatings.Rating?>(null) }
-    var rt by remember(tmdbId, tv) { mutableStateOf<RottenTomatoes.Scores?>(null) }
-    LaunchedEffect(tmdbId, tv) { imdb = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ImdbRatings.forTitle(ctx, tmdbId, tv) } }
-    LaunchedEffect(tmdbId, tv) { rt = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { RottenTomatoes.forTitle(ctx, tmdbId, tv) } }
-    // IMDb out of 10, TMDB as a percentage, each after a small logo chip; then Rotten
-    // Tomatoes' critics (tomato) and audience (popcorn) scores. Emoji have no chip colours.
+    var omdb by remember(tmdbId, tv) { mutableStateOf<Omdb.Ratings?>(null) }
+    LaunchedEffect(tmdbId, tv) { omdb = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { Omdb.forTitle(ctx, tmdbId, tv) } }
+    // IMDb out of 10, TMDB as a percentage, each after a small logo chip; then Rotten Tomatoes' critics score
+    // (tomato). Emoji have no chip colours.
     val scores = listOfNotNull(
-        imdb?.takeIf { it.score > 0 }?.let { Triple("IMDb", Color(0xFFF5C518) to Color.Black, String.format(Locale.getDefault(), "%.1f", it.score)) },
+        omdb?.imdb?.takeIf { it.score > 0 }?.let { Triple("IMDb", Color(0xFFF5C518) to Color.Black, String.format(Locale.getDefault(), "%.1f", it.score)) },
         tmdbRating.takeIf { it > 0 }?.let { Triple("TMDB", Color(0xFF0D253F) to Color(0xFF01D277), "${Math.round(it * 10)}%") },
-        rt?.critics?.let { Triple("\uD83C\uDF45", Color.Transparent to Color.Unspecified, "$it%") },
-        rt?.audience?.let { Triple("\uD83C\uDF7F", Color.Transparent to Color.Unspecified, "$it%") },
+        omdb?.rottenTomatoes?.let { Triple("\uD83C\uDF45", Color.Transparent to Color.Unspecified, "$it%") },
     )
     if (scores.isEmpty()) return
     val shape = RoundedCornerShape(14.dp)
@@ -367,7 +364,7 @@ private fun FullPlot(title: String, overview: String, backdrop: Any?, onClose: (
 private fun HeroFacts(movie: Movie, version: Movie) {
     // Sized so the whole line fits the column (about 600dp) even for a 4K HDR TrueHD film with three genres.
     val style = Type.Heading.copy(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-    val b = badges(version.file.name)
+    val b = badges(version.file)
     // Genres last, as many as fit whole (none, if not even one does): one running off the edge is left out, not cut.
     var genres by remember(movie.id) { mutableStateOf(3) }
     val cert = certLabel(movie.certification)
@@ -386,7 +383,7 @@ private fun HeroFacts(movie: Movie, version: Movie) {
         }
         b.firstOrNull { it in setOf("4K", "1080p", "720p") }?.let { Txt(it, style) }
         b.firstOrNull { it in setOf("Dolby Vision", "HDR10+", "HDR") }?.let { Txt(it, style.copy(fontWeight = FontWeight.Bold)) }
-        techLine(version.file.name).drop(1).firstOrNull()?.let { Txt(it, style, maxLines = 1) }
+        techLine(version.file).drop(1).firstOrNull()?.let { Txt(it, style, maxLines = 1) }
         if (movie.genres.isNotEmpty() && genres > 0) androidx.compose.foundation.text.BasicText(
             movie.genres.take(genres).joinToString(", "), Modifier.weight(1f, fill = false), style = style, maxLines = 1, softWrap = false,
             onTextLayout = { if (it.hasVisualOverflow && genres > 0) genres-- },
@@ -484,7 +481,7 @@ fun MovieDetailScreen(nav: Nav, id: String) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                         Txt(stringResource(R.string.version), Type.Meta)
                         versions.forEach { v ->
-                            val label = listOf(v.file.edition, if (v.file.disc.isNotEmpty()) discLabel(v.file.disc) else techLine(v.file.name).firstOrNull().orEmpty())
+                            val label = listOf(v.file.edition, if (v.file.disc.isNotEmpty()) discLabel(v.file.disc) else techLine(v.file).firstOrNull().orEmpty())
                                 .filter { it.isNotBlank() }.joinToString(" · ").ifBlank { v.file.name.take(24) }
                             PillButton(label, primary = v.id == version.id) { version = v }
                         }
@@ -574,7 +571,7 @@ fun ShowDetailScreen(nav: Nav, key: String, openSeason: Int? = null) {
                     listOf(
                         shown.runtime.takeIf { it > 0 }?.let(::minutes).orEmpty(),
                         if (shown.airDate.isNotBlank()) date(shown.airDate) else show.year,
-                    ) + techLine(shown.file.name),
+                    ) + techLine(shown.file),
                     show.certification, show.genres, show.rating, stars,
                     if (spoiler) "" else shown.overview.ifBlank { show.overview },
                     tmdbId = show.tmdbId, tv = true,

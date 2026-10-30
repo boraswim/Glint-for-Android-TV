@@ -31,7 +31,7 @@ class Library(private val context: Context) {
     private val scope = CoroutineScope(Dispatchers.IO)
 
     val settings = Settings(context)
-    val tmdb = Tmdb({ BuildConfig.TMDB_KEY.ifBlank { settings.tmdbKey } }, { settings.language }, { settings.artLanguage })
+    val tmdb = Tmdb({ settings.tmdbKey }, { settings.language }, { settings.artLanguage })
 
     // ---- profiles: each has its own progress and lists; the library itself is shared ----
     private val _profiles = MutableStateFlow(load("profiles.json") { listOf(Profile("main", "Glint")) })
@@ -297,6 +297,10 @@ class Library(private val context: Context) {
         val known = HashMap<String, Long>()   // first-seen times survive rescans
         old.movies.forEach { known[it.file.key] = it.file.added }
         old.shows.forEach { s -> s.episodes.forEach { known[it.file.key] = it.file.added } }
+        // Resolutions read from inside files are kept, so a rescan doesn't read them again.
+        val knownRes = HashMap<String, String>()
+        old.movies.forEach { if (it.file.resolution.isNotEmpty()) knownRes[it.file.key] = it.file.resolution }
+        old.shows.forEach { s -> s.episodes.forEach { if (it.file.resolution.isNotEmpty()) knownRes[it.file.key] = it.file.resolution } }
         val failed = ArrayList<String>()
         val notScanned = HashSet<String>()   // sources whose part of the library stays as it was
 
@@ -312,7 +316,7 @@ class Library(private val context: Context) {
                 for (share in shares) {
                     _scan.value = ScanState(context.getString(R.string.scan_reading, "${src.name}/$share"))
                     try {
-                        walk(src, share, if (src.type == "smb" && src.share.isNotEmpty()) src.folder.trim('/') else "", files, dubFiles, known)
+                        walk(src, share, if (src.type == "smb" && src.share.isNotEmpty()) src.folder.trim('/') else "", files, dubFiles, known, knownRes)
                         reachedAny = true
                     } catch (e: Exception) {
                         // One locked share (often "admin") shouldn't stop the rest.
@@ -404,7 +408,7 @@ class Library(private val context: Context) {
         )
     }
 
-    private fun walk(src: Source, share: String, root: String, out: MutableList<VideoFile>, dubs: MutableList<DubFile>, known: Map<String, Long>) {
+    private fun walk(src: Source, share: String, root: String, out: MutableList<VideoFile>, dubs: MutableList<DubFile>, known: Map<String, Long>, knownRes: Map<String, String>) {
         // Each folder, and whether it sits in a dub folder ("Film sesleri"), where every media file is a dub.
         val queue = ArrayDeque<Pair<String, Boolean>>()
         queue += root to Dubs.FOLDER.containsMatchIn(root.substringAfterLast('/'))
@@ -468,9 +472,11 @@ class Library(private val context: Context) {
                 val strm = if (Names.ext(v.name) == "strm") runCatching { String(Fs.readBytes(src, share, v.path, 8192)).lines().firstOrNull { it.isNotBlank() }?.trim() }.getOrNull() else null
                 val mySubs = subs.filter { it.name.lowercase(Locale.ROOT).startsWith(lb) || single }.map { it.path }
                 val key = "${src.id}|$share|${v.path}"
+                // A name without "2160p", "1080p"… : the picture size is read from the file's header (MKV only).
+                val res = if (namesResolution(v.name)) "" else knownRes[key] ?: runCatching { MkvChapters.resolution(src, share, v.path) }.getOrDefault("")
                 out += VideoFile(
                     src.id, share, v.path, v.size, v.modified, known[key] ?: minOf(now, v.modified.takeIf { it > 0 } ?: now), mySubs, poster, backdrop,
-                    localLogo = logo, nfo = nfo, edition = Names.edition(v.name), strmUrl = strm,
+                    localLogo = logo, nfo = nfo, edition = Names.edition(v.name), strmUrl = strm, resolution = res,
                     extras = suffixExtras.filter { it.first == lb }.map { (_, kind, e) -> Extra(e.path, kind, e.name.substringBeforeLast('.').replace('.', ' ')) } + folderExtras,
                 )
             }

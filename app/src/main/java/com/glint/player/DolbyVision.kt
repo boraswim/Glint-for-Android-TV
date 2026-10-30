@@ -57,7 +57,7 @@ object DolbyVision {
     /** A Dolby Vision file on an SMB share, with a TV that has both the decoder and the screen for it. */
     fun shouldUse(activity: Activity, src: Source, file: VideoFile?): Boolean =
         file != null && App.library.settings.dolbyVision && src.type == "smb" && file.strmUrl == null && file.parts.isEmpty() &&
-            "Dolby Vision" in badges(file.name) && decoderAvailable && displaySupports(activity)
+            "Dolby Vision" in badges(file) && decoderAvailable && displaySupports(activity)
 }
 
 /** Separate SMB connection for Media3, so a scan or poster loads never stall playback. */
