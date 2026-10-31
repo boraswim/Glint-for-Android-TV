@@ -86,7 +86,8 @@
     <string name="passthrough">Audio passthrough</string>
     <string name="passthrough_sub">Send Dolby and DTS to your TV or receiver as they are. Turn off if you hear nothing.</string>
     <string name="match_frame_rate">Match frame rate</string>
-    <string name="match_frame_rate_sub">Switches the TV to 24 Hz for films so motion is smooth</string>
+    <string name="match_frame_rate_sub">Switches the TV to the film\'s frame rate so motion is smooth</string>
+    <string name="match_frame_rate_fixed">This TV gives apps only %1$d Hz, so Glint can\'t switch it. For film motion, use the TV\'s own motion setting.</string>
     <string name="autoplay_next">Play next episode automatically</string>
     <string name="skip_interval">Skip with left/right</string>
     <string name="seconds">%1$d s</string>

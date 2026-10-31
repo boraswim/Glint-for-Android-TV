@@ -34,7 +34,6 @@ import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
 import java.util.Locale
-import kotlin.math.abs
 
 data class TrackOption(val id: Int, val label: String)
 
@@ -268,6 +267,8 @@ class PlayerActivity : ComponentActivity() {
     private var subtitleFiles: List<File> = emptyList()   // our added subtitle files, in the order added
     private var dubLabels: List<String> = emptyList()     // names for the dub audio tracks, in the order added
     private var modeSwitched = false
+    private var declaredFps: Double? = null
+    private var modeResume: Job? = null
     private var lastSaved = 0L
     private var resumeAt = 0L   // where this play started; saves before playback reaches it keep the old place
 
@@ -338,6 +339,7 @@ class PlayerActivity : ComponentActivity() {
         super.onStop()
         saveProgress(force = true)
         lib.flush()
+        modeResume?.cancel()
         if (player.isPlaying) player.pause()
         exo?.player?.pause()
         player.detachViews()
@@ -416,7 +418,7 @@ class PlayerActivity : ComponentActivity() {
 
     fun load(key: String, fromStart: Boolean) {
         upNextJob?.cancel(); upNext = null
-        error = null; tracksApplied = false; modeSwitched = false
+        error = null; tracksApplied = false; modeSwitched = false; declaredFps = null; modeResume?.cancel()
         position = 0; duration = 0; resumeAt = 0; chapters = emptyList(); exoChapters = emptyList(); techInfo = emptyList()
         subtitleDelay = 0; audioDelay = 0; rate = 1f
         markedIntro = lib.introOf(key); introStartMark = null; skippedMarked = false; skippedChapter = -1
@@ -567,7 +569,8 @@ class PlayerActivity : ComponentActivity() {
             }
             // Streams are known before the first frame: match the TV to the film's frame rate right away.
             MediaPlayer.Event.ESAdded, MediaPlayer.Event.ESSelected -> { refreshTracks(); if (!modeSwitched) onVideoOut() }
-            MediaPlayer.Event.Vout -> if (e.voutCount > 0) onVideoOut()
+            // A new surface (back from the background, a reopen) doesn't know the rate declared on the last one.
+            MediaPlayer.Event.Vout -> if (e.voutCount > 0) { onVideoOut(); declareFrameRate() }
             MediaPlayer.Event.EndReached -> onEnded()
             MediaPlayer.Event.EncounteredError -> error = getString(R.string.play_failed)
         }
@@ -817,37 +820,37 @@ class PlayerActivity : ComponentActivity() {
      */
     private fun onVideoOut() {
         if (modeSwitched || !lib.settings.matchFrameRate) return
-        // The decoder doesn't always know the rate yet; the container usually does.
-        val fps = exo?.frameRate() ?: listOfNotNull(player.currentVideoTrack, mediaTracks().filterIsInstance<IMedia.VideoTrack>().firstOrNull())
+        // The decoder doesn't always know the rate yet; the container usually does. Media3 measures it when not.
+        val fps = if (exo != null) exo?.frameRate() else listOfNotNull(player.currentVideoTrack, mediaTracks().filterIsInstance<IMedia.VideoTrack>().firstOrNull())
             .firstOrNull { it.frameRateNum > 0 && it.frameRateDen > 0 }
             ?.let { it.frameRateNum.toDouble() / it.frameRateDen }
-        if (fps == null) {
-            Log.i(TAG, "Frame rate not known yet")
-            return   // asked again on the next time update
-        }
+        if (fps == null) return   // asked again on the next time update
         modeSwitched = true
-        declareFrameRate(fps)
+        declaredFps = fps
+        declareFrameRate()
         @Suppress("DEPRECATION") val display = windowManager.defaultDisplay
         val current = display.mode
-        // Same resolution, refresh rate a whole multiple of the film's; closest match wins (23.976 vs 24).
-        val best = display.supportedModes
-            .filter { it.physicalWidth == current.physicalWidth && it.physicalHeight == current.physicalHeight }
-            .mapNotNull { m ->
-                val ratio = m.refreshRate / fps
-                val k = Math.round(ratio)
-                if (k in 1..3 && abs(ratio - k) < 0.01) Triple(m, k, abs(ratio - k)) else null
-            }
-            .minWithOrNull(compareBy({ it.second }, { it.third }))?.first
+        val modes = display.supportedModes.filter { it.physicalWidth == current.physicalWidth && it.physicalHeight == current.physicalHeight }
+        val best = bestRefreshRate(modes.map { it.refreshRate }, fps)?.let { modes[it] }
         Log.i(TAG, "Video %.3f fps, display %.3f Hz, switching to %s".format(Locale.ROOT, fps, current.refreshRate, best?.refreshRate))
-        if (best == null || best.modeId == current.modeId) return
-        window.attributes = window.attributes.apply { preferredDisplayModeId = best.modeId }
-        // TVs go black for a moment while HDMI renegotiates; don't play through that.
+        // No match for this film: back to the TV's own mode, not the one the last film in the queue asked for.
+        val wanted = best?.modeId ?: 0
+        if (wanted == window.attributes.preferredDisplayModeId || wanted == current.modeId) return
+        window.attributes = window.attributes.apply { preferredDisplayModeId = wanted }
+        // TVs go black for a moment while HDMI renegotiates; don't play through that. A viewer's pause, a new film
+        // or leaving the player in those seconds cancels the restart.
+        if (!isPlayingNow()) return
         pausePlayback()
-        lifecycleScope.launch { delay(2500); resumePlayback() }
+        modeResume = lifecycleScope.launch {
+            delay(2500)
+            // A player busy with the change can miss the first request.
+            repeat(5) { if (!isPlayingNow()) { resumePlayback(); delay(1000) } }
+        }
     }
 
     /** Android 11+: the video surface carries the film's frame rate (Media3 already does this for its own). */
-    private fun declareFrameRate(fps: Double) {
+    private fun declareFrameRate() {
+        val fps = declaredFps ?: return
         if (android.os.Build.VERSION.SDK_INT < 30 || exo != null) return
         fun find(v: android.view.View): android.view.SurfaceView? = when (v) {
             is android.view.SurfaceView -> v
@@ -1179,6 +1182,7 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun togglePause() {
+        modeResume?.cancel()
         if (isPlayingNow()) pausePlayback() else { resumePlayback(); showControls() }
     }
 
@@ -1215,7 +1219,7 @@ class PlayerActivity : ComponentActivity() {
     }
 
     override fun finish() {
-        if (modeSwitched) window.attributes = window.attributes.apply { preferredDisplayModeId = 0 }
+        if (window.attributes.preferredDisplayModeId != 0) window.attributes = window.attributes.apply { preferredDisplayModeId = 0 }
         super.finish()
     }
 

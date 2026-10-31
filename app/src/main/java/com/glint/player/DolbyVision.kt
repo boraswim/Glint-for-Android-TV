@@ -217,6 +217,7 @@ class ExoPlayback(private val a: PlayerActivity) {
         player = ExoPlayer.Builder(a, renderers).setLoadControl(load).setMediaSourceFactory(sources).build()
         view.player = player
         styleSubtitles()
+        player.setVideoFrameMetadataListener { presentationUs, _, _, _ -> noteFrame(presentationUs) }
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) = a.enginePlayingChanged(isPlaying)
             override fun onPlaybackStateChanged(state: Int) {
@@ -247,6 +248,7 @@ class ExoPlayback(private val a: PlayerActivity) {
     }
 
     fun load(src: Source, share: String, path: String, subs: List<File>, subLabels: List<String>, dubs: List<DubFile>, startMs: Long) {
+        measuredFps = null; measureAgain = true
         factory.subtitleOffsetUs = 0
         subtitleLabels = subs.mapIndexed { i, _ -> "sub$i" to subLabels.getOrElse(i) { "" } }
         val item = MediaItem.Builder()
@@ -401,7 +403,21 @@ class ExoPlayback(private val a: PlayerActivity) {
         return out
     }
 
-    fun frameRate(): Double? = player.videoFormat?.frameRate?.takeIf { it > 0 }?.toDouble()
+    fun frameRate(): Double? = player.videoFormat?.frameRate?.takeIf { it > 0 }?.toDouble() ?: measuredFps
+
+    // Many remuxes don't state a frame rate, so it's measured from the first frames' timestamps.
+    @Volatile private var measuredFps: Double? = null
+    @Volatile private var measureAgain = false
+    private val frameGaps = ArrayList<Long>()
+    private var lastFrameUs = -1L
+
+    private fun noteFrame(presentationUs: Long) {
+        if (measureAgain) { measureAgain = false; frameGaps.clear(); lastFrameUs = -1; measuredFps = null }
+        if (measuredFps != null) return
+        if (lastFrameUs >= 0 && presentationUs > lastFrameUs) frameGaps += presentationUs - lastFrameUs
+        lastFrameUs = presentationUs
+        if (frameGaps.size >= 96) measuredFps = fpsFromFrameGaps(frameGaps)
+    }
 
     fun scale(i: Int) {
         view.resizeMode = when (i) {

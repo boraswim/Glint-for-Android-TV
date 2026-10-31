@@ -345,7 +345,10 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         ChoiceRow(stringResource(R.string.deinterlace), listOf(R.string.auto, R.string.on, R.string.off).mapIndexed { i, r -> i to stringResource(r) }, s.deinterlace) { v -> change { s.deinterlace = v } }
                         if (DolbyVision.decoderAvailable) OnOffRow(stringResource(R.string.dolby_vision), s.dolbyVision, sub = stringResource(R.string.dolby_vision_sub)) { v -> change { s.dolbyVision = v } }
                         if (DolbyVision.decoderAvailable && s.dolbyVision) OnOffRow(stringResource(R.string.dovi_compat), s.doviCompat, sub = stringResource(R.string.dovi_compat_sub)) { v -> change { s.doviCompat = v } }
-                        OnOffRow(stringResource(R.string.match_frame_rate), s.matchFrameRate, sub = stringResource(R.string.match_frame_rate_sub)) { v -> change { s.matchFrameRate = v } }
+                        // Says so on TVs that offer apps one refresh rate only, where this can't change the picture.
+                        @Suppress("DEPRECATION") val display = (androidx.compose.ui.platform.LocalContext.current as? android.app.Activity)?.windowManager?.defaultDisplay
+                        val rates = display?.supportedModes?.map { Math.round(it.refreshRate) }?.distinct().orEmpty()
+                        OnOffRow(stringResource(R.string.match_frame_rate), s.matchFrameRate, sub = if (rates.size == 1) stringResource(R.string.match_frame_rate_fixed, rates[0]) else stringResource(R.string.match_frame_rate_sub)) { v -> change { s.matchFrameRate = v } }
                         ChoiceRow(stringResource(R.string.buffer), listOf(1500, 3000, 6000, 10000, 20000).map { it to stringResource(R.string.seconds, it / 1000) }, s.bufferMs, sub = stringResource(R.string.buffer_sub)) { v -> change { s.bufferMs = v } }
                     }
                 }

@@ -85,7 +85,8 @@
     <string name="passthrough">Прямой вывод звука (passthrough)</string>
     <string name="passthrough_sub">Отправляет Dolby и DTS на телевизор или ресивер без изменений. Выключите, если нет звука.</string>
     <string name="match_frame_rate">Подстраивать частоту кадров</string>
-    <string name="match_frame_rate_sub">Переключает телевизор на 24 Гц для фильмов, чтобы движение было плавным</string>
+    <string name="match_frame_rate_sub">Переключает телевизор на частоту кадров фильма для плавного движения</string>
+    <string name="match_frame_rate_fixed">Этот телевизор даёт приложениям только %1$d Гц, Glint не может это изменить. Для фильмов используйте настройку движения телевизора.</string>
     <string name="autoplay_next">Автоматически включать следующую серию</string>
     <string name="skip_interval">Перемотка влево/вправо</string>
     <string name="seconds">%1$d с</string>

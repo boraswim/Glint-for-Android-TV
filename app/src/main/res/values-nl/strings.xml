@@ -85,7 +85,8 @@
     <string name="passthrough">Audio-passthrough</string>
     <string name="passthrough_sub">Stuurt Dolby en DTS ongewijzigd naar je tv of receiver. Zet uit als je niets hoort.</string>
     <string name="match_frame_rate">Beeldfrequentie aanpassen</string>
-    <string name="match_frame_rate_sub">Zet de tv op 24 Hz voor films zodat beweging vloeiend is</string>
+    <string name="match_frame_rate_sub">Zet de tv op de beeldfrequentie van de film voor vloeiende beweging</string>
+    <string name="match_frame_rate_fixed">Deze tv biedt apps alleen %1$d Hz, Glint kan dat niet wijzigen. Gebruik voor films de bewegingsinstelling van de tv.</string>
     <string name="autoplay_next">Volgende aflevering automatisch afspelen</string>
     <string name="skip_interval">Springen met links/rechts</string>
     <string name="seconds">%1$d s</string>

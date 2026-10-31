@@ -85,7 +85,8 @@
     <string name="passthrough">Audio-Passthrough</string>
     <string name="passthrough_sub">Sendet Dolby und DTS unverändert an Fernseher oder Receiver. Ausschalten, wenn kein Ton kommt.</string>
     <string name="match_frame_rate">Bildrate anpassen</string>
-    <string name="match_frame_rate_sub">Schaltet den Fernseher für Filme auf 24 Hz, damit Bewegungen flüssig sind</string>
+    <string name="match_frame_rate_sub">Stellt den Fernseher auf die Bildrate des Films um, damit Bewegungen flüssig sind</string>
+    <string name="match_frame_rate_fixed">Dieser Fernseher bietet Apps nur %1$d Hz, Glint kann das nicht umstellen. Nutze für Filme die Bewegungseinstellung des Fernsehers.</string>
     <string name="autoplay_next">Nächste Folge automatisch abspielen</string>
     <string name="skip_interval">Springen mit links/rechts</string>
     <string name="seconds">%1$d s</string>
