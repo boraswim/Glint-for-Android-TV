@@ -77,7 +77,7 @@ class PlayerActivity : ComponentActivity() {
     var controls by mutableStateOf(true)
     var panel by mutableStateOf(false)
     var panelTab by mutableIntStateOf(0)
-    /** Playback statistics in a corner (the Video tab's HUD option). */
+    /** The details box in a corner (Settings → Playback, or the Video tab's option). */
     var hud by mutableStateOf(false)
     /** Set while a list inside the menu is open: Back closes that first (returns true). */
     var menuBack: (() -> Boolean)? = null
@@ -253,7 +253,7 @@ class PlayerActivity : ComponentActivity() {
     var scale by mutableIntStateOf(5)              // picture size, index into the menu's choices; starts on "Original"
     var chapters by mutableStateOf<List<Pair<String, Long>>>(emptyList())
     private var exoChapters: List<Pair<String, Long>> = emptyList()   // read from the file for the Dolby Vision player
-    var techInfo by mutableStateOf<List<String>>(emptyList())
+    var techInfo by mutableStateOf<List<Pair<String, String>>>(emptyList())
 
     private var queue: List<String> = emptyList()
     private var hideJob: Job? = null
@@ -419,6 +419,8 @@ class PlayerActivity : ComponentActivity() {
     fun load(key: String, fromStart: Boolean) {
         upNextJob?.cancel(); upNext = null
         error = null; tracksApplied = false; modeSwitched = false; declaredFps = null; modeResume?.cancel()
+        hud = lib.settings.playbackStats; sampledAt = 0; flowMbps = 0.0; peakMbps = 0.0; netMbps = 0.0; flowSamples = 0; shownFps = 0.0; sampledShown = 0; shownWindow.clear()
+        muxer = null; muxerAsked = false
         position = 0; duration = 0; resumeAt = 0; chapters = emptyList(); exoChapters = emptyList(); techInfo = emptyList()
         subtitleDelay = 0; audioDelay = 0; rate = 1f
         markedIntro = lib.introOf(key); introStartMark = null; skippedMarked = false; skippedChapter = -1
@@ -798,18 +800,113 @@ class PlayerActivity : ComponentActivity() {
         setOf(lang.lowercase(Locale.ROOT), l.isO3Language, ISO_B[l.isO3Language] ?: "")
     }.getOrDefault(setOf(lang)) - ""
 
-    private fun buildTechInfo(): List<String> {
-        exo?.let { e -> return e.techInfo() + listOfNotNull(now?.file?.let { "File: ${it.name}  (${bytes(it.size)})" }) }
-        val out = ArrayList<String>()
-        for (t in mediaTracks()) {
-            when (t) {
-                is IMedia.VideoTrack -> out += "Video: ${t.codec ?: "?"} ${t.width}×${t.height}" +
-                    (if (t.frameRateDen > 0) "  %.3f fps".format(Locale.ROOT, t.frameRateNum.toDouble() / t.frameRateDen) else "")
-                is IMedia.AudioTrack -> if (t.id == player.audioTrack) out += "Audio: ${t.codec ?: "?"} ${t.channels}ch ${t.rate / 1000}kHz ${t.language ?: ""}".trim()
-            }
+    // The details box's live figures, from the last two samples a second apart.
+    private var sampledAt = 0L
+    private var sampledRx = 0L
+    private var sampledVideo = 0L
+    private var sampledShown = 0
+    private var shownFps = 0.0
+    private val shownWindow = ArrayDeque<Pair<Long, Int>>()
+    private var flowMbps = 0.0
+    private var peakMbps = 0.0
+    private var netMbps = 0.0
+    private var flowSamples = 0
+    private var muxer: String? = null
+    private var muxerAsked = false
+
+    /** Who made the file, read once from its first bytes when the details box first needs it. */
+    private fun askMuxer() {
+        if (muxerAsked) return
+        muxerAsked = true
+        val (src, share, path) = playingFrom ?: return
+        if (containerName(path) != containerName("x.mkv")) return
+        lifecycleScope.launch(Dispatchers.IO) {
+            val found = runCatching { matroskaMuxer(Fs.readBytes(src, share, path, 64 * 1024)) }.getOrNull()
+            withContext(Dispatchers.Main) { if (playingFrom?.third == path) muxer = found }
         }
-        now?.file?.let { out += "File: ${it.name}  (${bytes(it.size)})" }
-        return out
+    }
+
+    private fun vlcStats(): IMedia.Stats? {
+        val media = player.media ?: return null
+        return try { media.stats } finally { media.release() }
+    }
+
+    /** The film's live bitrate and the network's speed since the last call. */
+    private fun sampleFlow() {
+        val at = System.currentTimeMillis()
+        val rx = android.net.TrafficStats.getUidRxBytes(android.os.Process.myUid())
+        val video = exo?.videoBytes() ?: 0L
+        val shown = exo?.framesShown() ?: vlcStats()?.displayedPictures ?: 0
+        val seconds = (at - sampledAt) / 1000.0
+        if (sampledAt > 0 && seconds > 0.2) {
+            if (rx >= sampledRx && sampledRx >= 0) netMbps = (rx - sampledRx) * 8 / 1e6 / seconds
+            flowMbps = if (exo != null) (video - sampledVideo).coerceAtLeast(0) * 8 / 1e6 / seconds
+                // libVLC gives bytes per microsecond.
+                else (vlcStats()?.demuxBitrate?.toDouble() ?: 0.0) * 8
+            // Not the first seconds: the player reads far ahead of the film then.
+            if (playing && ++flowSamples > 5) peakMbps = maxOf(peakMbps, flowMbps)
+            // Over several seconds: the players count their frames in bursts, so one second's count jumps about.
+            if (!playing || shown < sampledShown) shownWindow.clear()
+            shownWindow.addLast(at to shown)
+            if (shownWindow.size > 6) shownWindow.removeFirst()
+            val (fromAt, fromShown) = shownWindow.first()
+            shownFps = if (shownWindow.size >= 3) (shown - fromShown) * 1000.0 / (at - fromAt) else 0.0
+        }
+        sampledAt = at; sampledRx = rx; sampledVideo = video; sampledShown = shown
+    }
+
+    private fun buildTechInfo(): List<Pair<String, String>> {
+        fun mbps(v: Double) = "%.1f".format(Locale.getDefault(), v)
+        val e = exo
+        val tracks = if (e == null) mediaTracks() else emptyList()
+        val file = now?.file
+        askMuxer()
+        val video = e?.videoInfo() ?: tracks.filterIsInstance<IMedia.VideoTrack>().firstOrNull()?.let { t ->
+            val fps = if (t.frameRateDen > 0) "%.3f fps".format(Locale.ROOT, t.frameRateNum.toDouble() / t.frameRateDen) else ""
+            val codec = t.codec.orEmpty().let { c -> if ("HEVC" in c) "HEVC" else if ("H264" in c || "AVC" in c) "H.264" else c }
+            val hdr = file?.let { f -> badges(f).firstOrNull { it in setOf("Dolby Vision", "HDR10+", "HDR") } }.orEmpty()
+            listOf(codec, hdr, "${t.width}×${t.height}", fps).filter { it.isNotBlank() }.joinToString(" · ")
+        }
+        val audio = e?.audioInfo() ?: tracks.filterIsInstance<IMedia.AudioTrack>().firstOrNull { it.id == player.audioTrack }?.let { t ->
+            val channels = when (t.channels) { 8 -> "7.1"; 6 -> "5.1"; 2 -> "2.0"; 1 -> "1.0"; else -> "${t.channels}ch" }
+            listOf(t.language.orEmpty(), t.codec.orEmpty(), "${t.rate} Hz", channels).filter { it.isNotBlank() }.joinToString(" · ")
+        }
+        // File size over running time: bits per millisecond divided by 1000 is Mbps.
+        val average = if (file != null && duration > 0) file.size * 8 / 1e3 / duration else 0.0
+        val stats = if (e == null) vlcStats() else null
+        // Read ahead of the playhead, as time on Media3; libVLC only knows the bytes, so time comes from the average.
+        val ahead = stats?.let { (it.readBytes - it.demuxReadBytes).coerceAtLeast(0) }
+        val bufferSeconds = e?.bufferedMs()?.div(1000.0) ?: ahead?.let { if (average > 0) it * 8 / 1e6 / average else null }
+        @Suppress("DEPRECATION") val mode = windowManager.defaultDisplay.mode
+        val src = playingFrom?.first
+        val memory = android.app.ActivityManager.MemoryInfo().also { getSystemService(android.app.ActivityManager::class.java).getMemoryInfo(it) }
+        val disk = android.os.StatFs(filesDir.path)
+        fun gb(n: Long) = "%.2f GB".format(Locale.getDefault(), n / 1e9)
+        return buildList {
+            file?.let { add(getString(R.string.hud_file) to it.name) }
+            src?.let { add(getString(R.string.hud_source) to "${it.name} (${it.type.uppercase(Locale.ROOT)})") }
+            file?.let { add(getString(R.string.hud_container) to "${containerName(it.name)} · ${bytes(it.size)}") }
+            muxer?.let { add(getString(R.string.hud_muxer) to it) }
+            video?.let { add(getString(R.string.hud_video) to it) }
+            audio?.let { add(getString(R.string.hud_audio) to it) }
+            add(getString(R.string.hud_subtitle) to (subtitleTracks.firstOrNull { it.id == subtitleTrack }?.label ?: getString(R.string.off)))
+            // The screen's rate, the film's, and what's really being shown, as in Infuse.
+            val filmFps = e?.frameRate() ?: tracks.filterIsInstance<IMedia.VideoTrack>().firstOrNull { it.frameRateDen > 0 }?.let { it.frameRateNum.toDouble() / it.frameRateDen }
+            add(getString(R.string.hud_display) to listOfNotNull(
+                "%.2f Hz".format(Locale.ROOT, mode.refreshRate),
+                filmFps?.let { "%.2f Hz".format(Locale.ROOT, it) },
+                shownFps.takeIf { it > 0 }?.let { "%.2f Hz".format(Locale.ROOT, it) },
+            ).joinToString(" / "))
+            bufferSeconds?.let {
+                val state = getString(if (it >= 3) R.string.hud_buffer_good else R.string.hud_buffer_low)
+                add(getString(R.string.hud_buffer) to getString(R.string.hud_buffer_value, state, "%.1f".format(Locale.getDefault(), it)))
+            }
+            add(getString(R.string.hud_network) to "${mbps(netMbps)} Mbps")
+            add(getString(R.string.hud_flow) to getString(R.string.hud_flow_value, mbps(flowMbps), mbps(average), mbps(peakMbps)))
+            add(getString(R.string.hud_device) to "${android.os.Build.MODEL} · ${gb(memory.totalMem)}")
+            add(getString(R.string.hud_disk) to "${gb(disk.availableBytes)} / ${gb(disk.totalBytes)}")
+            add(getString(R.string.hud_player) to (if (e != null) listOf("Media3", e.decoderName).filter { it.isNotBlank() }.joinToString(" · ") else "VLC"))
+        }
     }
 
     /**
@@ -898,7 +995,7 @@ class PlayerActivity : ComponentActivity() {
                     checkIntro()
                 }
                 if (++n % 4 == 0 && isPlayingNow()) saveProgress()
-                if (hud && n % 8 == 0) techInfo = buildTechInfo()
+                if (hud && n % 4 == 0) { sampleFlow(); techInfo = buildTechInfo() }
             }
         }
     }

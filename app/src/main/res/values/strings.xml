@@ -386,7 +386,7 @@
     <string name="menu_tracks">Tracks</string>
     <string name="zoom_mode">Zoom mode</string>
     <string name="playback_speed">Playback speed</string>
-    <string name="hud">Playback statistics (HUD)</string>
+    <string name="hud">Playback statistics</string>
     <string name="menu_delay">Delay</string>
     <string name="delay_seconds">%1$s s</string>
     <string name="delay_enter_hint">Seconds, e.g. -1.5</string>
@@ -428,4 +428,24 @@
     <string name="person_photos">Photos</string>
     <string name="person_in_library">In your library</string>
     <string name="person_from_wikipedia">Text from Wikipedia, CC BY-SA.</string>
+    <string name="hud_file">File</string>
+    <string name="hud_source">Source</string>
+    <string name="hud_video">Video</string>
+    <string name="hud_audio">Audio</string>
+    <string name="hud_subtitle">Subtitle</string>
+    <string name="hud_flow">Stream rate</string>
+    <string name="hud_flow_value">%1$s Mbps · avg %2$s · peak %3$s</string>
+    <string name="hud_network">Network throughput</string>
+    <string name="hud_buffer">Buffer status</string>
+    <string name="hud_buffer_value">%1$s · %2$s s</string>
+    <string name="hud_display">Display rate</string>
+    <string name="hud_player">Player</string>
+    <string name="hud_time">Time</string>
+    <string name="hud_sub">Shows the film\'s full name, live data flow, network speed, buffer and technical details at the top left while playing</string>
+    <string name="hud_container">Container</string>
+    <string name="hud_muxer">Created by</string>
+    <string name="hud_device">Device</string>
+    <string name="hud_disk">Free disk space</string>
+    <string name="hud_buffer_good">Healthy</string>
+    <string name="hud_buffer_low">Low</string>
 </resources>

@@ -137,7 +137,7 @@ fun PlayerOverlay(p: PlayerActivity) {
             enter = slideInVertically { -it } + fadeIn(), exit = slideOutVertically { -it } + fadeOut(),
         ) { PlaybackMenu(p) }
 
-        if (p.hud && !p.panel) PlaybackHud(p, Modifier.align(Alignment.TopStart).padding(start = 40.dp, top = 30.dp))
+        if (p.hud && !p.panel) PlaybackHud(p, Modifier.align(Alignment.TopStart).padding(start = 28.dp, top = 28.dp))
 
         p.upNext?.let { (show, ep) -> UpNextCard(p, show, ep, Modifier.align(Alignment.BottomEnd)) }
 
@@ -512,7 +512,7 @@ private fun VideoTab(p: PlayerActivity) {
         if (p.chapters.size > 1) add(MenuOption(stringResource(R.string.chapters), chapterName(current), p.chapters.indices.map { chapterName(it) + "   " + clock(p.chapters[it].second) to (it == current) }) { p.chooseChapter(it); p.closePanel() })
         add(MenuOption(stringResource(R.string.playback_speed), rateLabel(p.rate), rates.map { rateLabel(it) to (it == p.rate) }) { p.chooseRate(rates[it]) })
         add(MenuOption(stringResource(R.string.repeat), repeats[p.repeat], repeats.mapIndexed { i, r -> r to (i == p.repeat) }) { p.chooseRepeat(it) })
-        add(MenuOption(stringResource(R.string.hud), onOff[if (p.hud) 1 else 0], onOff.mapIndexed { i, o -> o to ((i == 1) == p.hud) }) { p.hud = it == 1 })
+        add(MenuOption(stringResource(R.string.hud), onOff[if (p.hud) 1 else 0], onOff.mapIndexed { i, o -> o to ((i == 1) == p.hud) }) { p.hud = it == 1; App.library.settings.playbackStats = p.hud })
     }
     Row(Modifier.fillMaxWidth()) {
         Spacer(Modifier.weight(0.75f))
@@ -572,12 +572,22 @@ private fun SubtitlesTab(p: PlayerActivity) {
     }
 }
 
-/** Playback statistics, top left while the HUD option is on. */
+/** The film's name and technical details, top left while the option is on; the live figures change each second. */
 @Composable
 fun PlaybackHud(p: PlayerActivity, modifier: Modifier = Modifier) {
-    Column(modifier.clip(RoundedCornerShape(12.dp)).background(Color(0xB3000000)).padding(horizontal = 16.dp, vertical = 12.dp)) {
-        p.techInfo.forEach { Txt(it, Type.Small.copy(color = Color.White, fontSize = 13.sp), maxLines = 1) }
-        Txt("${clock(p.position)} / ${clock(p.duration)}", Type.Small.copy(color = Color(0xCCFFFFFF), fontSize = 13.sp))
+    val text = Type.Small.copy(color = Color.White, fontSize = 15.sp, lineHeight = 20.sp)
+    val rows = p.techInfo + (stringResource(R.string.hud_time) to "${clock(p.position)} / ${clock(p.duration)}")
+    // The labels' column is as wide as its longest label, so the values sit right beside them.
+    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+    val labelWidth = with(androidx.compose.ui.platform.LocalDensity.current) { (rows.maxOfOrNull { measurer.measure(it.first, text).size.width } ?: 0).toDp() } + 10.dp
+    Column(modifier.widthIn(max = 600.dp).clip(RoundedCornerShape(26.dp)).background(Color(0xB3000000)).padding(horizontal = 24.dp, vertical = 18.dp)) {
+        p.now?.title?.let { Txt(it, Type.Heading.copy(color = Color.White), Modifier.padding(bottom = 6.dp), maxLines = 2) }
+        rows.forEach { (label, value) ->
+            Row {
+                Txt(label, text.copy(color = Color(0x99FFFFFF)), Modifier.width(labelWidth), maxLines = 1)
+                Txt(value, text, maxLines = 2)
+            }
+        }
     }
 }
 

@@ -55,6 +55,11 @@ class Settings(context: Context) {
         get() = prefs.getBoolean("matchFrameRate", true)
         set(v) = prefs.edit().putBoolean("matchFrameRate", v).apply()
 
+    /** The playback details box, top left of the player. */
+    var playbackStats: Boolean
+        get() = prefs.getBoolean("playbackStats", false)
+        set(v) = prefs.edit().putBoolean("playbackStats", v).apply()
+
     var autoplayNext: Boolean
         get() = prefs.getBoolean("autoplayNext", true)
         set(v) = prefs.edit().putBoolean("autoplayNext", v).apply()

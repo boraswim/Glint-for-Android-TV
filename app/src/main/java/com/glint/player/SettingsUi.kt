@@ -334,6 +334,7 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                     if (tick < 0) return@item   // read so a change redraws the rows
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         OnOffRow(stringResource(R.string.autoplay_next), s.autoplayNext, FocusFirst()) { v -> change { s.autoplayNext = v } }
+                        OnOffRow(stringResource(R.string.hud), s.playbackStats, sub = stringResource(R.string.hud_sub)) { v -> change { s.playbackStats = v } }
                         OnOffRow(stringResource(R.string.auto_select_next), s.autoSelectNext, sub = stringResource(R.string.auto_select_next_sub)) { v -> change { s.autoSelectNext = v } }
                         ChoiceRow(stringResource(R.string.resume_mode), listOf(R.string.resume_ask, R.string.resume_always, R.string.resume_never).mapIndexed { i, r -> i to stringResource(r) }, s.resumeMode) { v -> change { s.resumeMode = v } }
                         ChoiceRow(stringResource(R.string.edge_mode), listOf(0 to stringResource(R.string.edge_time), 1 to stringResource(R.string.chapters)), s.edgeMode, sub = stringResource(R.string.edge_mode_sub)) { v -> change { s.edgeMode = v } }

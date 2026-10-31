@@ -366,7 +366,7 @@
     <string name="menu_tracks">Sporen</string>
     <string name="zoom_mode">Zoommodus</string>
     <string name="playback_speed">Afspeelsnelheid</string>
-    <string name="hud">Afspeelstatistieken (HUD)</string>
+    <string name="hud">Afspeelstatistieken</string>
     <string name="menu_delay">Vertraging</string>
     <string name="delay_seconds">%1$s s</string>
     <string name="delay_enter_hint">Seconden, bijv. -1,5</string>
@@ -408,4 +408,24 @@
     <string name="person_photos">Foto\'s</string>
     <string name="person_in_library">In je bibliotheek</string>
     <string name="person_from_wikipedia">Tekst van Wikipedia, CC BY-SA.</string>
+    <string name="hud_file">Bestand</string>
+    <string name="hud_source">Bron</string>
+    <string name="hud_video">Video</string>
+    <string name="hud_audio">Audio</string>
+    <string name="hud_subtitle">Ondertitels</string>
+    <string name="hud_flow">Streamsnelheid</string>
+    <string name="hud_flow_value">%1$s Mbps · gem. %2$s · piek %3$s</string>
+    <string name="hud_network">Netwerksnelheid</string>
+    <string name="hud_buffer">Bufferstatus</string>
+    <string name="hud_buffer_value">%1$s · %2$s s</string>
+    <string name="hud_display">Schermfrequentie</string>
+    <string name="hud_player">Speler</string>
+    <string name="hud_time">Tijd</string>
+    <string name="hud_sub">Toont tijdens het afspelen linksboven de volledige naam, datastroom, netwerksnelheid, buffer en technische details</string>
+    <string name="hud_container">Container</string>
+    <string name="hud_muxer">Gemaakt met</string>
+    <string name="hud_device">Apparaat</string>
+    <string name="hud_disk">Vrije schijfruimte</string>
+    <string name="hud_buffer_good">Goed</string>
+    <string name="hud_buffer_low">Laag</string>
 </resources>

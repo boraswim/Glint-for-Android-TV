@@ -366,7 +366,7 @@
     <string name="menu_tracks">Pistes</string>
     <string name="zoom_mode">Mode de zoom</string>
     <string name="playback_speed">Vitesse de lecture</string>
-    <string name="hud">Statistiques de lecture (HUD)</string>
+    <string name="hud">Statistiques de lecture</string>
     <string name="menu_delay">Décalage</string>
     <string name="delay_seconds">%1$s s</string>
     <string name="delay_enter_hint">Secondes, p. ex. -1,5</string>
@@ -408,4 +408,24 @@
     <string name="person_photos">Photos</string>
     <string name="person_in_library">Dans votre bibliothèque</string>
     <string name="person_from_wikipedia">Texte de Wikipédia, CC BY-SA.</string>
+    <string name="hud_file">Fichier</string>
+    <string name="hud_source">Source</string>
+    <string name="hud_video">Vidéo</string>
+    <string name="hud_audio">Audio</string>
+    <string name="hud_subtitle">Sous-titres</string>
+    <string name="hud_flow">Débit du flux</string>
+    <string name="hud_flow_value">%1$s Mbps · moy. %2$s · pic %3$s</string>
+    <string name="hud_network">Débit réseau</string>
+    <string name="hud_buffer">État du tampon</string>
+    <string name="hud_buffer_value">%1$s · %2$s s</string>
+    <string name="hud_display">Fréquence d\'écran</string>
+    <string name="hud_player">Lecteur</string>
+    <string name="hud_time">Durée</string>
+    <string name="hud_sub">Affiche en haut à gauche pendant la lecture le nom complet du film, le débit, la vitesse réseau, le tampon et les détails techniques</string>
+    <string name="hud_container">Conteneur</string>
+    <string name="hud_muxer">Créé avec</string>
+    <string name="hud_device">Appareil</string>
+    <string name="hud_disk">Espace libre</string>
+    <string name="hud_buffer_good">Bon</string>
+    <string name="hud_buffer_low">Faible</string>
 </resources>

@@ -202,7 +202,7 @@ object DoviConvert {
 
 /** The video renderer used for Dolby Vision: converts profile 7 to 8.1 on the way to the decoder when asked. */
 class DoviVideoRenderer(
-    context: Context, factory: DoviRenderersFactory, selector: MediaCodecSelector, fallback: Boolean,
+    context: Context, private val factory: DoviRenderersFactory, selector: MediaCodecSelector, fallback: Boolean,
     handler: Handler?, listener: VideoRendererEventListener?, joiningMs: Long,
 ) : MediaCodecVideoRenderer(
     context, factory.codecAdapter(), selector, joiningMs, fallback, handler, listener,
@@ -225,6 +225,7 @@ class DoviVideoRenderer(
 
     override fun onQueueInputBuffer(buffer: DecoderInputBuffer) {
         super.onQueueInputBuffer(buffer)
+        factory.videoBytes += buffer.data?.limit() ?: 0
         if (!converting) return
         val data = buffer.data ?: return
         val len = data.limit()
@@ -242,6 +243,9 @@ class DoviRenderersFactory(context: Context) : DefaultRenderersFactory(context) 
 
     /** Subtitle delay in microseconds (positive: later), read live by the text renderers. */
     @Volatile var subtitleOffsetUs = 0L
+
+    /** Video handed to the decoder so far: how fast it grows is the film's live bitrate. */
+    @Volatile var videoBytes = 0L
 
     override fun buildTextRenderers(context: Context, output: androidx.media3.exoplayer.text.TextOutput, outputLooper: android.os.Looper, extensionRendererMode: Int, out: ArrayList<Renderer>) {
         super.buildTextRenderers(context, output, outputLooper, extensionRendererMode, out)

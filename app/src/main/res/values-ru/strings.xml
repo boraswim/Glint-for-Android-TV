@@ -366,7 +366,7 @@
     <string name="menu_tracks">Дорожки</string>
     <string name="zoom_mode">Режим масштаба</string>
     <string name="playback_speed">Скорость воспроизведения</string>
-    <string name="hud">Статистика воспроизведения (HUD)</string>
+    <string name="hud">Статистика воспроизведения</string>
     <string name="menu_delay">Задержка</string>
     <string name="delay_seconds">%1$s с</string>
     <string name="delay_enter_hint">Секунды, например -1,5</string>
@@ -408,4 +408,24 @@
     <string name="person_photos">Фото</string>
     <string name="person_in_library">В вашей медиатеке</string>
     <string name="person_from_wikipedia">Текст из Википедии, CC BY-SA.</string>
+    <string name="hud_file">Файл</string>
+    <string name="hud_source">Источник</string>
+    <string name="hud_video">Видео</string>
+    <string name="hud_audio">Звук</string>
+    <string name="hud_subtitle">Субтитры</string>
+    <string name="hud_flow">Скорость потока</string>
+    <string name="hud_flow_value">%1$s Мбит/с · сред. %2$s · пик %3$s</string>
+    <string name="hud_network">Пропускная способность</string>
+    <string name="hud_buffer">Состояние буфера</string>
+    <string name="hud_buffer_value">%1$s · %2$s с</string>
+    <string name="hud_display">Частота экрана</string>
+    <string name="hud_player">Плеер</string>
+    <string name="hud_time">Время</string>
+    <string name="hud_sub">Во время воспроизведения показывает слева вверху полное название, поток данных, скорость сети, буфер и технические подробности</string>
+    <string name="hud_container">Контейнер</string>
+    <string name="hud_muxer">Создано в</string>
+    <string name="hud_device">Устройство</string>
+    <string name="hud_disk">Свободно на диске</string>
+    <string name="hud_buffer_good">Хорошо</string>
+    <string name="hud_buffer_low">Мало</string>
 </resources>

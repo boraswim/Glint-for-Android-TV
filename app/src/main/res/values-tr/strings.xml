@@ -373,7 +373,7 @@
     <string name="menu_tracks">İzler</string>
     <string name="zoom_mode">Yakınlaştırma Modu</string>
     <string name="playback_speed">Oynatma Hızı</string>
-    <string name="hud">Oynatma İstatistikleri (HUD)</string>
+    <string name="hud">Oynatma İstatistikleri</string>
     <string name="menu_delay">Gecikme</string>
     <string name="delay_seconds">%1$s sn</string>
     <string name="delay_enter_hint">Saniye, örn. -1,5</string>
@@ -415,4 +415,24 @@
     <string name="person_photos">Fotoğraflar</string>
     <string name="person_in_library">Kütüphanenizdekiler</string>
     <string name="person_from_wikipedia">Metin Vikipedi\'den alındı, CC BY-SA.</string>
+    <string name="hud_file">Dosya</string>
+    <string name="hud_source">Kaynak</string>
+    <string name="hud_video">Video</string>
+    <string name="hud_audio">Ses</string>
+    <string name="hud_subtitle">Altyazı</string>
+    <string name="hud_flow">Akış hızı</string>
+    <string name="hud_flow_value">%1$s Mbps · ort. %2$s · en yüksek %3$s</string>
+    <string name="hud_network">Ağ verimi</string>
+    <string name="hud_buffer">Arabellek durumu</string>
+    <string name="hud_buffer_value">%1$s · %2$s sn</string>
+    <string name="hud_display">Ekran kare hızı</string>
+    <string name="hud_player">Oynatıcı</string>
+    <string name="hud_time">Süre</string>
+    <string name="hud_sub">Oynatırken sol üstte filmin tam adını, anlık veri akışını, ağ hızını, tamponu ve teknik ayrıntıları gösterir</string>
+    <string name="hud_container">Kapsayıcı</string>
+    <string name="hud_muxer">Oluşturan</string>
+    <string name="hud_device">Cihaz bilgisi</string>
+    <string name="hud_disk">Boş disk alanı</string>
+    <string name="hud_buffer_good">Sağlıklı</string>
+    <string name="hud_buffer_low">Düşük</string>
 </resources>

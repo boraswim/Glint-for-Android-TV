@@ -218,6 +218,11 @@ class ExoPlayback(private val a: PlayerActivity) {
         view.player = player
         styleSubtitles()
         player.setVideoFrameMetadataListener { presentationUs, _, _, _ -> noteFrame(presentationUs) }
+        player.addAnalyticsListener(object : androidx.media3.exoplayer.analytics.AnalyticsListener {
+            override fun onVideoDecoderInitialized(eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime, name: String, initializedTimestampMs: Long, initializationDurationMs: Long) {
+                decoderName = name
+            }
+        })
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) = a.enginePlayingChanged(isPlaying)
             override fun onPlaybackStateChanged(state: Int) {
@@ -392,16 +397,27 @@ class ExoPlayback(private val a: PlayerActivity) {
         return l.getDisplayLanguage(Locale.getDefault()).replaceFirstChar { it.titlecase(Locale.getDefault()) }
     }
 
-    fun techInfo(): List<String> {
-        val out = ArrayList<String>()
-        player.videoFormat?.let { v ->
-            val dv = v.sampleMimeType == MimeTypes.VIDEO_DOLBY_VISION
-            out += "Video: ${if (dv) "Dolby Vision" else v.sampleMimeType?.substringAfter('/')?.uppercase(Locale.ROOT)} ${v.codecs.orEmpty()} ${v.width}×${v.height}" +
-                (if (v.frameRate > 0) "  %.3f fps".format(Locale.ROOT, v.frameRate) else "")
+    fun videoInfo(): String? = player.videoFormat?.let { v ->
+        val hdr = when {
+            v.sampleMimeType == MimeTypes.VIDEO_DOLBY_VISION -> "Dolby Vision"
+            v.colorInfo?.colorTransfer == C.COLOR_TRANSFER_ST2084 -> "HDR10"
+            v.colorInfo?.colorTransfer == C.COLOR_TRANSFER_HLG -> "HLG"
+            else -> ""
         }
-        player.audioFormat?.let { out += "Audio: " + describeAudio(it) + "  (Media3)" }
-        return out
+        val fps = frameRate()?.let { "%.3f fps".format(Locale.ROOT, it) }.orEmpty()
+        listOf(hdr, v.codecs ?: v.sampleMimeType?.substringAfter('/')?.uppercase(Locale.ROOT).orEmpty(), "${v.width}×${v.height}", fps)
+            .filter { it.isNotBlank() }.joinToString(" · ")
     }
+
+    fun audioInfo(): String? = player.audioFormat?.let { describeAudio(it) }
+
+    fun videoBytes() = factory.videoBytes
+    fun bufferedMs() = player.totalBufferedDuration
+    var decoderName = ""
+        private set
+
+    /** Frames shown so far. */
+    fun framesShown(): Int? = player.videoDecoderCounters?.let { it.ensureUpdated(); it.renderedOutputBufferCount }
 
     fun frameRate(): Double? = player.videoFormat?.frameRate?.takeIf { it > 0 }?.toDouble() ?: measuredFps
 

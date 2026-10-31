@@ -59,6 +59,23 @@ class FrameRatesTest {
         assertEquals(25.0, fpsFromFrameGaps(gaps)!!, 0.001)
     }
 
+    @Test fun containerNames() {
+        assertEquals("Matroska / WebM", containerName("A.Film.2013.mkv"))
+        assertEquals("MP4", containerName("a.MP4"))
+        assertEquals("MPEG-TS", containerName("b.m2ts"))
+    }
+
+    @Test fun muxerIsReadFromTheHeader() {
+        val name = "libebml v1.4.5 + libmatroska v1.7.1".toByteArray()
+        val head = byteArrayOf(0x1A, 0x45, 0x4D, 0x23, 0x11) + byteArrayOf(0x4D, 0x80.toByte(), (0x80 or name.size).toByte()) + name + byteArrayOf(0x57, 0x41)
+        assertEquals("libebml v1.4.5 + libmatroska v1.7.1", matroskaMuxer(head))
+    }
+
+    @Test fun noMuxerInOtherBytes() {
+        assertNull(matroskaMuxer(ByteArray(64) { 0 }))
+        assertNull(matroskaMuxer(byteArrayOf(0x4D, 0x80.toByte(), 0x85.toByte(), 1, 2, 3, 4, 5)))
+    }
+
     @Test fun nothingToMeasure() {
         assertNull(fpsFromFrameGaps(emptyList()))
     }

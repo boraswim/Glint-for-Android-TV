@@ -366,7 +366,7 @@
     <string name="menu_tracks">Spuren</string>
     <string name="zoom_mode">Zoom-Modus</string>
     <string name="playback_speed">Wiedergabegeschwindigkeit</string>
-    <string name="hud">Wiedergabestatistik (HUD)</string>
+    <string name="hud">Wiedergabestatistik</string>
     <string name="menu_delay">Verzögerung</string>
     <string name="delay_seconds">%1$s s</string>
     <string name="delay_enter_hint">Sekunden, z. B. -1,5</string>
@@ -408,4 +408,24 @@
     <string name="person_photos">Fotos</string>
     <string name="person_in_library">In deiner Mediathek</string>
     <string name="person_from_wikipedia">Text aus Wikipedia, CC BY-SA.</string>
+    <string name="hud_file">Datei</string>
+    <string name="hud_source">Quelle</string>
+    <string name="hud_video">Video</string>
+    <string name="hud_audio">Audio</string>
+    <string name="hud_subtitle">Untertitel</string>
+    <string name="hud_flow">Streamrate</string>
+    <string name="hud_flow_value">%1$s Mbps · Ø %2$s · Spitze %3$s</string>
+    <string name="hud_network">Netzwerkdurchsatz</string>
+    <string name="hud_buffer">Pufferstatus</string>
+    <string name="hud_buffer_value">%1$s · %2$s s</string>
+    <string name="hud_display">Bildwiederholrate</string>
+    <string name="hud_player">Player</string>
+    <string name="hud_time">Zeit</string>
+    <string name="hud_sub">Zeigt beim Abspielen oben links den vollen Filmnamen, Datenfluss, Netzwerktempo, Puffer und technische Details</string>
+    <string name="hud_container">Container</string>
+    <string name="hud_muxer">Erstellt mit</string>
+    <string name="hud_device">Gerät</string>
+    <string name="hud_disk">Freier Speicher</string>
+    <string name="hud_buffer_good">Gut</string>
+    <string name="hud_buffer_low">Niedrig</string>
 </resources>

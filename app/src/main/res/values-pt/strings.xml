@@ -366,7 +366,7 @@
     <string name="menu_tracks">Faixas</string>
     <string name="zoom_mode">Modo de zoom</string>
     <string name="playback_speed">Velocidade de reprodução</string>
-    <string name="hud">Estatísticas de reprodução (HUD)</string>
+    <string name="hud">Estatísticas de reprodução</string>
     <string name="menu_delay">Atraso</string>
     <string name="delay_seconds">%1$s s</string>
     <string name="delay_enter_hint">Segundos, ex.: -1,5</string>
@@ -408,4 +408,24 @@
     <string name="person_photos">Fotos</string>
     <string name="person_in_library">Na sua biblioteca</string>
     <string name="person_from_wikipedia">Texto da Wikipédia, CC BY-SA.</string>
+    <string name="hud_file">Arquivo</string>
+    <string name="hud_source">Origem</string>
+    <string name="hud_video">Vídeo</string>
+    <string name="hud_audio">Áudio</string>
+    <string name="hud_subtitle">Legendas</string>
+    <string name="hud_flow">Taxa do fluxo</string>
+    <string name="hud_flow_value">%1$s Mbps · média %2$s · pico %3$s</string>
+    <string name="hud_network">Velocidade da rede</string>
+    <string name="hud_buffer">Estado do buffer</string>
+    <string name="hud_buffer_value">%1$s · %2$s s</string>
+    <string name="hud_display">Taxa da tela</string>
+    <string name="hud_player">Player</string>
+    <string name="hud_time">Tempo</string>
+    <string name="hud_sub">Mostra no canto superior esquerdo durante a reprodução o nome completo, o fluxo de dados, a velocidade da rede, o buffer e os detalhes técnicos</string>
+    <string name="hud_container">Contêiner</string>
+    <string name="hud_muxer">Criado com</string>
+    <string name="hud_device">Dispositivo</string>
+    <string name="hud_disk">Espaço livre</string>
+    <string name="hud_buffer_good">Bom</string>
+    <string name="hud_buffer_low">Baixo</string>
 </resources>
