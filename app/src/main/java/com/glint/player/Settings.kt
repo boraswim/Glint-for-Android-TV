@@ -96,6 +96,11 @@ class Settings(context: Context) {
         set(v) = prefs.edit().putInt("skipSeconds", v).apply()
 
 
+    /** What Glint's icon opens: a built-in tile's place in FAVORITE_TILE_NAMES, or -1 for Home. */
+    var startScreen: Int
+        get() = prefs.getInt("startScreen", -1)
+        set(v) = prefs.edit().putInt("startScreen", v).apply()
+
     /** Last measured NAS → box speed in Mbps (0 = never measured). */
     var measuredMbps: Float
         get() = prefs.getFloat("measuredMbps", 0f)

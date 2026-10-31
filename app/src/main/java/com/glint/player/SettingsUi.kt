@@ -275,6 +275,19 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                                 }
                             }
                         }
+                        // What pressing Glint's icon opens: Home, or one of the sections Home has tiles for.
+                        val starts = listOf(R.string.tab_home to -1) + FAVORITE_TILE_NAMES.mapIndexed { i, name -> name to i }
+                        val startNames = starts.map { stringResource(it.first) }
+                        val startAt = starts.indexOfFirst { it.second == s.startScreen }.coerceAtLeast(0)
+                        var pickingStart by remember { mutableStateOf(false) }
+                        ListRow(stringResource(R.string.start_screen), startNames[startAt], sub = stringResource(R.string.start_screen_sub)) { pickingStart = true }
+                        if (pickingStart) androidx.compose.ui.window.Dialog({ pickingStart = false }, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+                            TvScale {
+                                OptionSheet(stringResource(R.string.start_screen), starts.mapIndexed { i, (_, value) ->
+                                    ((if (i == startAt) "✓  " else "") + startNames[i]) to { change { s.startScreen = value } }
+                                }, start = startAt) { pickingStart = false }
+                            }
+                        }
                         ListRow(stringResource(R.string.hide_spoilers), onOff(s.hideSpoilers), sub = stringResource(R.string.hide_spoilers_sub)) { change { s.hideSpoilers = !s.hideSpoilers } }
                         val sorts = listOf(R.string.sort_title, R.string.sort_added, R.string.sort_year, R.string.sort_rating, R.string.sort_duration, R.string.sort_file_name)
                         ListRow(stringResource(R.string.sort_order), stringResource(sorts[s.sortOrder.coerceIn(0, sorts.lastIndex)])) { change { s.sortOrder = (s.sortOrder + 1) % sorts.size } }

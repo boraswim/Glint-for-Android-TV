@@ -235,6 +235,19 @@ val FAVORITE_TILE_NAMES = listOf(
     R.string.by_genre, R.string.shelf_watchlist, R.string.playlists, R.string.tab_folders,
 )
 
+/** The screen a built-in tile opens, by its place in [FAVORITE_TILE_NAMES]; null for any other number (Home). */
+fun favoriteTileScreen(i: Int): Screen? = when (i) {
+    0 -> Screen.Grid(Kind.Collections)
+    1 -> Screen.Grid(Kind.Movies)
+    2 -> Screen.Grid(Kind.Shows)
+    3 -> Screen.Grid(Kind.Others)
+    4 -> Screen.Genres
+    5 -> Screen.Grid(Kind.Watchlist)
+    6 -> Screen.Grid(Kind.Playlists)
+    7 -> Screen.Folder()
+    else -> null
+}
+
 /** The coloured shortcut tiles: built-in categories, minus hidden ones, plus pinned categories and folders. */
 @Composable
 private fun FavoritesRow(nav: Nav, first: FocusRequester, wanted: String?) {

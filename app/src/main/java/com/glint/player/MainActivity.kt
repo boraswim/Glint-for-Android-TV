@@ -126,6 +126,9 @@ class MainActivity : ComponentActivity() {
                     if (section >= 0) {
                         AppLanguage.reopenOnSection = -1
                         push(Screen.Settings); push(Screen.SettingsSection(section))
+                    } else {
+                        // The start screen picked in Settings → General opens over Home, so Back leads to Home.
+                        favoriteTileScreen(lib.settings.startScreen)?.let { push(it) }
                     }
                 }
             }

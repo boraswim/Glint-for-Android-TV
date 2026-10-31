@@ -184,6 +184,8 @@
     <string name="show_filenames">Dateinamen anzeigen</string>
     <string name="hide_spoilers">Spoiler ausblenden</string>
     <string name="hide_spoilers_sub">Blendet Bilder und Inhalt ungesehener Folgen aus</string>
+    <string name="start_screen">Startbildschirm</string>
+    <string name="start_screen_sub">Was sich beim Drücken des Glint-Symbols öffnet</string>
     <string name="show_logos">Logos anzeigen</string>
     <string name="show_ratings">Externe Bewertungen anzeigen</string>
     <string name="tmdb_key">TMDB-API-Schlüssel</string>

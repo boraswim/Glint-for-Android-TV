@@ -184,6 +184,8 @@
     <string name="show_filenames">Bestandsnamen tonen</string>
     <string name="hide_spoilers">Spoilers verbergen</string>
     <string name="hide_spoilers_sub">Verbergt afbeeldingen en samenvattingen van afleveringen die je nog niet zag</string>
+    <string name="start_screen">Startscherm</string>
+    <string name="start_screen_sub">Wat er opent als je op het Glint-pictogram drukt</string>
     <string name="show_logos">Logo\'s tonen</string>
     <string name="show_ratings">Externe beoordelingen tonen</string>
     <string name="tmdb_key">TMDB-API-sleutel</string>

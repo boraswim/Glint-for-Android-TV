@@ -184,6 +184,8 @@
     <string name="show_filenames">Mostrar nombres de archivo</string>
     <string name="hide_spoilers">Ocultar spoilers</string>
     <string name="hide_spoilers_sub">Oculta imágenes y sinopsis de los episodios que no has visto</string>
+    <string name="start_screen">Pantalla de inicio</string>
+    <string name="start_screen_sub">Lo que se abre al pulsar el icono de Glint</string>
     <string name="show_logos">Mostrar logotipos</string>
     <string name="show_ratings">Mostrar valoraciones externas</string>
     <string name="tmdb_key">Clave de API de TMDB</string>

@@ -184,6 +184,8 @@
     <string name="show_filenames">Dosya adlarını göster</string>
     <string name="hide_spoilers">Spoiler gizle</string>
     <string name="hide_spoilers_sub">İzlemediğiniz bölümlerin görsellerini ve konularını gizler</string>
+    <string name="start_screen">Açılış ekranı</string>
+    <string name="start_screen_sub">Glint simgesine basınca açılacak ekran</string>
     <string name="show_logos">Logoları göster</string>
     <string name="show_ratings">Dış puanları göster</string>
     <string name="tmdb_key">TMDB API anahtarı</string>

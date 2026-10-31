@@ -184,6 +184,8 @@
     <string name="show_filenames">Показывать имена файлов</string>
     <string name="hide_spoilers">Скрывать спойлеры</string>
     <string name="hide_spoilers_sub">Скрывает кадры и описания непросмотренных серий</string>
+    <string name="start_screen">Начальный экран</string>
+    <string name="start_screen_sub">Что открывается при нажатии на значок Glint</string>
     <string name="show_logos">Показывать логотипы</string>
     <string name="show_ratings">Показывать внешние рейтинги</string>
     <string name="tmdb_key">Ключ API TMDB</string>
