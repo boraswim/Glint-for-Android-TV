@@ -1,6 +1,6 @@
 # Glint privacy policy
 
-*Last updated: 30 October 2026*
+*Last updated: 31 October 2026*
 
 Glint is a media player for Android TV that plays films and series from your own network shares and USB disks.
 It has no accounts, no ads, no analytics and no tracking, and the developer runs no server: nothing you do in
