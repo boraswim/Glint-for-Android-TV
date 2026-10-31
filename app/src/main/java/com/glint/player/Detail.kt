@@ -74,7 +74,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 /** "2007-07-26" → "26 Tem 2007" in the viewer's language. */
-private fun date(iso: String): String = runCatching {
+internal fun date(iso: String): String = runCatching {
     DateFormat.getDateInstance(DateFormat.MEDIUM).format(SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).parse(iso)!!)
 }.getOrDefault(iso)
 
@@ -247,11 +247,23 @@ private fun CastRow(nav: Nav, cast: List<Person>, director: String = "") {
     // Focusing a photo scrolls the whole row into view, names and roles included, not just the photo.
     val whole = remember { androidx.compose.foundation.relocation.BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
+    val here = nav.current
+    val back = remember { nav.openedPerson?.takeIf { it.first == here }?.second }
+    val backFocus = remember { androidx.compose.ui.focus.FocusRequester() }
+    // Starts at that photo: one further along isn't composed yet and couldn't take focus.
+    val row = androidx.compose.foundation.lazy.rememberLazyListState(people.indexOfFirst { it.name == back }.coerceAtLeast(0))
+    LaunchedEffect(Unit) {
+        if (back == null) return@LaunchedEffect
+        nav.openedPerson = null
+        // After the page's own first focus has landed.
+        kotlinx.coroutines.delay(150)
+        runCatching { backFocus.requestFocus() }
+    }
     // "Cast & Crew": rounded-square photos, name in two lines at most, role below.
-    Box(Modifier.bringIntoViewRequester(whole)) { Shelf(stringResource(R.string.cast_crew)) {
+    Box(Modifier.bringIntoViewRequester(whole)) { Shelf(stringResource(R.string.cast_crew), row) {
         items(people) { p ->
             Column(Modifier.width(152.dp)) {
-                FocusCard(Modifier.size(152.dp, 162.dp), shape = RoundedCornerShape(22.dp), onFocus = { scope.launch { whole.bringIntoView() } }, onLongClick = { App.library.pin(Pin("actor:${p.name}", p.name, row = true)) }, onClick = { nav.push(Screen.Grid(Kind.Actor(p.name))) }) {
+                FocusCard((if (p.name == back) Modifier.focusRequester(backFocus) else Modifier).size(152.dp, 162.dp), shape = RoundedCornerShape(22.dp), onFocus = { scope.launch { whole.bringIntoView() } }, onLongClick = { App.library.pin(Pin("actor:${p.name}", p.name, row = true)) }, onClick = { nav.openedPerson = here to p.name; nav.push(Screen.PersonPage(p.name, p.id, p.photo)) }) {
                     Box(Modifier.fillMaxSize().background(Color(0xFF3A3D43)), contentAlignment = Alignment.Center) {
                         Txt(p.name.split(' ').mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString(""), Type.Title)
                         if (p.photo != null) AsyncImage(p.photo, p.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)

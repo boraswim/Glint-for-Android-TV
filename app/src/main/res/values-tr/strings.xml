@@ -407,4 +407,10 @@
     <string name="rescan_disks">Yeniden ara</string>
     <string name="smb_version">SMB sürümü</string>
     <string name="smb_version_sub">Otomatik, iki tarafın da desteklediği en yeni sürümü seçer. Eski bir NAS\'ta filmler durup başlıyorsa SMB 2\'yi seçin.</string>
+    <string name="person_born">Doğum: %1$s</string>
+    <string name="person_died">Ölüm: %1$s</string>
+    <string name="person_age">%1$d yaşında</string>
+    <string name="person_no_story">TMDB\'de bu kişinin hayat hikâyesi yok.</string>
+    <string name="person_photos">Fotoğraflar</string>
+    <string name="person_in_library">Kütüphanenizdekiler</string>
 </resources>

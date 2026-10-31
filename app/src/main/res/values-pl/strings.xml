@@ -400,4 +400,10 @@
     <string name="rescan_disks">Szukaj ponownie</string>
     <string name="smb_version">Wersja SMB</string>
     <string name="smb_version_sub">Automatycznie wybiera najnowszą wersję obsługiwaną przez obie strony. Wybierz SMB 2, jeśli filmy zacinają się na starszym NAS.</string>
+    <string name="person_born">Urodzenie: %1$s</string>
+    <string name="person_died">Śmierć: %1$s</string>
+    <string name="person_age">wiek: %1$d</string>
+    <string name="person_no_story">TMDB nie ma biografii tej osoby.</string>
+    <string name="person_photos">Zdjęcia</string>
+    <string name="person_in_library">W Twojej bibliotece</string>
 </resources>

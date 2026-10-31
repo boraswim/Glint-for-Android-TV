@@ -400,4 +400,10 @@
     <string name="rescan_disks">Opnieuw zoeken</string>
     <string name="smb_version">SMB-versie</string>
     <string name="smb_version_sub">Automatisch kiest de nieuwste versie die beide kanten spreken. Kies SMB 2 als films haperen op een oudere NAS.</string>
+    <string name="person_born">Geboren: %1$s</string>
+    <string name="person_died">Overleden: %1$s</string>
+    <string name="person_age">%1$d jaar</string>
+    <string name="person_no_story">TMDB heeft geen biografie van deze persoon.</string>
+    <string name="person_photos">Foto\'s</string>
+    <string name="person_in_library">In je bibliotheek</string>
 </resources>

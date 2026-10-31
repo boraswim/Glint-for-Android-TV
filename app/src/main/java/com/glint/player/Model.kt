@@ -63,7 +63,7 @@ data class DubFile(val source: String, val share: String, val path: String, val 
 data class Extra(val path: String, val kind: String, val title: String)
 
 @Serializable
-data class Person(val name: String, val role: String, val photo: String? = null)
+data class Person(val name: String, val role: String, val photo: String? = null, val id: Int = 0)
 
 @Serializable
 data class Movie(

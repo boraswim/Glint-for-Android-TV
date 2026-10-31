@@ -12,6 +12,10 @@ data class SearchHit(
     val poster: String?, val overview: String, val isTv: Boolean,
 )
 
+data class PersonInfo(
+    val name: String, val biography: String, val birthday: String, val deathday: String, val place: String, val photos: List<String>,
+)
+
 /**
  * themoviedb.org: matches names to films and series, then fetches artwork, plots, cast and
  * episode details. Accepts a v3 API key or a v4 read access token; [keyOf] is asked each time, so a key the
@@ -256,8 +260,37 @@ class Tmdb(private val keyOf: () -> String, private val language: () -> String, 
             val role = c.optString("character").ifBlank {
                 c.optJSONArray("roles")?.objects()?.firstOrNull()?.optString("character").orEmpty()
             }
-            Person(c.optString("name"), role, c.img("profile_path", "w185"))
+            Person(c.optString("name"), role, c.img("profile_path", "w185"), c.optInt("id"))
         }.orEmpty()
+
+    private val people = java.util.concurrent.ConcurrentHashMap<String, PersonInfo>()
+
+    /**
+     * Life story and photos of someone in a cast. Titles catalogued before ids were stored have only a name and a
+     * photo, so the person is then searched for by name, the photo telling namesakes apart. Null if not found.
+     */
+    fun person(id: Int, name: String, photo: String?): PersonInfo? {
+        val lang = lang()
+        people["$lang|$id|$name"]?.let { return it }
+        val found = if (id > 0) id else {
+            val hits = JSONObject(get("search/person?query=${enc(name)}&include_adult=false&language=$lang")).getJSONArray("results").objects()
+            val file = photo?.substringAfterLast('/')
+            (hits.firstOrNull { file != null && it.optString("profile_path").endsWith("/$file") }
+                ?: hits.firstOrNull { it.optString("name").equals(name, ignoreCase = true) }
+                ?: hits.firstOrNull())?.optInt("id") ?: return null
+        }
+        val o = JSONObject(get("person/$found?language=$lang&append_to_response=images"))
+        val story = o.text("biography").ifBlank {
+            if (lang.startsWith("en")) "" else runCatching { JSONObject(get("person/$found?language=en-US")).text("biography") }.getOrDefault("")
+        }
+        val photos = o.optJSONObject("images")?.optJSONArray("profiles")?.objects().orEmpty()
+            .sortedByDescending { it.optDouble("vote_average") }
+            .mapNotNull { it.img("file_path", "w500") }.distinct().take(40)
+        return PersonInfo(o.text("name").ifBlank { name }, story.trim(), o.text("birthday"), o.text("deathday"), o.text("place_of_birth"), photos)
+            .also { people["$lang|$id|$name"] = it }
+    }
+
+    private fun JSONObject.text(name: String) = if (isNull(name)) "" else optString(name)
 
     private fun movieCertification(o: JSONObject): String {
         val list = o.optJSONObject("release_dates")?.optJSONArray("results")?.objects() ?: return ""

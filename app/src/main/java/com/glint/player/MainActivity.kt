@@ -77,6 +77,7 @@ sealed interface Screen {
     data class MovieDetail(val id: String) : Screen
     data class ShowDetail(val key: String, val season: Int? = null) : Screen
     data class Collection(val id: Int) : Screen
+    data class PersonPage(val name: String, val id: Int, val photo: String?) : Screen
     data class EditSource(val id: String?) : Screen
     data class Match(val id: String, val tv: Boolean) : Screen
     /** Choosing a film's or series' poster, or with [backdrop] its background. */
@@ -99,6 +100,9 @@ class Nav {
     fun tab(s: Screen) { stack.clear(); unlocked.clear(); stack += s }
     fun remember(screen: Screen, id: String) { focus[screen] = id }
     fun focused(screen: Screen) = focus[screen]
+
+    /** The cast member opened from a page, so Back lands on their photo instead of the page's first button. */
+    var openedPerson: Pair<Screen, String>? = null
 
     /** A grid's filter choice, kept while its films are opened and closed (the grid leaves composition meanwhile). */
     val filters = mutableStateMapOf<Screen, Int>()
@@ -152,6 +156,7 @@ class MainActivity : ComponentActivity() {
                         is Screen.MovieDetail -> MovieDetailScreen(nav, screen.id)
                         is Screen.ShowDetail -> ShowDetailScreen(nav, screen.key, screen.season)
                         is Screen.Collection -> CollectionScreen(nav, screen.id)
+                        is Screen.PersonPage -> PersonScreen(nav, screen)
                         is Screen.EditSource -> EditSourceScreen(nav, screen.id)
                         is Screen.Match -> MatchScreen(nav, screen)
                         is Screen.Artwork -> ArtworkScreen(nav, screen)
