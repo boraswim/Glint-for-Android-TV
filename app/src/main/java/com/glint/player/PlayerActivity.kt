@@ -178,6 +178,7 @@ class PlayerActivity : ComponentActivity() {
             }
             r.onSuccess { f ->
                 trackPopup = -1
+                scheduleHide()
                 addSubtitle(f)
                 android.widget.Toast.makeText(this@PlayerActivity, getString(R.string.os_added, langName(h.language)), android.widget.Toast.LENGTH_SHORT).show()
             }.onFailure { osStatus = it.message ?: it.javaClass.simpleName }
@@ -1085,6 +1086,8 @@ class PlayerActivity : ComponentActivity() {
         // While a reopen catches up (a few seconds), the controls wait; Back is handled above.
         if (reopenAt != null) return true
         if (event.action == KeyEvent.ACTION_UP) return true
+        // On the track buttons or in a pop-up, the bar's 3 seconds start again from each press.
+        if (trackFocus >= 0 || trackPopup >= 0) scheduleHide()
         // In a track pop-up: up and down walk the list, OK picks; left and right close it and move to the next button.
         if (trackPopup >= 0) when (code) {
             // Round and round: past the last row back to the first, and the other way.
@@ -1126,7 +1129,7 @@ class PlayerActivity : ComponentActivity() {
                 if (event.repeatCount == 0 && lib.settings.edgeMode == 1 && chapters.size > 1 && seekTarget == null) { nextChapter(); showControls() }
                 else scrub(step(lib.settings.forwardSkip * 1000L, event.repeatCount))
             // Up shows the controls; with them already up it moves onto the track buttons.
-            KeyEvent.KEYCODE_DPAD_UP -> if (controls && seekTarget == null) { trackFocus = 0; hideJob?.cancel() } else showControls()
+            KeyEvent.KEYCODE_DPAD_UP -> if (controls && seekTarget == null) { trackFocus = 0; scheduleHide() } else showControls()
             KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_INFO -> if (event.repeatCount == 0) openPanel()
             KeyEvent.KEYCODE_MEDIA_NEXT, KeyEvent.KEYCODE_CHANNEL_UP -> if (chapters.size > 1) { nextChapter(); showControls() } else scrub(5 * 60_000)
             KeyEvent.KEYCODE_MEDIA_PREVIOUS, KeyEvent.KEYCODE_CHANNEL_DOWN -> if (chapters.size > 1) { previousChapter(); showControls() } else scrub(-5 * 60_000)
@@ -1147,7 +1150,7 @@ class PlayerActivity : ComponentActivity() {
     private fun onBack() {
         when {
             panel -> if (menuBack?.invoke() != true) closePanel()
-            trackPopup >= 0 -> trackPopup = -1
+            trackPopup >= 0 -> { trackPopup = -1; scheduleHide() }
             trackFocus >= 0 -> { trackFocus = -1; scheduleHide() }
             upNext != null -> cancelUpNext()
             seekTarget != null -> { seekTarget = null; seekJob?.cancel(); scheduleHide() }
@@ -1188,8 +1191,9 @@ class PlayerActivity : ComponentActivity() {
     private fun scheduleHide() {
         hideJob?.cancel()
         hideJob = lifecycleScope.launch {
-            delay(4500)
-            if (playing && !panel && seekTarget == null && trackFocus < 0) controls = false
+            delay(3000)
+            // An open pop-up is still being read; its next key press starts the wait again.
+            if (playing && !panel && seekTarget == null && trackPopup < 0) { controls = false; trackFocus = -1 }
         }
     }
 
