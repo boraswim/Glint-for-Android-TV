@@ -564,8 +564,9 @@ fun ShowDetailScreen(nav: Nav, key: String, openSeason: Int? = null) {
 
     Box(Modifier.fillMaxSize()) {
         ScreenBackground()
-        // A background chosen for the series stays put; otherwise the episode in view shows its own still.
-        Backdrop(if (spoiler || show.chosenBackdrop != null) Item.ShowItem(show).backdrop else shown.still ?: Item.ShowItem(show).backdrop)
+        // The series' own background, chosen or from TMDB: an episode's still is too small for the whole screen,
+        // so it's only used when the series has no background at all.
+        Backdrop(Item.ShowItem(show).backdrop ?: shown.still.takeUnless { spoiler })
         val scroll = rememberScrollState()
         val scope = rememberCoroutineScope()
         MinimalScroll { Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
