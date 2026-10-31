@@ -240,6 +240,7 @@ class ExoPlayback(private val a: PlayerActivity) {
                     player.prepare()
                     return
                 }
+                if (error.errorCode == PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED && a.decoderTaken()) return
                 a.error = a.getString(R.string.play_failed) + "  (" + error.errorCodeName + ")"
             }
         })

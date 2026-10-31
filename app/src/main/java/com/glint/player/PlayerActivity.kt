@@ -258,6 +258,8 @@ class PlayerActivity : ComponentActivity() {
 
     private var queue: List<String> = emptyList()
     private var hideJob: Job? = null
+    private var decoderLost = false
+    private var decoderRetries = 0
     private var seekJob: Job? = null
     private var tickJob: Job? = null
     private var upNextJob: Job? = null
@@ -329,6 +331,7 @@ class PlayerActivity : ComponentActivity() {
         super.onStart()
         player.attachViews(videoLayout, null, true, false)
         player.videoScale = vlcScale(scale)   // keep the viewer's choice when coming back
+        if (decoderLost) { decoderLost = false; exo?.player?.prepare() }
     }
 
     override fun onStop() {
@@ -375,8 +378,22 @@ class PlayerActivity : ComponentActivity() {
 
     // ---- Media3 events (the libVLC ones are in onVlcEvent) ----
 
+    /**
+     * Another app took the TV's video decoder (a second film, usually while this one was in the background). The file
+     * is fine: Media3 picks up at the same spot once prepared again, which waits until the viewer is back. A decoder
+     * still held elsewhere gets a few tries a second apart. False once those are used up, to show the error after all.
+     */
+    internal fun decoderTaken(): Boolean {
+        if (!lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)) { decoderLost = true; return true }
+        if (decoderRetries >= 3) return false
+        decoderRetries++
+        lifecycleScope.launch { delay(1000); exo?.player?.prepare() }
+        return true
+    }
+
     internal fun enginePlayingChanged(isPlaying: Boolean) {
         if (isPlaying) {
+            decoderRetries = 0
             playing = true; buffering = 100f
             if (controls) scheduleHide()
         } else if (exo?.player?.playbackState != androidx.media3.common.Player.STATE_ENDED) {
