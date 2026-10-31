@@ -31,7 +31,6 @@
             android:name=".MainActivity"
             android:exported="true"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout"
-            android:screenOrientation="landscape"
             android:windowSoftInputMode="adjustPan" />
 
         <!-- The launcher entries, one per logo; Settings turns on the chosen one (see AppLogo). -->
@@ -67,7 +66,6 @@
             android:name=".PlayerActivity"
             android:exported="false"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
-            android:screenOrientation="landscape"
             android:launchMode="singleTop" />
     </application>
 </manifest>

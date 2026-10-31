@@ -23,8 +23,8 @@ android {
         applicationId = "com.glint.player"
         minSdk = 24
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.4.0"
+        versionCode = 7
+        versionName = "1.4.1"
         // Mi Box S is 32-bit ARM; arm64 covers newer boxes. Skipping x86 keeps libVLC's size down.
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
     }
@@ -94,6 +94,8 @@ dependencies {
     implementation("com.github.mwiede:jsch:0.2.20")
     implementation("com.emc.ecs:nfs-client:1.1.0")
     implementation("org.videolan.android:libvlc-all:3.7.7")
+    // libvlc-all brings fragment 1.0.0 through legacy-support-v4, which Play Console flags as outdated.
+    implementation("androidx.fragment:fragment:1.8.6")
     // Dolby Vision: libVLC 3 can't hand DV to the TV's Dolby Vision decoder; Media3 can. Used only for DV
     // files on TVs that have one. Jellyfin's FFmpeg build decodes TrueHD, which Android has no decoder for.
     implementation("androidx.media3:media3-exoplayer:1.9.0")
