@@ -406,4 +406,5 @@
     <string name="person_no_story">В TMDB нет биографии этого человека.</string>
     <string name="person_photos">Фото</string>
     <string name="person_in_library">В вашей медиатеке</string>
+    <string name="person_from_wikipedia">Текст из Википедии, CC BY-SA.</string>
 </resources>

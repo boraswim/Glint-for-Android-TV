@@ -42,6 +42,10 @@ Glint contacts these services, and only for the reasons below:
   subtitle languages to find subtitles, and downloads the one you pick. If you also entered your OpenSubtitles user
   name and password (optional), Glint signs in with them first.
   OpenSubtitles' privacy policy: https://www.opensubtitles.com/en/privacy
+- **Wikipedia and Wikidata** (run by the Wikimedia Foundation), only when you open someone's page from a cast list and
+  TMDB has no life story for them in your language: Glint sends their Wikidata id and the title of their Wikipedia
+  article, with no key or account, to get that article's text. Wikimedia's privacy policy:
+  https://foundation.wikimedia.org/wiki/Policy:Privacy_policy
 - **YouTube:** when you open a trailer, Glint hands its link to the YouTube app on your TV. What YouTube does
   then is covered by Google's privacy policy: https://policies.google.com/privacy
 

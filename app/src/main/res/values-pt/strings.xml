@@ -406,4 +406,5 @@
     <string name="person_no_story">O TMDB não tem biografia desta pessoa.</string>
     <string name="person_photos">Fotos</string>
     <string name="person_in_library">Na sua biblioteca</string>
+    <string name="person_from_wikipedia">Texto da Wikipédia, CC BY-SA.</string>
 </resources>

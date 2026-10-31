@@ -426,4 +426,5 @@
     <string name="person_no_story">TMDB has no life story for this person.</string>
     <string name="person_photos">Photos</string>
     <string name="person_in_library">In your library</string>
+    <string name="person_from_wikipedia">Text from Wikipedia, CC BY-SA.</string>
 </resources>

@@ -413,4 +413,5 @@
     <string name="person_no_story">TMDB\'de bu kişinin hayat hikâyesi yok.</string>
     <string name="person_photos">Fotoğraflar</string>
     <string name="person_in_library">Kütüphanenizdekiler</string>
+    <string name="person_from_wikipedia">Metin Vikipedi\'den alındı, CC BY-SA.</string>
 </resources>

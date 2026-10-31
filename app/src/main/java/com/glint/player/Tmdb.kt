@@ -14,6 +14,7 @@ data class SearchHit(
 
 data class PersonInfo(
     val name: String, val biography: String, val birthday: String, val deathday: String, val place: String, val photos: List<String>,
+    val fromWikipedia: Boolean = false,
 )
 
 /**
@@ -279,14 +280,19 @@ class Tmdb(private val keyOf: () -> String, private val language: () -> String, 
                 ?: hits.firstOrNull { it.optString("name").equals(name, ignoreCase = true) }
                 ?: hits.firstOrNull())?.optInt("id") ?: return null
         }
-        val o = JSONObject(get("person/$found?language=$lang&append_to_response=images"))
-        val story = o.text("biography").ifBlank {
-            if (lang.startsWith("en")) "" else runCatching { JSONObject(get("person/$found?language=en-US")).text("biography") }.getOrDefault("")
+        val o = JSONObject(get("person/$found?language=$lang&append_to_response=images,external_ids"))
+        val iso = lang.substringBefore('-')
+        // No text in the viewer's language: their Wikipedia next, then TMDB's English.
+        val wiki = if (o.text("biography").isNotBlank() || iso == "en") "" else
+            o.optJSONObject("external_ids")?.text("wikidata_id").orEmpty().ifBlank { null }
+                ?.let { q -> runCatching { Wikipedia.biography(q, iso) }.getOrDefault("") }.orEmpty()
+        val story = o.text("biography").ifBlank { wiki }.ifBlank {
+            if (iso == "en") "" else runCatching { JSONObject(get("person/$found?language=en-US")).text("biography") }.getOrDefault("")
         }
         val photos = o.optJSONObject("images")?.optJSONArray("profiles")?.objects().orEmpty()
             .sortedByDescending { it.optDouble("vote_average") }
             .mapNotNull { it.img("file_path", "w500") }.distinct().take(40)
-        return PersonInfo(o.text("name").ifBlank { name }, story.trim(), o.text("birthday"), o.text("deathday"), o.text("place_of_birth"), photos)
+        return PersonInfo(o.text("name").ifBlank { name }, story.trim(), o.text("birthday"), o.text("deathday"), o.text("place_of_birth"), photos, fromWikipedia = wiki.isNotBlank() && story === wiki)
             .also { people["$lang|$id|$name"] = it }
     }
 

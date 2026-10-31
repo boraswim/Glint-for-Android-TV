@@ -406,4 +406,5 @@
     <string name="person_no_story">TMDB heeft geen biografie van deze persoon.</string>
     <string name="person_photos">Foto\'s</string>
     <string name="person_in_library">In je bibliotheek</string>
+    <string name="person_from_wikipedia">Tekst van Wikipedia, CC BY-SA.</string>
 </resources>

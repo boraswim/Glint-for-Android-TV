@@ -90,11 +90,13 @@ fun PersonScreen(nav: Nav, screen: Screen.PersonPage) {
                         p.birthday.ifBlank { null }?.let { stringResource(R.string.person_born, date(it)) + if (alive && age != null) " ($age)" else "" },
                         p.place.ifBlank { null },
                     ).joinToString("  •  ")
-                    if (born.isNotBlank()) Txt(born, Type.Meta, Modifier.padding(top = 8.dp), maxLines = 1)
-                    if (!alive) Txt(stringResource(R.string.person_died, date(p.deathday)) + if (age != null) " ($age)" else "", Type.Meta, Modifier.padding(top = 4.dp), maxLines = 1)
+                    val facts = Type.Meta.copy(fontSize = 18.sp)
+                    if (born.isNotBlank()) Txt(born, facts, Modifier.padding(top = 8.dp), maxLines = 1)
+                    if (!alive) Txt(stringResource(R.string.person_died, date(p.deathday)) + if (age != null) " ($age)" else "", facts, Modifier.padding(top = 4.dp), maxLines = 1)
                 }
                 Box(Modifier.padding(top = 14.dp).weight(1f).fillMaxWidth()) {
-                    LifeStory(if (loading) stringResource(R.string.loading) else p?.biography?.ifBlank { null } ?: stringResource(R.string.person_no_story))
+                    val credit = if (p?.fromWikipedia == true) "\n\n" + stringResource(R.string.person_from_wikipedia) else ""
+                    LifeStory(if (loading) stringResource(R.string.loading) else p?.biography?.ifBlank { null }?.plus(credit) ?: stringResource(R.string.person_no_story))
                 }
                 if (inLibrary) PillButton(stringResource(R.string.person_in_library), Modifier.padding(top = 14.dp)) { nav.push(Screen.Grid(Kind.Actor(screen.name))) }
             }
@@ -138,7 +140,7 @@ private fun LifeStory(text: String) {
             .border(2.dp, if (focused) Palette.Text else Color.Transparent, shape),
     ) {
         Box(Modifier.fillMaxSize().verticalScroll(scroll).padding(horizontal = 20.dp, vertical = 16.dp)) {
-            Txt(text, Type.Body.copy(color = Palette.Text, fontSize = 17.sp, lineHeight = 26.sp))
+            Txt(text, Type.Body.copy(color = Palette.Text, fontSize = 20.sp, lineHeight = 30.sp))
         }
         if (scroll.canScrollForward) Txt("▼", Type.Small, Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = 8.dp))
     }
