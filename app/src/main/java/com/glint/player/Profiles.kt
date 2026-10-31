@@ -179,20 +179,18 @@ private fun ProfileEditor(start: Profile, onDone: () -> Unit) {
                 ListRow(stringResource(R.string.profile_color)) { p = p.copy(color = (p.color + 1) % PROFILE_COLORS.size) }
                 Gap(8.dp)
             }
-            ListRow(stringResource(R.string.restrictions), App.instance.getString(if (p.restricted) R.string.on else R.string.off), sub = stringResource(R.string.restrictions_sub)) { p = p.copy(restricted = !p.restricted) }
+            OnOffRow(stringResource(R.string.restrictions), p.restricted, sub = stringResource(R.string.restrictions_sub)) { v -> p = p.copy(restricted = v) }
             if (p.restricted) {
                 Gap(8.dp)
-                ListRow(stringResource(R.string.allowed_ratings), stringResource(R.string.age_limit, p.maxAge)) { p = p.copy(maxAge = cycle(listOf(7, 10, 13, 16, 18, 0), p.maxAge)) }
+                ChoiceRow(stringResource(R.string.allowed_ratings), listOf(7, 10, 13, 16, 18, 0).map { it to stringResource(R.string.age_limit, it) }, p.maxAge) { v -> p = p.copy(maxAge = v) }
                 Gap(8.dp)
-                ListRow(stringResource(R.string.allowed_tv_ratings), if (p.maxTvAge < 0) stringResource(R.string.same_as_movies) else stringResource(R.string.age_limit, p.maxTvAge)) {
-                    p = p.copy(maxTvAge = cycle(listOf(-1, 7, 10, 13, 16, 18, 0), p.maxTvAge))
-                }
+                ChoiceRow(stringResource(R.string.allowed_tv_ratings), listOf(-1, 7, 10, 13, 16, 18, 0).map { it to if (it < 0) stringResource(R.string.same_as_movies) else stringResource(R.string.age_limit, it) }, p.maxTvAge) { v -> p = p.copy(maxTvAge = v) }
                 Gap(8.dp)
                 TextInput(p.pin, { p = p.copy(pin = it.filter(Char::isDigit).take(8)) }, stringResource(R.string.set_pin), Modifier.fillMaxWidth(), password = true, keyboard = KeyboardType.NumberPassword)
                 Gap(8.dp)
-                ListRow(stringResource(R.string.lock_search), App.instance.getString(if (p.lockSearch) R.string.on else R.string.off)) { p = p.copy(lockSearch = !p.lockSearch) }
+                OnOffRow(stringResource(R.string.lock_search), p.lockSearch) { v -> p = p.copy(lockSearch = v) }
                 Gap(8.dp)
-                ListRow(stringResource(R.string.lock_settings), App.instance.getString(if (p.lockSettings) R.string.on else R.string.off)) { p = p.copy(lockSettings = !p.lockSettings) }
+                OnOffRow(stringResource(R.string.lock_settings), p.lockSettings) { v -> p = p.copy(lockSettings = v) }
                 Gap(8.dp)
                 ListRow(stringResource(R.string.ask_again), stringResource(listOf(R.string.ask_always, R.string.ask_15min, R.string.ask_1hour)[p.askAgain.coerceIn(0, 2)])) { p = p.copy(askAgain = (p.askAgain + 1) % 3) }
             }

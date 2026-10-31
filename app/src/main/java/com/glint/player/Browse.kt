@@ -1,5 +1,8 @@
 package com.glint.player
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.heightIn
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
@@ -459,15 +462,18 @@ fun OptionSheet(title: String, options: List<Pair<String, () -> Unit>>, message:
     ) {
         // Opened from the Home rows, the sheet would otherwise take their enlarged text.
         androidx.compose.runtime.CompositionLocalProvider(LocalTextScale provides 1f) {
-            Column(Modifier.width(520.dp).clip(RoundedCornerShape(22.dp)).background(Palette.Sheet).padding(26.dp)) {
-                Txt(title, Type.Heading, Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 2, align = TextAlign.Center)
-                if (message != null) Txt(message, Type.Small, Modifier.fillMaxWidth().padding(bottom = 16.dp), maxLines = 12)
-                options.forEachIndexed { i, (label, action) ->
-                    ListRow(
-                        label, danger = i == danger,
-                        modifier = (if (i == start.coerceIn(0, options.lastIndex)) FocusFirst() else Modifier).focusRequester(rows[i]).onFocusChanged { if (it.isFocused) at = i },
-                    ) { action(); onDismiss() }
-                    Gap(8.dp)
+            Column(Modifier.width(520.dp).heightIn(max = 640.dp).clip(RoundedCornerShape(22.dp)).background(Palette.Sheet).padding(horizontal = 12.dp, vertical = 26.dp)) {
+                Txt(title, Type.Heading, Modifier.fillMaxWidth().padding(start = 14.dp, end = 14.dp, bottom = 16.dp), maxLines = 2, align = TextAlign.Center)
+                if (message != null) Txt(message, Type.Small, Modifier.fillMaxWidth().padding(start = 14.dp, end = 14.dp, bottom = 16.dp), maxLines = 12)
+                // Scrolls for the long lists (languages); the side room keeps a focused row's zoom from being cut.
+                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(horizontal = 14.dp, vertical = 4.dp)) {
+                    options.forEachIndexed { i, (label, action) ->
+                        ListRow(
+                            label, danger = i == danger,
+                            modifier = (if (i == start.coerceIn(0, options.lastIndex)) FocusFirst() else Modifier).focusRequester(rows[i]).onFocusChanged { if (it.isFocused) at = i },
+                        ) { action(); onDismiss() }
+                        Gap(8.dp)
+                    }
                 }
             }
         }

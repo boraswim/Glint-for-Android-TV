@@ -134,8 +134,6 @@ fun UrlRow() {
     }
 }
 
-fun <T> cycle(options: List<T>, current: T): T = options[(options.indexOf(current) + 1) % options.size]
-
 /** Folders a computer or the TV keeps on a USB disk for itself. */
 private fun isUsbSystemFolder(name: String) = name.startsWith("$") || name.equals("System Volume Information", true) || name.equals("LOST.DIR", true) || name.equals("Android", true)
 
@@ -374,25 +372,23 @@ private fun ShareOptions(id: String) {
     val lib = App.library
     val sources by lib.sources.collectAsState()
     val src = sources.firstOrNull { it.id == id } ?: return
-    fun onOff(v: Boolean) = App.instance.getString(if (v) R.string.on else R.string.off)
     Column(Modifier.padding(top = 28.dp).width(720.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
         Txt(stringResource(R.string.share_options), Type.Meta)
-        ListRow(stringResource(R.string.auto_scan), onOff(src.autoScan), sub = stringResource(R.string.auto_scan_sub)) { lib.saveSource(src.copy(autoScan = !src.autoScan)) }
-        ListRow(stringResource(R.string.precache_details), onOff(src.precacheDetails), sub = stringResource(R.string.precache_details_sub)) {
-            lib.saveSource(src.copy(precacheDetails = !src.precacheDetails))
-            if (!src.precacheDetails) lib.scanAll()   // turned on: look everything up now
+        OnOffRow(stringResource(R.string.auto_scan), src.autoScan, sub = stringResource(R.string.auto_scan_sub)) { v -> lib.saveSource(src.copy(autoScan = v)) }
+        OnOffRow(stringResource(R.string.precache_details), src.precacheDetails, sub = stringResource(R.string.precache_details_sub)) { v ->
+            lib.saveSource(src.copy(precacheDetails = v))
+            if (v) lib.scanAll()   // turned on: look everything up now
         }
-        ListRow(stringResource(R.string.precache_artwork), onOff(src.precacheArtwork), sub = stringResource(R.string.precache_artwork_sub)) {
-            lib.saveSource(src.copy(precacheArtwork = !src.precacheArtwork))
-            if (!src.precacheArtwork) lib.scanAll()
+        OnOffRow(stringResource(R.string.precache_artwork), src.precacheArtwork, sub = stringResource(R.string.precache_artwork_sub)) { v ->
+            lib.saveSource(src.copy(precacheArtwork = v))
+            if (v) lib.scanAll()
         }
-        ListRow(stringResource(R.string.smart_folders), onOff(src.smartFolders), sub = stringResource(R.string.smart_folders_sub)) { lib.saveSource(src.copy(smartFolders = !src.smartFolders)) }
+        OnOffRow(stringResource(R.string.smart_folders), src.smartFolders, sub = stringResource(R.string.smart_folders_sub)) { v -> lib.saveSource(src.copy(smartFolders = v)) }
         // Pick the SMB version for NAS boxes that stutter on what they and the TV agree on.
-        if (src.type == "smb") ListRow(
-            stringResource(R.string.smb_version), if (src.smbVersion.isEmpty()) stringResource(R.string.auto) else "SMB ${src.smbVersion}",
+        if (src.type == "smb") ChoiceRow(
+            stringResource(R.string.smb_version), listOf("", "2.0", "2.1", "3.0").map { it to if (it.isEmpty()) stringResource(R.string.auto) else "SMB $it" }, src.smbVersion,
             sub = stringResource(R.string.smb_version_sub),
-        ) {
-            val next = cycle(listOf("", "2.0", "2.1", "3.0"), src.smbVersion)
+        ) { next ->
             Fs.forget(src)                     // close connections made with the old version
             lib.saveSource(src.copy(smbVersion = next))
         }

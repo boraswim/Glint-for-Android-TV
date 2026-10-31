@@ -119,6 +119,26 @@ fun SettingsScreen(nav: Nav) {
     }
 }
 
+/** A setting's row with the value in use on the right; OK opens the choices to pick from, that one ticked. */
+@Composable
+internal fun <T> ChoiceRow(label: String, options: List<Pair<T, String>>, current: T, modifier: Modifier = Modifier, sub: String? = null, onPick: (T) -> Unit) {
+    var picking by remember { mutableStateOf(false) }
+    val at = options.indexOfFirst { it.first == current }.coerceAtLeast(0)
+    ListRow(label, options[at].second, modifier, sub = sub) { picking = true }
+    // In its own window, over the whole screen; drawn in the list it would sit inside this row.
+    if (picking) androidx.compose.ui.window.Dialog({ picking = false }, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        TvScale {
+            OptionSheet(label, options.mapIndexed { i, (value, name) ->
+                ((if (i == at) "\u2713  " else "") + name) to { if (value != current) onPick(value) }
+            }, message = sub, start = at) { picking = false }
+        }
+    }
+}
+
+@Composable
+internal fun OnOffRow(label: String, on: Boolean, modifier: Modifier = Modifier, sub: String? = null, onPick: (Boolean) -> Unit) =
+    ChoiceRow(label, listOf(true to stringResource(R.string.on), false to stringResource(R.string.off)), on, modifier, sub, onPick)
+
 @Composable
 fun SettingsSectionScreen(nav: Nav, section: Int) {
     val lib = App.library
@@ -130,7 +150,6 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
     var speedError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     fun change(block: () -> Unit) { block(); tick++ }
-    fun onOff(v: Boolean) = App.instance.getString(if (v) R.string.on else R.string.off)
 
     Column(Modifier.fillMaxSize().screenBackground()) {
         ScreenTitle(stringResource(SECTIONS[section]))
@@ -212,16 +231,16 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                     }
                     item {
                     if (tick < 0) return@item   // read so a change redraws the rows
-                    ListRow(stringResource(R.string.picks_setting), onOff(s.picksOfTheDay)) { change { s.picksOfTheDay = !s.picksOfTheDay } }
+                    OnOffRow(stringResource(R.string.picks_setting), s.picksOfTheDay) { v -> change { s.picksOfTheDay = v } }
                 }
                 }
                 3 -> item {
                     if (tick < 0) return@item   // read so a change redraws the rows
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        ListRow(stringResource(R.string.poster_titles), onOff(s.showPosterTitles), FocusFirst()) { change { s.showPosterTitles = !s.showPosterTitles } }
-                        ListRow(stringResource(R.string.watched_indicators), onOff(s.watchedIndicators), sub = stringResource(R.string.watched_indicators_sub)) { change { s.watchedIndicators = !s.watchedIndicators } }
-                        ListRow(stringResource(R.string.show_filenames), onOff(s.showFilenames)) { change { s.showFilenames = !s.showFilenames } }
-                        ListRow(stringResource(R.string.list_view), onOff(s.listView)) { change { s.listView = !s.listView } }
+                        OnOffRow(stringResource(R.string.poster_titles), s.showPosterTitles, FocusFirst()) { v -> change { s.showPosterTitles = v } }
+                        OnOffRow(stringResource(R.string.watched_indicators), s.watchedIndicators, sub = stringResource(R.string.watched_indicators_sub)) { v -> change { s.watchedIndicators = v } }
+                        OnOffRow(stringResource(R.string.show_filenames), s.showFilenames) { v -> change { s.showFilenames = v } }
+                        OnOffRow(stringResource(R.string.list_view), s.listView) { v -> change { s.listView = v } }
                         val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
                         // OK opens the three appearances to pick from (ticked: the one in use); picking redraws the app.
                         val themes = listOf(R.string.theme_black, R.string.dark, R.string.light).map { stringResource(it) }
@@ -253,8 +272,8 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                             }
                         }
                         val ctx = androidx.compose.ui.platform.LocalContext.current
-                        ListRow(stringResource(R.string.app_logo), stringResource(if (AppLogo.isWhite(ctx)) R.string.app_logo_white else R.string.app_logo_black), sub = stringResource(R.string.app_logo_sub)) {
-                            change { AppLogo.set(ctx, !AppLogo.isWhite(ctx)) }
+                        ChoiceRow(stringResource(R.string.app_logo), listOf(false to stringResource(R.string.app_logo_black), true to stringResource(R.string.app_logo_white)), AppLogo.isWhite(ctx), sub = stringResource(R.string.app_logo_sub)) { white ->
+                            change { AppLogo.set(ctx, white) }
                         }
                         // OK lists the hidden tiles; each pick brings that one back and the list stays open for more
                         // (Back closes it). On the right, how many are hidden.
@@ -288,17 +307,17 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                                 }, start = startAt) { pickingStart = false }
                             }
                         }
-                        ListRow(stringResource(R.string.hide_spoilers), onOff(s.hideSpoilers), sub = stringResource(R.string.hide_spoilers_sub)) { change { s.hideSpoilers = !s.hideSpoilers } }
+                        OnOffRow(stringResource(R.string.hide_spoilers), s.hideSpoilers, sub = stringResource(R.string.hide_spoilers_sub)) { v -> change { s.hideSpoilers = v } }
                         val sorts = listOf(R.string.sort_title, R.string.sort_added, R.string.sort_year, R.string.sort_rating, R.string.sort_duration, R.string.sort_file_name)
-                        ListRow(stringResource(R.string.sort_order), stringResource(sorts[s.sortOrder.coerceIn(0, sorts.lastIndex)])) { change { s.sortOrder = (s.sortOrder + 1) % sorts.size } }
+                        ChoiceRow(stringResource(R.string.sort_order), sorts.mapIndexed { i, r -> i to stringResource(r) }, s.sortOrder) { v -> change { s.sortOrder = v } }
                     }
                 }
                 4 -> item {
                     if (tick < 0) return@item   // read so a change redraws the rows
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        ListRow(stringResource(R.string.show_logos), onOff(s.showLogos), FocusFirst()) { change { s.showLogos = !s.showLogos } }
-                        ListRow(stringResource(R.string.prefer_local_metadata), onOff(s.preferLocalMetadata), sub = stringResource(R.string.prefer_local_metadata_sub)) { change { s.preferLocalMetadata = !s.preferLocalMetadata } }
-                        ListRow(stringResource(R.string.show_ratings), onOff(s.showRatings)) { change { s.showRatings = !s.showRatings } }
+                        OnOffRow(stringResource(R.string.show_logos), s.showLogos, FocusFirst()) { v -> change { s.showLogos = v } }
+                        OnOffRow(stringResource(R.string.prefer_local_metadata), s.preferLocalMetadata, sub = stringResource(R.string.prefer_local_metadata_sub)) { v -> change { s.preferLocalMetadata = v } }
+                        OnOffRow(stringResource(R.string.show_ratings), s.showRatings) { v -> change { s.showRatings = v } }
                         // The viewer's own keys: TMDB for details, artwork and trailers; OMDb for IMDb and Rotten Tomatoes.
                         TmdbKeyField()
                         OmdbKeyField()
@@ -307,48 +326,48 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                 5 -> item {
                     if (tick < 0) return@item   // read so a change redraws the rows
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        ListRow(stringResource(R.string.group_collections), onOff(s.groupMovieCollections), FocusFirst()) { change { s.groupMovieCollections = !s.groupMovieCollections } }
-                        ListRow(stringResource(R.string.collection_details), onOff(s.collectionDetails), sub = stringResource(R.string.collection_details_sub)) { change { s.collectionDetails = !s.collectionDetails } }
+                        OnOffRow(stringResource(R.string.group_collections), s.groupMovieCollections, FocusFirst()) { v -> change { s.groupMovieCollections = v } }
+                        OnOffRow(stringResource(R.string.collection_details), s.collectionDetails, sub = stringResource(R.string.collection_details_sub)) { v -> change { s.collectionDetails = v } }
                     }
                 }
                 6 -> item {
                     if (tick < 0) return@item   // read so a change redraws the rows
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        ListRow(stringResource(R.string.autoplay_next), onOff(s.autoplayNext), FocusFirst()) { change { s.autoplayNext = !s.autoplayNext } }
-                        ListRow(stringResource(R.string.auto_select_next), onOff(s.autoSelectNext), sub = stringResource(R.string.auto_select_next_sub)) { change { s.autoSelectNext = !s.autoSelectNext } }
-                        ListRow(stringResource(R.string.resume_mode), stringResource(listOf(R.string.resume_ask, R.string.resume_always, R.string.resume_never)[s.resumeMode])) { change { s.resumeMode = (s.resumeMode + 1) % 3 } }
-                        ListRow(stringResource(R.string.edge_mode), stringResource(if (s.edgeMode == 1) R.string.chapters else R.string.edge_time), sub = stringResource(R.string.edge_mode_sub)) { change { s.edgeMode = 1 - s.edgeMode } }
-                        ListRow(stringResource(R.string.forward_skip), stringResource(R.string.seconds, s.forwardSkip)) { change { s.forwardSkip = cycle(listOf(10, 15, 30, 60, 5), s.forwardSkip) } }
-                        ListRow(stringResource(R.string.backward_skip), stringResource(R.string.seconds, s.backwardSkip)) { change { s.backwardSkip = cycle(listOf(10, 15, 30, 60, 5), s.backwardSkip) } }
-                        ListRow(stringResource(R.string.skip_intros), stringResource(listOf(R.string.off, R.string.skip_button, R.string.skip_auto_delay, R.string.skip_auto_instant)[s.skipIntros]), sub = stringResource(R.string.skip_intros_sub)) { change { s.skipIntros = (s.skipIntros + 1) % 4 } }
-                        ListRow(stringResource(R.string.speed), "${s.defaultSpeed / 100f}×".replace(".0×", "×")) { change { s.defaultSpeed = cycle(listOf(100, 125, 150, 200, 75), s.defaultSpeed) } }
-                        ListRow(stringResource(R.string.streaming_cache), stringResource(listOf(R.string.cache_auto, R.string.cache_limited, R.string.cache_memory, R.string.cache_legacy)[s.cacheMode])) { change { s.cacheMode = (s.cacheMode + 1) % 4 } }
-                        ListRow(stringResource(R.string.deinterlace), stringResource(listOf(R.string.auto, R.string.on, R.string.off)[s.deinterlace])) { change { s.deinterlace = (s.deinterlace + 1) % 3 } }
-                        if (DolbyVision.decoderAvailable) ListRow(stringResource(R.string.dolby_vision), onOff(s.dolbyVision), sub = stringResource(R.string.dolby_vision_sub)) { change { s.dolbyVision = !s.dolbyVision } }
-                        if (DolbyVision.decoderAvailable && s.dolbyVision) ListRow(stringResource(R.string.dovi_compat), onOff(s.doviCompat), sub = stringResource(R.string.dovi_compat_sub)) { change { s.doviCompat = !s.doviCompat } }
-                        ListRow(stringResource(R.string.match_frame_rate), onOff(s.matchFrameRate), sub = stringResource(R.string.match_frame_rate_sub)) { change { s.matchFrameRate = !s.matchFrameRate } }
-                        ListRow(stringResource(R.string.buffer), stringResource(R.string.seconds, s.bufferMs / 1000), sub = stringResource(R.string.buffer_sub)) { change { s.bufferMs = cycle(listOf(3000, 6000, 10000, 20000, 1500), s.bufferMs) } }
+                        OnOffRow(stringResource(R.string.autoplay_next), s.autoplayNext, FocusFirst()) { v -> change { s.autoplayNext = v } }
+                        OnOffRow(stringResource(R.string.auto_select_next), s.autoSelectNext, sub = stringResource(R.string.auto_select_next_sub)) { v -> change { s.autoSelectNext = v } }
+                        ChoiceRow(stringResource(R.string.resume_mode), listOf(R.string.resume_ask, R.string.resume_always, R.string.resume_never).mapIndexed { i, r -> i to stringResource(r) }, s.resumeMode) { v -> change { s.resumeMode = v } }
+                        ChoiceRow(stringResource(R.string.edge_mode), listOf(0 to stringResource(R.string.edge_time), 1 to stringResource(R.string.chapters)), s.edgeMode, sub = stringResource(R.string.edge_mode_sub)) { v -> change { s.edgeMode = v } }
+                        ChoiceRow(stringResource(R.string.forward_skip), listOf(5, 10, 15, 30, 60).map { it to stringResource(R.string.seconds, it) }, s.forwardSkip) { v -> change { s.forwardSkip = v } }
+                        ChoiceRow(stringResource(R.string.backward_skip), listOf(5, 10, 15, 30, 60).map { it to stringResource(R.string.seconds, it) }, s.backwardSkip) { v -> change { s.backwardSkip = v } }
+                        ChoiceRow(stringResource(R.string.skip_intros), listOf(R.string.off, R.string.skip_button, R.string.skip_auto_delay, R.string.skip_auto_instant).mapIndexed { i, r -> i to stringResource(r) }, s.skipIntros, sub = stringResource(R.string.skip_intros_sub)) { v -> change { s.skipIntros = v } }
+                        ChoiceRow(stringResource(R.string.speed), listOf(75, 100, 125, 150, 200).map { it to "${it / 100f}×".replace(".0×", "×") }, s.defaultSpeed) { v -> change { s.defaultSpeed = v } }
+                        ChoiceRow(stringResource(R.string.streaming_cache), listOf(R.string.cache_auto, R.string.cache_limited, R.string.cache_memory, R.string.cache_legacy).mapIndexed { i, r -> i to stringResource(r) }, s.cacheMode) { v -> change { s.cacheMode = v } }
+                        ChoiceRow(stringResource(R.string.deinterlace), listOf(R.string.auto, R.string.on, R.string.off).mapIndexed { i, r -> i to stringResource(r) }, s.deinterlace) { v -> change { s.deinterlace = v } }
+                        if (DolbyVision.decoderAvailable) OnOffRow(stringResource(R.string.dolby_vision), s.dolbyVision, sub = stringResource(R.string.dolby_vision_sub)) { v -> change { s.dolbyVision = v } }
+                        if (DolbyVision.decoderAvailable && s.dolbyVision) OnOffRow(stringResource(R.string.dovi_compat), s.doviCompat, sub = stringResource(R.string.dovi_compat_sub)) { v -> change { s.doviCompat = v } }
+                        OnOffRow(stringResource(R.string.match_frame_rate), s.matchFrameRate, sub = stringResource(R.string.match_frame_rate_sub)) { v -> change { s.matchFrameRate = v } }
+                        ChoiceRow(stringResource(R.string.buffer), listOf(1500, 3000, 6000, 10000, 20000).map { it to stringResource(R.string.seconds, it / 1000) }, s.bufferMs, sub = stringResource(R.string.buffer_sub)) { v -> change { s.bufferMs = v } }
                     }
                 }
                 7 -> item {
                     if (tick < 0) return@item   // read so a change redraws the rows
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        ListRow(stringResource(R.string.passthrough), onOff(s.passthrough), FocusFirst(), sub = stringResource(R.string.passthrough_sub)) { change { s.passthrough = !s.passthrough } }
-                        ListRow(stringResource(R.string.volume_boost), "${s.volumeBoost}%", sub = stringResource(R.string.volume_boost_sub)) { change { s.volumeBoost = cycle(listOf(100, 150, 200, 250, 300), s.volumeBoost) } }
-                        ListRow(stringResource(R.string.downmix_volume), stringResource(if (s.normalizeDownmix) R.string.downmix_normalized else R.string.downmix_original), sub = stringResource(R.string.downmix_sub)) { change { s.normalizeDownmix = !s.normalizeDownmix } }
+                        OnOffRow(stringResource(R.string.passthrough), s.passthrough, FocusFirst(), sub = stringResource(R.string.passthrough_sub)) { v -> change { s.passthrough = v } }
+                        ChoiceRow(stringResource(R.string.volume_boost), listOf(100, 150, 200, 250, 300).map { it to "$it%" }, s.volumeBoost, sub = stringResource(R.string.volume_boost_sub)) { v -> change { s.volumeBoost = v } }
+                        ChoiceRow(stringResource(R.string.downmix_volume), listOf(true to stringResource(R.string.downmix_normalized), false to stringResource(R.string.downmix_original)), s.normalizeDownmix, sub = stringResource(R.string.downmix_sub)) { v -> change { s.normalizeDownmix = v } }
                     }
                 }
                 8 -> item {
                     if (tick < 0) return@item   // read so a change redraws the rows
                     val colors = listOf(0xFFFFFF to R.string.color_white, 0xFFE15A to R.string.color_yellow, 0xB4B4B4 to R.string.color_grey)
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        ListRow(stringResource(R.string.forced_subtitles), onOff(s.forcedSubtitles), FocusFirst(), sub = stringResource(R.string.forced_subtitles_sub)) { change { s.forcedSubtitles = !s.forcedSubtitles } }
-                        ListRow(stringResource(R.string.subtitle_size), "${s.subtitleScale}%") { change { s.subtitleScale = cycle(listOf(100, 125, 150, 175, 75), s.subtitleScale) } }
-                        ListRow(stringResource(R.string.subtitle_color), stringResource(colors.firstOrNull { it.first == s.subtitleColor }?.second ?: R.string.color_white)) { change { s.subtitleColor = cycle(colors.map { it.first }, s.subtitleColor) } }
-                        ListRow(stringResource(R.string.subtitle_background), onOff(s.subtitleBackground)) { change { s.subtitleBackground = !s.subtitleBackground } }
-                        ListRow(stringResource(R.string.subtitle_position), stringResource(listOf(R.string.pos_bottom, R.string.pos_raised, R.string.pos_high)[listOf(0, 60, 140).indexOf(s.subtitlePosition).coerceAtLeast(0)])) { change { s.subtitlePosition = cycle(listOf(0, 60, 140), s.subtitlePosition) } }
-                        ListRow(stringResource(R.string.subtitle_outline), stringResource(listOf(R.string.outline_none, R.string.outline_thin, R.string.outline_normal, R.string.outline_thick)[listOf(0, 2, 4, 6).indexOf(s.subtitleOutline).coerceAtLeast(0)])) { change { s.subtitleOutline = cycle(listOf(4, 6, 0, 2), s.subtitleOutline) } }
-                        ListRow(stringResource(R.string.subtitle_bold), onOff(s.subtitleBold)) { change { s.subtitleBold = !s.subtitleBold } }
+                        OnOffRow(stringResource(R.string.forced_subtitles), s.forcedSubtitles, FocusFirst(), sub = stringResource(R.string.forced_subtitles_sub)) { v -> change { s.forcedSubtitles = v } }
+                        ChoiceRow(stringResource(R.string.subtitle_size), listOf(75, 100, 125, 150, 175).map { it to "$it%" }, s.subtitleScale) { v -> change { s.subtitleScale = v } }
+                        ChoiceRow(stringResource(R.string.subtitle_color), colors.map { (c, r) -> c to stringResource(r) }, s.subtitleColor) { v -> change { s.subtitleColor = v } }
+                        OnOffRow(stringResource(R.string.subtitle_background), s.subtitleBackground) { v -> change { s.subtitleBackground = v } }
+                        ChoiceRow(stringResource(R.string.subtitle_position), listOf(0 to stringResource(R.string.pos_bottom), 60 to stringResource(R.string.pos_raised), 140 to stringResource(R.string.pos_high)), s.subtitlePosition) { v -> change { s.subtitlePosition = v } }
+                        ChoiceRow(stringResource(R.string.subtitle_outline), listOf(0 to stringResource(R.string.outline_none), 2 to stringResource(R.string.outline_thin), 4 to stringResource(R.string.outline_normal), 6 to stringResource(R.string.outline_thick)), s.subtitleOutline) { v -> change { s.subtitleOutline = v } }
+                        OnOffRow(stringResource(R.string.subtitle_bold), s.subtitleBold) { v -> change { s.subtitleBold = v } }
                         Gap(10.dp)
                         OpenSubtitlesAccount()
                     }
@@ -367,30 +386,16 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         // The interface itself: OK opens the list of languages; picking one reopens the app in it,
                         // back on this page.
                         val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
-                        var picking by remember { mutableStateOf(false) }
-                        ListRow(stringResource(R.string.app_language), label(s.appLanguage, R.string.lang_device), FocusFirst()) { picking = true }
-                        if (picking) OptionSheet(stringResource(R.string.app_language), (listOf("") + AppLanguage.CODES).map { code ->
-                            ((if (code == s.appLanguage) "✓  " else "") + label(code, R.string.lang_device)) to {
-                                if (code != s.appLanguage) {
-                                    s.appLanguage = code
-                                    AppLanguage.apply(App.instance)
-                                    AppLanguage.reopenOnSection = LANGUAGE_SECTION
-                                    activity?.recreate()
-                                }
-                            }
-                        }) { picking = false }
-                        ListRow(stringResource(R.string.audio_language), label(s.audioLanguage, R.string.lang_default)) {
-                            change { s.audioLanguage = cycle(listOf("") + LANGS, s.audioLanguage) }
+                        ChoiceRow(stringResource(R.string.app_language), (listOf("") + AppLanguage.CODES).map { it to label(it, R.string.lang_device) }, s.appLanguage, FocusFirst()) { code ->
+                            s.appLanguage = code
+                            AppLanguage.apply(App.instance)
+                            AppLanguage.reopenOnSection = LANGUAGE_SECTION
+                            activity?.recreate()
                         }
-                        ListRow(stringResource(R.string.subtitle_language), label(s.subtitleLanguage, R.string.subs_off)) {
-                            change { s.subtitleLanguage = cycle(listOf("auto", "") + LANGS, s.subtitleLanguage) }
-                        }
-                        ListRow(stringResource(R.string.metadata_language), label(s.metadataLanguage, R.string.lang_device), sub = stringResource(R.string.metadata_language_sub)) {
-                            change { s.metadataLanguage = cycle(meta, s.metadataLanguage) }
-                        }
-                        ListRow(stringResource(R.string.artwork_language), label(s.artworkLanguage, R.string.same_as_metadata), sub = stringResource(R.string.artwork_language_sub)) {
-                            change { s.artworkLanguage = cycle(listOf("", "original") + LANGS, s.artworkLanguage) }
-                        }
+                        ChoiceRow(stringResource(R.string.audio_language), (listOf("") + LANGS).map { it to label(it, R.string.lang_default) }, s.audioLanguage) { v -> change { s.audioLanguage = v } }
+                        ChoiceRow(stringResource(R.string.subtitle_language), (listOf("auto", "") + LANGS).map { it to label(it, R.string.subs_off) }, s.subtitleLanguage) { v -> change { s.subtitleLanguage = v } }
+                        ChoiceRow(stringResource(R.string.metadata_language), meta.map { it to label(it, R.string.lang_device) }, s.metadataLanguage, sub = stringResource(R.string.metadata_language_sub)) { v -> change { s.metadataLanguage = v } }
+                        ChoiceRow(stringResource(R.string.artwork_language), (listOf("", "original") + LANGS).map { it to label(it, R.string.same_as_metadata) }, s.artworkLanguage, sub = stringResource(R.string.artwork_language_sub)) { v -> change { s.artworkLanguage = v } }
                     }
                 }
                 else -> item {
