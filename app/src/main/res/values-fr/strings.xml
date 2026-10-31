@@ -20,6 +20,8 @@
     <string name="field_folder">Dossier</string>
     <string name="field_folder_hint">Facultatif, p. ex. Films/4K</string>
     <string name="remove_source">Supprimer</string>
+    <string name="remove_source_confirm">Supprimer ce partage ?</string>
+    <string name="remove_source_sub">Ses films et séries quittent la bibliothèque. Les fichiers eux-mêmes restent à leur place.</string>
     <string name="source_missing">Ce partage n\'est plus configuré.</string>
     <string name="tab_home">Accueil</string>
     <string name="tab_movies">Films</string>

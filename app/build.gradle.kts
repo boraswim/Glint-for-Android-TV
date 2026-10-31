@@ -27,6 +27,13 @@ android {
         versionName = "1.5.0"
         // Mi Box S is 32-bit ARM; arm64 covers newer boxes. Skipping x86 keeps libVLC's size down.
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
+        // -PglintTest builds "Glint Test", which installs beside the Play version instead of replacing it.
+        val test = findProperty("glintTest") != null
+        if (test) {
+            applicationIdSuffix = ".test"
+            versionNameSuffix = "-test"
+        }
+        manifestPlaceholders["appLabel"] = if (test) "Glint Test" else "@string/app_name"
     }
 
     // Release key from local.properties (release.storeFile and friends); without one, the debug key signs,

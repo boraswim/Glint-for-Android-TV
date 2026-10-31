@@ -136,6 +136,9 @@ fun UrlRow() {
 
 fun <T> cycle(options: List<T>, current: T): T = options[(options.indexOf(current) + 1) % options.size]
 
+/** Folders a computer or the TV keeps on a USB disk for itself. */
+private fun isUsbSystemFolder(name: String) = name.startsWith("$") || name.equals("System Volume Information", true) || name.equals("LOST.DIR", true) || name.equals("Android", true)
+
 @Composable
 fun EditSourceScreen(nav: Nav, id: String?) {
     val lib = App.library
@@ -163,6 +166,7 @@ fun EditSourceScreen(nav: Nav, id: String?) {
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    var removing by remember { mutableStateOf(false) }
 
     // A new name for a saved share needs no reconnect, so it's kept as soon as it's typed.
     LaunchedEffect(name) {
@@ -191,7 +195,9 @@ fun EditSourceScreen(nav: Nav, id: String?) {
         val (share, path) = browse ?: return@LaunchedEffect
         dirs = null; dirsError = null
         withContext(Dispatchers.IO) {
-            runCatching { Fs.list(draft(share), share, path).filter { it.isDir }.sortedBy { it.name.lowercase() } }
+            // A USB disk is browsed from its top, whatever folder it's set to now; its system folders aren't offered.
+            val src = if (type == "usb") draft(share).copy(folder = "") else draft(share)
+            runCatching { Fs.list(src, share, path).filter { it.isDir && !(type == "usb" && isUsbSystemFolder(it.name)) }.sortedBy { it.name.lowercase() } }
                 .onSuccess { dirs = it }.onFailure { dirsError = it.message ?: it.javaClass.simpleName }
         }
     }
@@ -199,13 +205,15 @@ fun EditSourceScreen(nav: Nav, id: String?) {
     fun up() {
         val (share, path) = browse ?: return
         browse = if (path.isEmpty()) null else share to path.substringBeforeLast('/', "")
+        // A USB disk has no list of shares to step back to.
+        if (browse == null && type == "usb") shares = null
     }
 
     fun connect() {
         if (host.isBlank()) return
         busy = true; error = null
         scope.launch {
-            val d = draft()
+            val d = if (type == "usb") draft().copy(folder = "") else draft()
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     Fs.forget(d)
@@ -216,7 +224,11 @@ fun EditSourceScreen(nav: Nav, id: String?) {
             busy = false
             result.onSuccess { list ->
                 if (list != null) shares = list
-                else {
+                else if (type == "usb") {
+                    // A disk goes straight to its folders, to use all of it or just one.
+                    shares = emptyList()
+                    browse = "" to ""
+                } else {
                     val first = lib.sources.value.isEmpty()
                     lib.saveSource(d)
                     lib.scanAll()
@@ -228,12 +240,23 @@ fun EditSourceScreen(nav: Nav, id: String?) {
 
     fun save(share: String, path: String = "") {
         val first = lib.sources.value.isEmpty()
-        lib.saveSource(draft(share).copy(folder = path))
+        val picked = draft(share).copy(folder = path)
+        // A new share on one folder of a disk says which, so several from one disk can be told apart.
+        val named = if (type == "usb" && existing == null && path.isNotEmpty()) picked.copy(name = "${picked.name} / ${path.substringAfterLast('/')}") else picked
+        lib.saveSource(named)
         lib.scanAll()
         if (first) firstShareAdded(nav) else nav.pop()
     }
 
     Column(Modifier.fillMaxSize().screenBackground()) {
+        if (removing && existing != null) androidx.compose.ui.window.Dialog({ removing = false }, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+            TvScale {
+                OptionSheet(stringResource(R.string.remove_source_confirm), listOf(
+                    stringResource(R.string.cancel) to {},
+                    stringResource(R.string.remove_source) to { lib.removeSource(existing.id); nav.pop() },
+                ), message = stringResource(R.string.remove_source_sub), danger = 1) { removing = false }
+            }
+        }
         Header(stringResource(if (existing == null) R.string.add_source else R.string.edit_source), stringResource(R.string.add_source_sub))
         val sh = shares
         val at = browse
@@ -243,7 +266,7 @@ fun EditSourceScreen(nav: Nav, id: String?) {
             val (share, path) = at
             key(at) {
                 ListColumn {
-                    item { ListRow(stringResource(R.string.use_this_folder), sub = listOf(share, path).filter { it.isNotEmpty() }.joinToString(" / "), modifier = FocusFirst()) { save(share, path) } }
+                    item { ListRow(stringResource(R.string.use_this_folder), sub = listOf(if (type == "usb") name.ifBlank { host } else share, path).filter { it.isNotEmpty() }.joinToString(" / "), modifier = FocusFirst()) { save(share, path) } }
                     val list = dirs
                     if (list == null && dirsError == null) item { Txt(stringResource(R.string.loading), Type.Body) }
                     dirsError?.let { item { Txt(it, Type.Body.copy(color = Palette.Accent)) } }
@@ -289,21 +312,20 @@ fun EditSourceScreen(nav: Nav, id: String?) {
                 }
                 item { Field(R.string.field_address) { Txt(host.ifBlank { "-" }, Type.Body, Modifier.width(520.dp)) } }
                 item { Field(R.string.field_name) { TextInput(name, { name = it }, host.ifBlank { "USB" }, Modifier.width(520.dp)) } }
-                item { Field(R.string.field_folder) { TextInput(folder, { folder = it }, stringResource(R.string.field_folder_hint), Modifier.width(520.dp)) } }
+                // The folder is picked after Connect; a saved share shows the one in use.
+                if (existing != null && folder.isNotEmpty()) item { Field(R.string.field_folder) { Txt(folder, Type.Body, Modifier.width(520.dp)) } }
                 item {
                     Gap(12.dp)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        PillButton(stringResource(if (busy) R.string.connecting else R.string.connect), primary = true) { if (canRead) connect() else askForDisks() }
-                        if (existing != null) { Box(Modifier.width(14.dp)); PillButton(stringResource(R.string.remove_source)) { lib.removeSource(existing.id); nav.pop() } }
-                    }
+                    PillButton(stringResource(if (busy) R.string.connecting else R.string.connect), primary = true) { if (canRead) connect() else askForDisks() }
                     error?.let { Gap(10.dp); Txt(stringResource(R.string.connect_failed, it), Type.Body.copy(color = Palette.Accent)) }
                 }
                 if (existing != null) item { ShareOptions(existing.id) }
+                if (existing != null) item { Gap(12.dp); PillButton(stringResource(R.string.remove_source)) { removing = true } }
                 return@ListColumn
             }
             if (type == "upnp" && existing != null) {
                 item { ListRow(existing.name, Uri.parse(existing.host).host.orEmpty(), FocusFirst()) { nav.push(Screen.Folder(existing.id)) } }
-                item { Gap(12.dp); PillButton(stringResource(R.string.remove_source)) { lib.removeSource(existing.id); nav.pop() } }
+                item { Gap(12.dp); PillButton(stringResource(R.string.remove_source)) { removing = true } }
                 return@ListColumn
             }
             if (type == "upnp") {
@@ -336,16 +358,12 @@ fun EditSourceScreen(nav: Nav, id: String?) {
             item { Field(R.string.field_folder) { TextInput(folder, { folder = it }, stringResource(R.string.field_folder_hint), Modifier.width(520.dp)) } }
             item {
                 Gap(12.dp)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    PillButton(stringResource(if (busy) R.string.connecting else R.string.connect), primary = true) { connect() }
-                    if (existing != null) {
-                        Box(Modifier.width(14.dp))
-                        PillButton(stringResource(R.string.remove_source)) { lib.removeSource(existing.id); nav.pop() }
-                    }
-                }
+                PillButton(stringResource(if (busy) R.string.connecting else R.string.connect), primary = true) { connect() }
                 error?.let { Gap(10.dp); Txt(stringResource(R.string.connect_failed, it), Type.Body.copy(color = Palette.Accent)) }
             }
             if (existing != null) item { ShareOptions(existing.id) }
+            // Last on the page, so moving down from the fields can't land on it.
+            if (existing != null) item { Gap(12.dp); PillButton(stringResource(R.string.remove_source)) { removing = true } }
         }
     }
 }

@@ -20,6 +20,8 @@
     <string name="field_folder">Pasta</string>
     <string name="field_folder_hint">Opcional, ex.: Filmes/4K</string>
     <string name="remove_source">Remover</string>
+    <string name="remove_source_confirm">Remover este compartilhamento?</string>
+    <string name="remove_source_sub">Os filmes e séries dele saem da biblioteca. Os arquivos continuam onde estão.</string>
     <string name="source_missing">Este compartilhamento não está mais configurado.</string>
     <string name="tab_home">Início</string>
     <string name="tab_movies">Filmes</string>

@@ -21,6 +21,8 @@
     <string name="field_folder">Folder</string>
     <string name="field_folder_hint">Optional, e.g. Movies/4K</string>
     <string name="remove_source">Remove</string>
+    <string name="remove_source_confirm">Remove this share?</string>
+    <string name="remove_source_sub">Its films and series leave the library. The files themselves stay where they are.</string>
     <string name="source_missing">This share is no longer set up.</string>
     <string name="tab_home">Home</string>
     <string name="tab_movies">Movies</string>

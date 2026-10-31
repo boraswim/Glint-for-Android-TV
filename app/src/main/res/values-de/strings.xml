@@ -20,6 +20,8 @@
     <string name="field_folder">Ordner</string>
     <string name="field_folder_hint">Optional, z. B. Filme/4K</string>
     <string name="remove_source">Entfernen</string>
+    <string name="remove_source_confirm">Diese Freigabe entfernen?</string>
+    <string name="remove_source_sub">Ihre Filme und Serien verschwinden aus der Mediathek. Die Dateien selbst bleiben, wo sie sind.</string>
     <string name="source_missing">Diese Freigabe ist nicht mehr eingerichtet.</string>
     <string name="tab_home">Start</string>
     <string name="tab_movies">Filme</string>

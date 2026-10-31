@@ -20,6 +20,8 @@
     <string name="field_folder">Cartella</string>
     <string name="field_folder_hint">Facoltativo, es. Film/4K</string>
     <string name="remove_source">Rimuovi</string>
+    <string name="remove_source_confirm">Rimuovere questa condivisione?</string>
+    <string name="remove_source_sub">I suoi film e le sue serie escono dalla libreria. I file restano dove sono.</string>
     <string name="source_missing">Questa condivisione non è più configurata.</string>
     <string name="tab_home">Home</string>
     <string name="tab_movies">Film</string>

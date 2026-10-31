@@ -20,6 +20,8 @@
     <string name="field_folder">Map</string>
     <string name="field_folder_hint">Optioneel, bijv. Films/4K</string>
     <string name="remove_source">Verwijderen</string>
+    <string name="remove_source_confirm">Deze share verwijderen?</string>
+    <string name="remove_source_sub">De films en series ervan verdwijnen uit de bibliotheek. De bestanden zelf blijven waar ze zijn.</string>
     <string name="source_missing">Deze share is niet meer ingesteld.</string>
     <string name="tab_home">Start</string>
     <string name="tab_movies">Films</string>

@@ -20,6 +20,8 @@
     <string name="field_folder">Klasör</string>
     <string name="field_folder_hint">İsteğe bağlı, ör. Filmler/4K</string>
     <string name="remove_source">Kaldır</string>
+    <string name="remove_source_confirm">Bu paylaşım kaldırılsın mı?</string>
+    <string name="remove_source_sub">Filmleri ve dizileri kütüphaneden çıkarılır. Dosyaların kendisi olduğu yerde kalır.</string>
     <string name="source_missing">Bu paylaşım artık tanımlı değil.</string>
     <string name="tab_home">Ana Sayfa</string>
     <string name="tab_movies">Filmler</string>

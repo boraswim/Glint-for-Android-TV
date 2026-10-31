@@ -20,6 +20,8 @@
     <string name="field_folder">Folder</string>
     <string name="field_folder_hint">Opcjonalnie, np. Filmy/4K</string>
     <string name="remove_source">Usuń</string>
+    <string name="remove_source_confirm">Usunąć ten udział?</string>
+    <string name="remove_source_sub">Jego filmy i seriale znikną z biblioteki. Same pliki pozostaną na swoim miejscu.</string>
     <string name="source_missing">Ten udział nie jest już skonfigurowany.</string>
     <string name="tab_home">Start</string>
     <string name="tab_movies">Filmy</string>

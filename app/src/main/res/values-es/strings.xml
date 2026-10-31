@@ -20,6 +20,8 @@
     <string name="field_folder">Carpeta</string>
     <string name="field_folder_hint">Opcional, p. ej. Películas/4K</string>
     <string name="remove_source">Quitar</string>
+    <string name="remove_source_confirm">¿Quitar este recurso compartido?</string>
+    <string name="remove_source_sub">Sus películas y series salen de la biblioteca. Los archivos se quedan donde están.</string>
     <string name="source_missing">Esta carpeta compartida ya no está configurada.</string>
     <string name="tab_home">Inicio</string>
     <string name="tab_movies">Películas</string>

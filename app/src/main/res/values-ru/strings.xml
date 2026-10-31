@@ -20,6 +20,8 @@
     <string name="field_folder">Папка</string>
     <string name="field_folder_hint">Необязательно, например Фильмы/4K</string>
     <string name="remove_source">Удалить</string>
+    <string name="remove_source_confirm">Удалить этот ресурс?</string>
+    <string name="remove_source_sub">Его фильмы и сериалы исчезнут из библиотеки. Сами файлы останутся на месте.</string>
     <string name="source_missing">Эта сетевая папка больше не настроена.</string>
     <string name="tab_home">Главная</string>
     <string name="tab_movies">Фильмы</string>
