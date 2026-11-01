@@ -267,6 +267,8 @@ class PlayerActivity : ComponentActivity() {
     private var subtitleFiles: List<File> = emptyList()   // our added subtitle files, in the order added
     private var dubLabels: List<String> = emptyList()     // names for the dub audio tracks, in the order added
     private var modeSwitched = false
+    /** Paused on purpose, not waiting for the film to load: the controls may leave the picture clean. */
+    private var paused = false
     private var declaredFps: Double? = null
     private var modeResume: Job? = null
     private var lastSaved = 0L
@@ -334,6 +336,7 @@ class PlayerActivity : ComponentActivity() {
         player.videoScale = vlcScale(scale)   // keep the viewer's choice when coming back
         if (decoderLost) { decoderLost = false; exo?.player?.prepare() }
         if (exo?.isDolbyVision() == true) announceDolbyVision(true)
+        if (paused) showControls()
     }
 
     override fun onStop() {
@@ -376,7 +379,7 @@ class PlayerActivity : ComponentActivity() {
 
     private fun isPlayingNow() = exo?.player?.isPlaying ?: player.isPlaying
     private fun pausePlayback() { exo?.player?.pause() ?: player.pause() }
-    private fun resumePlayback() { exo?.player?.play() ?: player.play() }
+    private fun resumePlayback() { paused = false; exo?.player?.play() ?: player.play() }
     private fun seekPlayback(ms: Long) { exo?.player?.seekTo(ms) ?: run { player.time = ms } }
     private fun nextChapter() { if (exo == null) player.nextChapter() }
     private fun previousChapter() { if (exo == null) player.previousChapter() }
@@ -407,11 +410,12 @@ class PlayerActivity : ComponentActivity() {
     internal fun enginePlayingChanged(isPlaying: Boolean) {
         if (isPlaying) {
             decoderRetries = 0
+            paused = false
             playing = true; buffering = 100f
             if (controls) scheduleHide()
         } else if (exo?.player?.playbackState != androidx.media3.common.Player.STATE_ENDED) {
             playing = false
-            if (exo?.player?.playWhenReady == false) { showControls(sticky = true); saveProgress(force = true) }
+            if (exo?.player?.playWhenReady == false) { paused = true; showControls(); saveProgress(force = true) }
         }
     }
 
@@ -429,7 +433,7 @@ class PlayerActivity : ComponentActivity() {
 
     fun load(key: String, fromStart: Boolean) {
         upNextJob?.cancel(); upNext = null
-        error = null; tracksApplied = false; modeSwitched = false; declaredFps = null; modeResume?.cancel()
+        error = null; tracksApplied = false; modeSwitched = false; declaredFps = null; modeResume?.cancel(); paused = false
         hud = lib.settings.playbackStats; sampledAt = 0; flowMbps = 0.0; peakMbps = 0.0; netMbps = 0.0; flowSamples = 0; shownFps = 0.0; sampledShown = 0; shownWindow.clear()
         muxer = null; muxerAsked = false
         position = 0; duration = 0; resumeAt = 0; chapters = emptyList(); exoChapters = emptyList(); techInfo = emptyList()
@@ -571,7 +575,7 @@ class PlayerActivity : ComponentActivity() {
                     matchPassthrough()
                 }
             }
-            MediaPlayer.Event.Paused -> { playing = false; showControls(sticky = true); saveProgress(force = true) }
+            MediaPlayer.Event.Paused -> { playing = false; paused = true; showControls(); saveProgress(force = true) }
             MediaPlayer.Event.Buffering -> buffering = e.buffering
             MediaPlayer.Event.LengthChanged -> duration = e.lengthChanged
             MediaPlayer.Event.TimeChanged -> {
@@ -1214,6 +1218,13 @@ class PlayerActivity : ComponentActivity() {
         // While a reopen catches up (a few seconds), the controls wait; Back is handled above.
         if (reopenAt != null) return true
         if (event.action == KeyEvent.ACTION_UP) return true
+        // Paused on a clean picture: the first press only brings the controls back. Play and OK go on to play.
+        if (paused && !controls) when (code) {
+            KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
+            KeyEvent.KEYCODE_MEDIA_REWIND, KeyEvent.KEYCODE_MEDIA_FAST_FORWARD, KeyEvent.KEYCODE_MEDIA_PAUSE,
+            KeyEvent.KEYCODE_MEDIA_NEXT, KeyEvent.KEYCODE_MEDIA_PREVIOUS, KeyEvent.KEYCODE_CHANNEL_UP, KeyEvent.KEYCODE_CHANNEL_DOWN,
+            KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_INFO -> { showControls(); return true }
+        }
         // On the track buttons or in a pop-up, the bar's 3 seconds start again from each press.
         if (trackFocus >= 0 || trackPopup >= 0) scheduleHide()
         // In a track pop-up: up and down walk the list, OK picks; left and right close it and move to the next button.
@@ -1244,7 +1255,7 @@ class PlayerActivity : ComponentActivity() {
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_HEADSETHOOK -> if (event.repeatCount == 0) {
                 when {
                     seekTarget != null -> commitSeek()
-                    skipKind != null && !controls -> doSkip()
+                    skipKind != null && !controls && !paused -> doSkip()
                     else -> togglePause()
                 }
             }
@@ -1285,6 +1296,8 @@ class PlayerActivity : ComponentActivity() {
             // Reopening for a track or style change: not playing for a moment, but the film isn't over.
             reopenAt != null -> controls = false
             controls && playing -> { controls = false; hideJob?.cancel() }
+            // Paused on a clean picture: bring the controls back rather than leave the film.
+            paused && !controls -> showControls()
             else -> { saveProgress(force = true); finish() }
         }
     }
@@ -1322,7 +1335,7 @@ class PlayerActivity : ComponentActivity() {
         hideJob = lifecycleScope.launch {
             delay(3000)
             // An open pop-up is still being read; its next key press starts the wait again.
-            if (playing && !panel && seekTarget == null && trackPopup < 0) { controls = false; trackFocus = -1 }
+            if ((playing || paused) && !panel && seekTarget == null && trackPopup < 0) { controls = false; trackFocus = -1 }
         }
     }
 

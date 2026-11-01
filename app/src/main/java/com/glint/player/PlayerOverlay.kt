@@ -143,7 +143,7 @@ fun PlayerOverlay(p: PlayerActivity) {
 
         // Skip intro / credits: OK on the remote presses it while the controls are hidden.
         p.skipKind?.let { kind ->
-            if (!p.controls && !p.panel && p.upNext == null) Box(Modifier.align(Alignment.BottomEnd).padding(end = 60.dp, bottom = 60.dp)) {
+            if (!p.controls && !p.panel && p.upNext == null && p.playing) Box(Modifier.align(Alignment.BottomEnd).padding(end = 60.dp, bottom = 60.dp)) {
                 Box(Modifier.clip(RoundedCornerShape(30.dp)).background(Color.White).padding(horizontal = 30.dp, vertical = 14.dp)) {
                     Txt(stringResource(kind), Type.Button.copy(color = Color.Black))
                 }
