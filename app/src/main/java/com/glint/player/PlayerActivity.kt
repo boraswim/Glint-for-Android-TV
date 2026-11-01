@@ -344,7 +344,8 @@ class PlayerActivity : ComponentActivity() {
         saveProgress(force = true)
         lib.flush()
         modeResume?.cancel()
-        announceDolbyVision(false)
+        // Only on leaving the film: the remote's app buttons pass through other windows while it stays on screen.
+        if (isFinishing) announceDolbyVision(false)
         if (player.isPlaying) player.pause()
         exo?.player?.pause()
         player.detachViews()
