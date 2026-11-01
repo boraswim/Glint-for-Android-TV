@@ -333,6 +333,7 @@ class PlayerActivity : ComponentActivity() {
         player.attachViews(videoLayout, null, true, false)
         player.videoScale = vlcScale(scale)   // keep the viewer's choice when coming back
         if (decoderLost) { decoderLost = false; exo?.player?.prepare() }
+        if (exo?.isDolbyVision() == true) announceDolbyVision(true)
     }
 
     override fun onStop() {
@@ -340,6 +341,7 @@ class PlayerActivity : ComponentActivity() {
         saveProgress(force = true)
         lib.flush()
         modeResume?.cancel()
+        announceDolbyVision(false)
         if (player.isPlaying) player.pause()
         exo?.player?.pause()
         player.detachViews()
@@ -363,6 +365,7 @@ class PlayerActivity : ComponentActivity() {
             exo = ExoPlayback(this).also { it.scale(scale); root.addView(it.view, 1, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)) }
             videoLayout.visibility = android.view.View.GONE
         } else if (!on && exo != null) {
+            announceDolbyVision(false)
             exo?.let { root.removeView(it.view); it.release() }
             exo = null
             videoLayout.visibility = android.view.View.VISIBLE
@@ -377,6 +380,14 @@ class PlayerActivity : ComponentActivity() {
     private fun seekPlayback(ms: Long) { exo?.player?.seekTo(ms) ?: run { player.time = ms } }
     private fun nextChapter() { if (exo == null) player.nextChapter() }
     private fun previousChapter() { if (exo == null) player.previousChapter() }
+
+    /**
+     * Says whether a Dolby Vision picture is on screen, for other apps on the TV: Android has no way to ask, and
+     * picture settings can depend on it. Carries nothing but this yes or no.
+     */
+    internal fun announceDolbyVision(on: Boolean) {
+        sendBroadcast(android.content.Intent("com.glint.player.action.VIDEO_FORMAT").putExtra("dolbyVision", on))
+    }
 
     // ---- Media3 events (the libVLC ones are in onVlcEvent) ----
 

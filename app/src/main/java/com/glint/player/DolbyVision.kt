@@ -222,6 +222,9 @@ class ExoPlayback(private val a: PlayerActivity) {
             override fun onVideoDecoderInitialized(eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime, name: String, initializedTimestampMs: Long, initializationDurationMs: Long) {
                 decoderName = name
             }
+            override fun onVideoInputFormatChanged(eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime, format: androidx.media3.common.Format, decoderReuseEvaluation: androidx.media3.exoplayer.DecoderReuseEvaluation?) {
+                a.announceDolbyVision(format.sampleMimeType == MimeTypes.VIDEO_DOLBY_VISION)
+            }
         })
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) = a.enginePlayingChanged(isPlaying)
@@ -410,6 +413,8 @@ class ExoPlayback(private val a: PlayerActivity) {
     }
 
     fun audioInfo(): String? = player.audioFormat?.let { describeAudio(it) }
+
+    fun isDolbyVision() = player.videoFormat?.sampleMimeType == MimeTypes.VIDEO_DOLBY_VISION
 
     fun videoBytes() = factory.videoBytes
     fun bufferedMs() = player.totalBufferedDuration
