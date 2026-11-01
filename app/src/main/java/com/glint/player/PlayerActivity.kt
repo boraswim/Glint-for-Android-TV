@@ -345,7 +345,7 @@ class PlayerActivity : ComponentActivity() {
         lib.flush()
         modeResume?.cancel()
         // Only on leaving the film: the remote's app buttons pass through other windows while it stays on screen.
-        if (isFinishing) announceDolbyVision(false)
+        if (isFinishing) announceDolbyVision(false, changed = true)
         if (player.isPlaying) player.pause()
         exo?.player?.pause()
         player.detachViews()
@@ -387,10 +387,11 @@ class PlayerActivity : ComponentActivity() {
 
     /**
      * Says whether a Dolby Vision picture is on screen, for other apps on the TV: Android has no way to ask, and
-     * picture settings can depend on it. Carries nothing but this yes or no.
+     * picture settings can depend on it. Carries nothing but this yes or no, and [changed] when a film's picture has
+     * just appeared or gone.
      */
-    internal fun announceDolbyVision(on: Boolean) {
-        sendBroadcast(android.content.Intent("com.glint.player.action.VIDEO_FORMAT").putExtra("dolbyVision", on))
+    internal fun announceDolbyVision(on: Boolean, changed: Boolean = false) {
+        sendBroadcast(android.content.Intent("com.glint.player.action.VIDEO_FORMAT").putExtra("dolbyVision", on).putExtra("changed", changed))
     }
 
     // ---- Media3 events (the libVLC ones are in onVlcEvent) ----
@@ -588,7 +589,7 @@ class PlayerActivity : ComponentActivity() {
             // Streams are known before the first frame: match the TV to the film's frame rate right away.
             MediaPlayer.Event.ESAdded, MediaPlayer.Event.ESSelected -> { refreshTracks(); if (!modeSwitched) onVideoOut() }
             // A new surface (back from the background, a reopen) doesn't know the rate declared on the last one.
-            MediaPlayer.Event.Vout -> if (e.voutCount > 0) { onVideoOut(); declareFrameRate() }
+            MediaPlayer.Event.Vout -> if (e.voutCount > 0) { onVideoOut(); declareFrameRate(); announceDolbyVision(false, changed = true) }
             MediaPlayer.Event.EndReached -> onEnded()
             MediaPlayer.Event.EncounteredError -> error = getString(R.string.play_failed)
         }

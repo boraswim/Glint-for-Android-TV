@@ -228,6 +228,7 @@ class ExoPlayback(private val a: PlayerActivity) {
         })
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) = a.enginePlayingChanged(isPlaying)
+            override fun onRenderedFirstFrame() = a.announceDolbyVision(isDolbyVision(), changed = true)
             override fun onPlaybackStateChanged(state: Int) {
                 when (state) {
                     Player.STATE_BUFFERING -> a.buffering = 0f
