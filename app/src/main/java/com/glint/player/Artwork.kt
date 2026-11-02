@@ -10,10 +10,13 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -94,7 +97,7 @@ fun ArtworkScreen(nav: Nav, screen: Screen.Artwork) {
                 ArtChoice(local, wide, chosen == LOCAL_ART, stringResource(R.string.artwork_local), if (chosen == LOCAL_ART) FocusFirst() else Modifier) { pick(LOCAL_ART) }
             }
             item {
-                ArtChoice(chosenImage, wide, chosenImage != null, stringResource(R.string.artwork_browse), if (chosenImage != null) FocusFirst() else Modifier) { browsing = true }
+                ArtChoice(chosenImage, wide, chosenImage != null, stringResource(R.string.artwork_browse), if (chosenImage != null) FocusFirst() else Modifier, folder = true) { browsing = true }
             }
             items(list, key = { it }) { url ->
                 // A smaller copy for the grid: the full-size picture is what the cards and the page then use.
@@ -159,14 +162,14 @@ private fun ArtBrowser(wide: Boolean, here: VideoFile?, title: String?, onPick: 
             ) {
                 when {
                     src == null -> items(usable, key = { it.id }) { s ->
-                        ArtChoice(null, wide, false, "📁  ${s.name}", if (s == usable.first()) FocusFirst() else Modifier) { source = s.id; share = null; path = "" }
+                        ArtChoice(null, wide, false, s.name, if (s == usable.first()) FocusFirst() else Modifier, folder = true) { source = s.id; share = null; path = "" }
                     }
                     share == null -> items(shares.orEmpty(), key = { it }) { s ->
-                        ArtChoice(null, wide, false, "📁  $s", if (s == shares?.first()) FocusFirst() else Modifier) { share = s; path = "" }
+                        ArtChoice(null, wide, false, s, if (s == shares?.first()) FocusFirst() else Modifier, folder = true) { share = s; path = "" }
                     }
                     else -> items(entries.orEmpty(), key = { it.path }) { e ->
                         val focus = if (e == entries?.first()) FocusFirst() else Modifier
-                        if (e.isDir) ArtChoice(null, wide, false, "📁  ${e.name}", focus) { path = e.path }
+                        if (e.isDir) ArtChoice(null, wide, false, e.name, focus, folder = true) { path = e.path }
                         else {
                             val image = NasImage(src.id, share!!, e.path, e.modified + e.size)
                             ArtChoice(image, wide, false, e.name, focus) { onPick(image) }
@@ -180,11 +183,12 @@ private fun ArtBrowser(wide: Boolean, here: VideoFile?, title: String?, onPick: 
 
 /** One picture to pick: lifted when focused, ringed in the accent colour when it's the one in use. */
 @Composable
-private fun ArtChoice(model: Any?, wide: Boolean, current: Boolean, label: String?, modifier: Modifier, onClick: () -> Unit) {
+private fun ArtChoice(model: Any?, wide: Boolean, current: Boolean, label: String?, modifier: Modifier, folder: Boolean = false, onClick: () -> Unit) {
     val shape = RoundedCornerShape(12.dp)
     FocusCard(modifier.fillMaxWidth().aspectRatio(if (wide) 16f / 9f else 2f / 3f), shape, onClick = onClick) {
         Box(Modifier.fillMaxSize().background(Color(0xFF3A3D43)))
         if (model != null) AsyncImage(model, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        else if (folder) Icon(Icons.Filled.Folder, Color.White, Modifier.align(Alignment.Center).size(72.dp))
         if (label != null) Box(
             Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Color(0xCC000000)).padding(vertical = 8.dp),
             contentAlignment = Alignment.Center,
