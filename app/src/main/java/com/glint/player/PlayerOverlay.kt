@@ -599,7 +599,7 @@ private fun UpNextCard(p: PlayerActivity, show: Show, ep: Episode, modifier: Mod
         Txt(stringResource(R.string.up_next_in, p.upNextSeconds), Type.Meta.copy(color = Palette.Accent, fontWeight = FontWeight.Bold))
         Gap(8.dp)
         Box(Modifier.fillMaxWidth().height(230.dp).clip(RoundedCornerShape(12.dp))) {
-            Poster(ep.still ?: show.backdrop, ep.code, Modifier.fillMaxSize())
+            Poster(ep.still ?: Item.ShowItem(show).backdrop, ep.code, Modifier.fillMaxSize())
         }
         Gap(10.dp)
         Txt(show.title, Type.Heading, maxLines = 1)

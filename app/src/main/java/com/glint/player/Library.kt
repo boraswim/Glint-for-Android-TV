@@ -413,6 +413,8 @@ class Library(private val context: Context) {
     private fun walk(src: Source, share: String, root: String, out: MutableList<VideoFile>, dubs: MutableList<DubFile>, known: Map<String, Long>, knownRes: Map<String, String>) {
         // Each folder, and whether it sits in a dub folder ("Film sesleri"), where every media file is a dub.
         val queue = ArrayDeque<Pair<String, Boolean>>()
+        // Each folder's own poster and background with their stamps, for the folders below it (series, then seasons).
+        val folderArt = HashMap<String, Triple<String?, String?, Map<String, Long>>>()
         queue += root to Dubs.FOLDER.containsMatchIn(root.substringAfterLast('/'))
         val now = System.currentTimeMillis()
         while (queue.isNotEmpty()) {
@@ -452,6 +454,15 @@ class Library(private val context: Context) {
             val images = names.filter { Names.ext(it.name) in Names.IMAGE_EXT }.associateBy { it.name.lowercase(Locale.ROOT) }
             val single = videos.size == 1
             fun stamps(vararg paths: String?) = paths.filterNotNull().associateWith { p -> names.first { it.path == p }.let { it.modified + it.size } }
+            val dirName = dir.substringAfterLast('/').lowercase(Locale.ROOT)
+            fun own(vararg n: String) = n.firstNotNullOfOrNull { b -> listOf("jpg", "jpeg", "png", "webp").firstNotNullOfOrNull { images["$b.$it"] } }?.path
+            val above = if (dir.isEmpty()) null else folderArt[dir.substringBeforeLast('/', "")]
+            val ownPoster = own("poster", "folder", "cover", "show", dirName, "$dirName-poster")
+            val ownBackdrop = own("fanart", "backdrop", "background", "$dirName-fanart", "$dirName-backdrop")
+            val folderPoster = ownPoster ?: above?.first
+            val folderBackdrop = ownBackdrop ?: above?.second
+            val folderStamps = stamps(ownPoster, ownBackdrop) + above?.third.orEmpty()
+            folderArt[dir] = Triple(folderPoster, folderBackdrop, folderStamps)
             // A DVD or Blu-ray copied as a folder (VIDEO_TS / BDMV inside): the folder is one film.
             discTitle(src, share, entries)?.let { t ->
                 fun img(vararg n: String) = n.firstNotNullOfOrNull { b -> listOf("jpg", "jpeg", "png").firstNotNullOfOrNull { images["$b.$it"] } }?.path
@@ -461,7 +472,8 @@ class Library(private val context: Context) {
                     subs.map { it.path }, img("poster", "folder", "cover", "movie"), img("fanart", "backdrop", "background"),
                     localLogo = img("logo", "clearlogo"), nfo = (nfos["movie.nfo"] ?: nfos.values.firstOrNull())?.path,
                     edition = Names.edition(dir.substringAfterLast('/')), disc = t.kind, parts = t.parts,
-                    pictureStamps = stamps(img("poster", "folder", "cover", "movie"), img("fanart", "backdrop", "background"), img("logo", "clearlogo")),
+                    pictureStamps = stamps(img("poster", "folder", "cover", "movie"), img("fanart", "backdrop", "background"), img("logo", "clearlogo")) + folderStamps,
+                    folderPoster = folderPoster, folderBackdrop = folderBackdrop,
                 )
             }
             for (v in videos) {
@@ -482,7 +494,8 @@ class Library(private val context: Context) {
                     src.id, share, v.path, v.size, v.modified, known[key] ?: minOf(now, v.modified.takeIf { it > 0 } ?: now), mySubs, poster, backdrop,
                     localLogo = logo, nfo = nfo, edition = Names.edition(v.name), strmUrl = strm, resolution = res,
                     extras = suffixExtras.filter { it.first == lb }.map { (_, kind, e) -> Extra(e.path, kind, e.name.substringBeforeLast('.').replace('.', ' ')) } + folderExtras,
-                    pictureStamps = stamps(poster, backdrop, logo),
+                    pictureStamps = stamps(poster, backdrop, logo) + folderStamps,
+                    folderPoster = folderPoster, folderBackdrop = folderBackdrop,
                 )
             }
             entries.filter { it.isDir && it.name.lowercase(Locale.ROOT) !in SKIP_FOLDERS }

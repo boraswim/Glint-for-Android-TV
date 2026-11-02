@@ -51,6 +51,10 @@ data class VideoFile(
     val resolution: String = "",
     // Date and size of the pictures above, by path: a picture replaced under the same name is a new picture.
     val pictureStamps: Map<String, Long> = emptyMap(),
+    // The folder's own pictures (poster.jpg, fanart.jpg, or named after the folder), here or a folder up: a series'
+    // pictures, which sit beside many episodes. localPoster may be just this episode's still.
+    val folderPoster: String? = null,
+    val folderBackdrop: String? = null,
 ) {
     val key get() = "$source|$share|$path"
     val name get() = path.substringAfterLast('/')
@@ -218,10 +222,10 @@ sealed interface Item {
     data class MovieItem(val movie: Movie) : Item {
         override val id get() = movie.id
         override val title get() = movie.title
-        // A picture chosen in Glint comes first. Then the NAS poster: it's the one the owner put there; TMDB fills in
+        // A picture chosen in Glint comes first. Then the one next to the file: the owner put it there; TMDB fills in
         // when a file has none.
         override val poster: Any? get() = movie.chosenPoster.chosenArt(localPoster) ?: localPoster ?: movie.poster
-        override val backdrop: Any? get() = movie.chosenBackdrop.chosenArt(localBackdrop) ?: movie.backdrop ?: localBackdrop
+        override val backdrop: Any? get() = movie.chosenBackdrop.chosenArt(localBackdrop) ?: localBackdrop ?: movie.backdrop
         val localPoster: Any? get() = movie.file.localPoster?.let { nasUri(movie.file, it) }
         val localBackdrop: Any? get() = movie.file.localBackdrop?.let { nasUri(movie.file, it) }
         val logo: Any? get() = movie.file.localLogo?.let { nasUri(movie.file, it) } ?: movie.logo
@@ -231,17 +235,17 @@ sealed interface Item {
     data class ShowItem(val show: Show, val season: Int? = null) : Item {
         override val id get() = if (season == null) show.key else "season:${show.key}#$season"
         override val title get() = show.title
-        override val poster: Any? get() = season?.let { show.seasonPosters[it] } ?: show.chosenPoster.chosenArt(localPoster) ?: show.poster ?: localPoster
-        override val backdrop: Any? get() = show.chosenBackdrop.chosenArt(localBackdrop) ?: show.backdrop ?: localBackdrop
-        val localPoster: Any? get() = show.episodes.firstNotNullOfOrNull { e -> e.file.localPoster?.let { nasUri(e.file, it) } }
-        val localBackdrop: Any? get() = show.episodes.firstNotNullOfOrNull { e -> e.file.localBackdrop?.let { nasUri(e.file, it) } }
+        override val poster: Any? get() = season?.let { show.seasonPosters[it] } ?: show.chosenPoster.chosenArt(localPoster) ?: localPoster ?: show.poster
+        override val backdrop: Any? get() = show.chosenBackdrop.chosenArt(localBackdrop) ?: localBackdrop ?: show.backdrop
+        val localPoster: Any? get() = show.episodes.firstNotNullOfOrNull { e -> e.file.folderPoster?.let { nasUri(e.file, it) } }
+        val localBackdrop: Any? get() = show.episodes.firstNotNullOfOrNull { e -> e.file.folderBackdrop?.let { nasUri(e.file, it) } }
     }
 
     data class EpisodeItem(val show: Show, val episode: Episode) : Item {
         override val id get() = episode.id
         override val title get() = show.title
         override val poster: Any? get() = ShowItem(show).poster
-        override val backdrop: Any? get() = episode.still ?: show.backdrop ?: ShowItem(show).backdrop
+        override val backdrop: Any? get() = episode.still ?: ShowItem(show).backdrop
     }
 
     /** A TMDB collection of films, or one of the viewer's own, which may also hold series and seasons ([others]). */
