@@ -450,4 +450,6 @@
     <string name="hud_buffer_low">Low</string>
     <string name="poster_frame">Poster frame</string>
     <string name="poster_frame_sub">A frame in the theme colour around the selected poster, episode or cast photo</string>
+    <string name="artwork_local">Next to the file</string>
+    <string name="artwork_browse">Browse…</string>
 </resources>

@@ -430,4 +430,6 @@
     <string name="hud_buffer_low">Niski</string>
     <string name="poster_frame">Ramka plakatu</string>
     <string name="poster_frame_sub">Ramka w kolorze motywu wokół wybranego plakatu, odcinka lub zdjęcia obsady</string>
+    <string name="artwork_local">Obok pliku</string>
+    <string name="artwork_browse">Przeglądaj…</string>
 </resources>

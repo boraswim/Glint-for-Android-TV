@@ -49,6 +49,8 @@ data class VideoFile(
     val parts: List<String> = emptyList(),
     // "4K", "1080p" or "720p" read from inside the file, for a name that doesn't say ("Open.Matte.HDR.DoVi.mkv").
     val resolution: String = "",
+    // Date and size of the pictures above, by path: a picture replaced under the same name is a new picture.
+    val pictureStamps: Map<String, Long> = emptyMap(),
 ) {
     val key get() = "$source|$share|$path"
     val name get() = path.substringAfterLast('/')
@@ -218,8 +220,10 @@ sealed interface Item {
         override val title get() = movie.title
         // A picture chosen in Glint comes first. Then the NAS poster: it's the one the owner put there; TMDB fills in
         // when a file has none.
-        override val poster: Any? get() = movie.chosenPoster ?: movie.file.localPoster?.let { nasUri(movie.file, it) } ?: movie.poster
-        override val backdrop: Any? get() = movie.chosenBackdrop ?: movie.backdrop ?: movie.file.localBackdrop?.let { nasUri(movie.file, it) }
+        override val poster: Any? get() = movie.chosenPoster.chosenArt(localPoster) ?: localPoster ?: movie.poster
+        override val backdrop: Any? get() = movie.chosenBackdrop.chosenArt(localBackdrop) ?: movie.backdrop ?: localBackdrop
+        val localPoster: Any? get() = movie.file.localPoster?.let { nasUri(movie.file, it) }
+        val localBackdrop: Any? get() = movie.file.localBackdrop?.let { nasUri(movie.file, it) }
         val logo: Any? get() = movie.file.localLogo?.let { nasUri(movie.file, it) } ?: movie.logo
     }
 
@@ -227,8 +231,10 @@ sealed interface Item {
     data class ShowItem(val show: Show, val season: Int? = null) : Item {
         override val id get() = if (season == null) show.key else "season:${show.key}#$season"
         override val title get() = show.title
-        override val poster: Any? get() = season?.let { show.seasonPosters[it] } ?: show.chosenPoster ?: show.poster ?: show.episodes.firstNotNullOfOrNull { e -> e.file.localPoster?.let { nasUri(e.file, it) } }
-        override val backdrop: Any? get() = show.chosenBackdrop ?: show.backdrop ?: show.episodes.firstNotNullOfOrNull { e -> e.file.localBackdrop?.let { nasUri(e.file, it) } }
+        override val poster: Any? get() = season?.let { show.seasonPosters[it] } ?: show.chosenPoster.chosenArt(localPoster) ?: show.poster ?: localPoster
+        override val backdrop: Any? get() = show.chosenBackdrop.chosenArt(localBackdrop) ?: show.backdrop ?: localBackdrop
+        val localPoster: Any? get() = show.episodes.firstNotNullOfOrNull { e -> e.file.localPoster?.let { nasUri(e.file, it) } }
+        val localBackdrop: Any? get() = show.episodes.firstNotNullOfOrNull { e -> e.file.localBackdrop?.let { nasUri(e.file, it) } }
     }
 
     data class EpisodeItem(val show: Show, val episode: Episode) : Item {
@@ -250,6 +256,26 @@ sealed interface Item {
 }
 
 /** Coil model for an image stored on the NAS next to a video, served by [NasImageFetcher]. */
-data class NasImage(val source: String, val share: String, val path: String)
+data class NasImage(val source: String, val share: String, val path: String, val stamp: Long = 0)
 
-fun nasUri(file: VideoFile, path: String) = NasImage(file.source, file.share, path)
+/** What's stored as the viewer's choice when it's the picture next to the file rather than one from TMDB. */
+const val LOCAL_ART = "local"
+
+private fun String?.chosenArt(local: Any?): Any? = when {
+    this == LOCAL_ART -> local
+    this?.startsWith(FILE_ART) == true -> chosenFile(this)
+    else -> this
+}
+
+/** A picture the viewer browsed to on a share or disk, as stored for their choice. */
+private const val FILE_ART = "file:"
+
+fun chosenFile(image: NasImage) = "$FILE_ART${image.source}|${image.share}|${image.stamp}|${image.path}"
+
+fun chosenFile(chosen: String?): NasImage? {
+    if (chosen?.startsWith(FILE_ART) != true) return null
+    val parts = chosen.removePrefix(FILE_ART).split("|", limit = 4)
+    return if (parts.size == 4) NasImage(parts[0], parts[1], parts[3], parts[2].toLongOrNull() ?: 0) else null
+}
+
+fun nasUri(file: VideoFile, path: String) = NasImage(file.source, file.share, path, file.pictureStamps[path] ?: 0)

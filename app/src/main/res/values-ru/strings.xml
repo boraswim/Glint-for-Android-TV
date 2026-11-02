@@ -430,4 +430,6 @@
     <string name="hud_buffer_low">Мало</string>
     <string name="poster_frame">Рамка постера</string>
     <string name="poster_frame_sub">Рамка цвета темы вокруг выбранного постера, серии или фото актёра</string>
+    <string name="artwork_local">Рядом с файлом</string>
+    <string name="artwork_browse">Обзор…</string>
 </resources>

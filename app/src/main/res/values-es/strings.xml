@@ -430,4 +430,6 @@
     <string name="hud_buffer_low">Bajo</string>
     <string name="poster_frame">Marco del póster</string>
     <string name="poster_frame_sub">Un marco del color del tema alrededor del póster, episodio o foto del reparto seleccionados</string>
+    <string name="artwork_local">Junto al archivo</string>
+    <string name="artwork_browse">Explorar…</string>
 </resources>

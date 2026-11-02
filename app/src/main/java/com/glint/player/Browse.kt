@@ -901,8 +901,8 @@ fun GenresScreen(nav: Nav) {
     val lib = App.library
     val data by lib.data.collectAsState()
     val genres = remember(data) {
-        (data.movies.filter { it.catalogued }.flatMap { m -> m.genres.map { it to (m.chosenBackdrop ?: m.backdrop ?: m.poster) to m.rating } } +
-            data.shows.flatMap { sh -> sh.genres.map { it to (sh.chosenBackdrop ?: sh.backdrop ?: sh.poster) to sh.rating } })
+        (data.movies.filter { it.catalogued }.flatMap { m -> m.genres.map { it to (m.chosenBackdrop?.takeIf { c -> c.startsWith("http") } ?: m.backdrop ?: m.poster) to m.rating } } +
+            data.shows.flatMap { sh -> sh.genres.map { it to (sh.chosenBackdrop?.takeIf { c -> c.startsWith("http") } ?: sh.backdrop ?: sh.poster) to sh.rating } })
             .groupBy({ it.first.first }, { it.first.second to it.second })
             .map { (g, list) -> g to list.sortedByDescending { it.second }.mapNotNull { it.first }.take(2) }
             .sortedBy { it.first }

@@ -50,7 +50,7 @@ class App : Application(), ImageLoaderFactory {
     override fun newImageLoader() = ImageLoader.Builder(this)
         .components {
             add(NasImageFetcher.Factory())
-            add(Keyer<NasImage> { data, _ -> "nas:${data.source}/${data.share}/${data.path}" })
+            add(Keyer<NasImage> { data, _ -> "nas:${data.source}/${data.share}/${data.path}#${data.stamp}" })
             add(SizedPosterFetcher.Factory())
             add(Keyer<SizedPoster> { data, _ -> "sized:${data.model}|${data.w}x${data.h}" })
         }
@@ -75,7 +75,9 @@ class NasImageFetcher(private val data: NasImage, private val options: Options) 
         // Earlier versions kept shrunk, recompressed copies; those are dropped for the originals.
         for (old in listOf("nas-images", "nas-images-hq")) File(options.context.cacheDir, old).takeIf { it.exists() }?.deleteRecursively()
         val dir = File(options.context.cacheDir, "nas-images-original").apply { mkdirs() }
-        val cached = File(dir, hash("${data.source}/${data.share}/${data.path}"))
+        // The picture's date and size are in the name, so one replaced on the NAS is fetched anew.
+        val base = hash("${data.source}/${data.share}/${data.path}")
+        val cached = File(dir, if (data.stamp != 0L) "$base-${data.stamp}" else base)
         if (!cached.exists()) {
             val src = App.library.source(data.source) ?: error("Source ${data.source} is gone")
             // A few at a time: a full grid asking at once (on top of a scan) makes the NAS stop answering.
@@ -85,6 +87,7 @@ class NasImageFetcher(private val data: NasImage, private val options: Options) 
             val tmp = File(dir, cached.name + ".tmp")
             tmp.writeBytes(bytes)
             tmp.renameTo(cached)
+            dir.listFiles { f -> f.name.startsWith(base) && f.name != cached.name }?.forEach { it.delete() }
         }
         return SourceResult(
             source = ImageSource(cached.toOkioPath(), FileSystem.SYSTEM),

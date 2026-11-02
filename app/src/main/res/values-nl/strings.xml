@@ -430,4 +430,6 @@
     <string name="hud_buffer_low">Laag</string>
     <string name="poster_frame">Posterkader</string>
     <string name="poster_frame_sub">Een kader in de themakleur rond de geselecteerde poster, aflevering of castfoto</string>
+    <string name="artwork_local">Naast het bestand</string>
+    <string name="artwork_browse">Bladeren…</string>
 </resources>

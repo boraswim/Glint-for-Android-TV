@@ -430,4 +430,6 @@
     <string name="hud_buffer_low">Niedrig</string>
     <string name="poster_frame">Posterrahmen</string>
     <string name="poster_frame_sub">Ein Rahmen in der Designfarbe um das ausgewählte Poster, die Folge oder das Besetzungsfoto</string>
+    <string name="artwork_local">Neben der Datei</string>
+    <string name="artwork_browse">Durchsuchen…</string>
 </resources>

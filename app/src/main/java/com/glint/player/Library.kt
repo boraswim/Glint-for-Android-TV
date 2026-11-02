@@ -451,6 +451,7 @@ class Library(private val context: Context) {
             val subs = names.filter { Names.ext(it.name) in Names.SUB_EXT }
             val images = names.filter { Names.ext(it.name) in Names.IMAGE_EXT }.associateBy { it.name.lowercase(Locale.ROOT) }
             val single = videos.size == 1
+            fun stamps(vararg paths: String?) = paths.filterNotNull().associateWith { p -> names.first { it.path == p }.let { it.modified + it.size } }
             // A DVD or Blu-ray copied as a folder (VIDEO_TS / BDMV inside): the folder is one film.
             discTitle(src, share, entries)?.let { t ->
                 fun img(vararg n: String) = n.firstNotNullOfOrNull { b -> listOf("jpg", "jpeg", "png").firstNotNullOfOrNull { images["$b.$it"] } }?.path
@@ -460,6 +461,7 @@ class Library(private val context: Context) {
                     subs.map { it.path }, img("poster", "folder", "cover", "movie"), img("fanart", "backdrop", "background"),
                     localLogo = img("logo", "clearlogo"), nfo = (nfos["movie.nfo"] ?: nfos.values.firstOrNull())?.path,
                     edition = Names.edition(dir.substringAfterLast('/')), disc = t.kind, parts = t.parts,
+                    pictureStamps = stamps(img("poster", "folder", "cover", "movie"), img("fanart", "backdrop", "background"), img("logo", "clearlogo")),
                 )
             }
             for (v in videos) {
@@ -480,6 +482,7 @@ class Library(private val context: Context) {
                     src.id, share, v.path, v.size, v.modified, known[key] ?: minOf(now, v.modified.takeIf { it > 0 } ?: now), mySubs, poster, backdrop,
                     localLogo = logo, nfo = nfo, edition = Names.edition(v.name), strmUrl = strm, resolution = res,
                     extras = suffixExtras.filter { it.first == lb }.map { (_, kind, e) -> Extra(e.path, kind, e.name.substringBeforeLast('.').replace('.', ' ')) } + folderExtras,
+                    pictureStamps = stamps(poster, backdrop, logo),
                 )
             }
             entries.filter { it.isDir && it.name.lowercase(Locale.ROOT) !in SKIP_FOLDERS }

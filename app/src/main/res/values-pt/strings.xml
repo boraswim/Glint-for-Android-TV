@@ -430,4 +430,6 @@
     <string name="hud_buffer_low">Baixo</string>
     <string name="poster_frame">Moldura do pôster</string>
     <string name="poster_frame_sub">Uma moldura na cor do tema em volta do pôster, episódio ou foto do elenco selecionados</string>
+    <string name="artwork_local">Ao lado do arquivo</string>
+    <string name="artwork_browse">Procurar…</string>
 </resources>
