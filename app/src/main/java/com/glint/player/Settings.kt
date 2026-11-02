@@ -55,6 +55,11 @@ class Settings(context: Context) {
         get() = prefs.getBoolean("matchFrameRate", true)
         set(v) = prefs.edit().putBoolean("matchFrameRate", v).apply()
 
+    /** A frame in the theme colour around the selected poster. */
+    var posterFrame: Boolean
+        get() = prefs.getBoolean("posterFrame", false)
+        set(v) = prefs.edit().putBoolean("posterFrame", v).apply()
+
     /** The playback details box, top left of the player. */
     var playbackStats: Boolean
         get() = prefs.getBoolean("playbackStats", false)

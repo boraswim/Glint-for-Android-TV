@@ -271,6 +271,7 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                                 }, start = s.accent.coerceIn(0, ACCENTS.lastIndex)) { pickingAccent = false }
                             }
                         }
+                        OnOffRow(stringResource(R.string.poster_frame), s.posterFrame, sub = stringResource(R.string.poster_frame_sub)) { v -> change { s.posterFrame = v } }
                         val ctx = androidx.compose.ui.platform.LocalContext.current
                         ChoiceRow(stringResource(R.string.app_logo), listOf(false to stringResource(R.string.app_logo_black), true to stringResource(R.string.app_logo_white)), AppLogo.isWhite(ctx), sub = stringResource(R.string.app_logo_sub)) { white ->
                             change { AppLogo.set(ctx, white) }

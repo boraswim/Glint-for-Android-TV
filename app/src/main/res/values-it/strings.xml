@@ -428,4 +428,6 @@
     <string name="hud_disk">Spazio libero</string>
     <string name="hud_buffer_good">Buono</string>
     <string name="hud_buffer_low">Basso</string>
+    <string name="poster_frame">Cornice del poster</string>
+    <string name="poster_frame_sub">Una cornice del colore del tema attorno al poster selezionato</string>
 </resources>

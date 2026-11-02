@@ -428,4 +428,6 @@
     <string name="hud_disk">Свободно на диске</string>
     <string name="hud_buffer_good">Хорошо</string>
     <string name="hud_buffer_low">Мало</string>
+    <string name="poster_frame">Рамка постера</string>
+    <string name="poster_frame_sub">Рамка цвета темы вокруг выбранного постера</string>
 </resources>

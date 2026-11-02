@@ -448,4 +448,6 @@
     <string name="hud_disk">Free disk space</string>
     <string name="hud_buffer_good">Healthy</string>
     <string name="hud_buffer_low">Low</string>
+    <string name="poster_frame">Poster frame</string>
+    <string name="poster_frame_sub">A frame in the theme colour around the selected poster</string>
 </resources>

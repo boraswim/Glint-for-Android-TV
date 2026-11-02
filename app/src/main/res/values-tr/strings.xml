@@ -435,4 +435,6 @@
     <string name="hud_disk">Boş disk alanı</string>
     <string name="hud_buffer_good">Sağlıklı</string>
     <string name="hud_buffer_low">Düşük</string>
+    <string name="poster_frame">Afiş çerçevesi</string>
+    <string name="poster_frame_sub">Seçili afişin çevresinde tema renginde çerçeve</string>
 </resources>
