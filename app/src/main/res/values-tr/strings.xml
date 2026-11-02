@@ -120,6 +120,7 @@
     <string name="loading">Yükleniyor…</string>
     <string name="buffering">Arabelleğe alınıyor %%%1$d</string>
     <string name="play_failed">Bu dosya oynatılamadı</string>
+    <string name="source_unreachable">Dosyaya ulaşılamadı. %1$s kaynağının açık ve bağlı olduğunu kontrol edin.</string>
     <string name="external_subtitle">%1$s (dosya)</string>
     <string name="ends_at">Bitiş %1$s</string>
     <string name="player_hint">◀ ▶ atla    OK duraklat    ▼ ses, altyazı ve diğerleri</string>

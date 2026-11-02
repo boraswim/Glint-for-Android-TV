@@ -120,6 +120,7 @@
     <string name="loading">Lädt…</string>
     <string name="buffering">Puffern %1$d%%</string>
     <string name="play_failed">Diese Datei konnte nicht abgespielt werden</string>
+    <string name="source_unreachable">Datei nicht erreichbar. Prüfen Sie, ob %1$s eingeschaltet und verbunden ist.</string>
     <string name="external_subtitle">%1$s (Datei)</string>
     <string name="ends_at">Endet um %1$s</string>
     <string name="player_hint">◀ ▶ springen    OK Pause    ▼ Ton, Untertitel &amp; mehr</string>

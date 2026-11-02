@@ -120,6 +120,7 @@
     <string name="loading">Caricamento…</string>
     <string name="buffering">Buffering %1$d%%</string>
     <string name="play_failed">Impossibile riprodurre questo file</string>
+    <string name="source_unreachable">File non raggiungibile. Controlla che %1$s sia acceso e collegato.</string>
     <string name="external_subtitle">%1$s (file)</string>
     <string name="ends_at">Termina alle %1$s</string>
     <string name="player_hint">◀ ▶ salta    OK pausa    ▼ audio, sottotitoli e altro</string>

@@ -132,6 +132,7 @@
     <string name="loading">Loading…</string>
     <string name="buffering">Buffering %1$d%%</string>
     <string name="play_failed">This file couldn\'t be played</string>
+    <string name="source_unreachable">Can\'t reach this file. Check that %1$s is on and connected.</string>
     <string name="external_subtitle">%1$s (file)</string>
     <string name="ends_at">Ends at %1$s</string>
     <string name="player_hint">◀ ▶ skip    OK pause    ▼ audio, subtitles &amp; more</string>

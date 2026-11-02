@@ -120,6 +120,7 @@
     <string name="loading">Chargement…</string>
     <string name="buffering">Mise en mémoire tampon %1$d%%</string>
     <string name="play_failed">Impossible de lire ce fichier</string>
+    <string name="source_unreachable">Fichier inaccessible. Vérifiez que %1$s est allumé et connecté.</string>
     <string name="external_subtitle">%1$s (fichier)</string>
     <string name="ends_at">Se termine à %1$s</string>
     <string name="player_hint">◀ ▶ sauter    OK pause    ▼ audio, sous-titres et plus</string>

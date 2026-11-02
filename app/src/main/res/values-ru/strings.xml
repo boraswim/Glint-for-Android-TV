@@ -120,6 +120,7 @@
     <string name="loading">Загрузка…</string>
     <string name="buffering">Буферизация %1$d%%</string>
     <string name="play_failed">Не удалось воспроизвести этот файл</string>
+    <string name="source_unreachable">Файл недоступен. Проверьте, что %1$s включено и подключено.</string>
     <string name="external_subtitle">%1$s (файл)</string>
     <string name="ends_at">Закончится в %1$s</string>
     <string name="player_hint">◀ ▶ перемотка    OK пауза    ▼ звук, субтитры и другое</string>

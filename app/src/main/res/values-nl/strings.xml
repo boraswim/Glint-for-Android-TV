@@ -120,6 +120,7 @@
     <string name="loading">Laden…</string>
     <string name="buffering">Bufferen %1$d%%</string>
     <string name="play_failed">Dit bestand kon niet worden afgespeeld</string>
+    <string name="source_unreachable">Bestand niet bereikbaar. Controleer of %1$s aanstaat en verbonden is.</string>
     <string name="external_subtitle">%1$s (bestand)</string>
     <string name="ends_at">Eindigt om %1$s</string>
     <string name="player_hint">◀ ▶ springen    OK pauze    ▼ audio, ondertitels en meer</string>

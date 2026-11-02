@@ -120,6 +120,7 @@
     <string name="loading">Wczytywanie…</string>
     <string name="buffering">Buforowanie %1$d%%</string>
     <string name="play_failed">Nie można odtworzyć tego pliku</string>
+    <string name="source_unreachable">Nie można uzyskać dostępu do pliku. Sprawdź, czy %1$s jest włączone i podłączone.</string>
     <string name="external_subtitle">%1$s (plik)</string>
     <string name="ends_at">Koniec o %1$s</string>
     <string name="player_hint">◀ ▶ przewiń    OK pauza    ▼ dźwięk, napisy i więcej</string>

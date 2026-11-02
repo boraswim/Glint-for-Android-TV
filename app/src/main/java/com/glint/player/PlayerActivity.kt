@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -591,7 +592,24 @@ class PlayerActivity : ComponentActivity() {
             // A new surface (back from the background, a reopen) doesn't know the rate declared on the last one.
             MediaPlayer.Event.Vout -> if (e.voutCount > 0) { onVideoOut(); declareFrameRate(); announceDolbyVision(false, changed = true) }
             MediaPlayer.Event.EndReached -> onEnded()
-            MediaPlayer.Event.EncounteredError -> error = getString(R.string.play_failed)
+            MediaPlayer.Event.EncounteredError -> playbackFailed(null)
+        }
+    }
+
+    /**
+     * Playback stopped on an error. Looks for the file first: a disk unplugged or a NAS switched off is something to
+     * fix at the source, not a fault of the file. The check gets a few seconds, as a NAS that's off may not answer at all.
+     */
+    fun playbackFailed(code: String?) {
+        val failed = getString(R.string.play_failed) + if (code != null) "  ($code)" else ""
+        val from = playingFrom ?: run { error = failed; return }
+        lifecycleScope.launch {
+            val (src, share, path) = from
+            val check = async(Dispatchers.IO) {
+                runCatching { Fs.list(src, share, path.substringBeforeLast('/', "")).any { it.name == path.substringAfterLast('/') } }.getOrDefault(false)
+            }
+            val there = kotlinx.coroutines.withTimeoutOrNull(6_000) { check.await() } == true
+            if (playingFrom === from) error = if (there) failed else getString(R.string.source_unreachable, src.name)
         }
     }
 

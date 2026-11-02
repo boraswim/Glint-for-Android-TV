@@ -120,6 +120,7 @@
     <string name="loading">Carregando…</string>
     <string name="buffering">Carregando buffer %1$d%%</string>
     <string name="play_failed">Não foi possível reproduzir este arquivo</string>
+    <string name="source_unreachable">Não foi possível acessar o arquivo. Verifique se %1$s está ligado e conectado.</string>
     <string name="external_subtitle">%1$s (arquivo)</string>
     <string name="ends_at">Termina às %1$s</string>
     <string name="player_hint">◀ ▶ pular    OK pausar    ▼ áudio, legendas e mais</string>
