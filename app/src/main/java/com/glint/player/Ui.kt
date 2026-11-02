@@ -293,25 +293,32 @@ fun FocusCard(
 }
 
 @Composable
-fun Poster(model: Any?, title: String, modifier: Modifier = Modifier) {
+fun Poster(model: Any?, title: String, modifier: Modifier = Modifier, fallback: Any? = null) {
     BoxWithConstraints(modifier.background(Color(0xFF3A3D43)), contentAlignment = Alignment.Center) {
         Txt(title, Type.Meta.copy(color = Palette.Dim), Modifier.padding(10.dp), maxLines = 4, align = TextAlign.Center)
-        if (model != null) {
+        // A picture next to the file that's out of reach (disk unplugged, NAS off): TMDB's rather than an empty card.
+        var failed by remember(model) { mutableStateOf(false) }
+        val shown = if (failed && fallback != null) fallback else model
+        if (shown != null) {
             // Resized here, carefully, to exactly the pixels the card covers when focused (10% zoom), so the
             // screen draws it 1:1 instead of squeezing a larger image with plain filtering.
-            val density = androidx.compose.ui.platform.LocalDensity.current
-            val w = with(density) { (maxWidth.toPx() * 1.1f).toInt() }.coerceAtLeast(1)
-            val h = with(density) { (maxHeight.toPx() * 1.1f).toInt() }.coerceAtLeast(1)
-            PosterPrefetch.sizes[Math.round(maxWidth.value)] = w to h
-            val request = PosterPrefetch.request(androidx.compose.ui.platform.LocalContext.current, model, w, h)
+            val (w, h) = LocalPosterPixels.current ?: PosterPrefetch.pixels(constraints.maxWidth, constraints.maxHeight)
+            val ctx = androidx.compose.ui.platform.LocalContext.current
+            val request = remember(shown, w, h) { PosterPrefetch.request(ctx, shown, w, h) }
             AsyncImage(
                 request, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop,
                 filterQuality = androidx.compose.ui.graphics.FilterQuality.High,
-                onError = { android.util.Log.w("Poster", "Couldn't load $model", it.result.throwable) },
+                onError = { failed = true; android.util.Log.w("Poster", "Couldn't load $shown", it.result.throwable) },
             )
         }
     }
 }
+
+/**
+ * The one picture size for all cards of a grid. Its columns share out leftover pixels, so cards can differ by a pixel;
+ * each width would otherwise need its own copy of every poster, and those made ahead would miss half the cards.
+ */
+val LocalPosterPixels = androidx.compose.runtime.staticCompositionLocalOf<Pair<Int, Int>?> { null }
 
 /** A poster or backdrop made ready for one card size; see [SizedPosterFetcher]. */
 data class SizedPoster(val model: Any, val w: Int, val h: Int)
@@ -321,11 +328,23 @@ data class SizedPoster(val model: Any, val w: Int, val h: Int)
  * grey boxes. Requests match [Poster]'s exactly, so they land in the same memory cache entries.
  */
 object PosterPrefetch {
-    /** Pixel size [Poster] asked for, by card width in dp; known once one card of that width was drawn. */
-    val sizes = java.util.concurrent.ConcurrentHashMap<Int, Pair<Int, Int>>()
+    /** The picture for a card of these pixels: what it covers when focused (10% zoom). */
+    fun pixels(cardW: Int, cardH: Int) = (cardW * 1.1f).toInt().coerceAtLeast(1) to (cardH * 1.1f).toInt().coerceAtLeast(1)
 
+    /** The picture size of a whole grid: six posters or four wide cards across the 1280dp screen, as in [TvScale]. */
+    fun grid(ctx: android.content.Context, wide: Boolean): Pair<Int, Int> {
+        val m = ctx.resources.displayMetrics
+        val density = maxOf(m.widthPixels, m.heightPixels) / 1280f
+        return if (wide) Math.round(260.5f * density).let { pixels(it, Math.round(it * 9f / 16f)) }
+        else Math.round(177f * density).let { pixels(it, Math.round(it * 1.5f)) }
+    }
+
+    fun made(ctx: android.content.Context, model: Any, w: Int, h: Int) =
+        java.io.File(SizedPosterFetcher.dir(ctx), SizedPosterFetcher.key(SizedPoster(sharper(model), w, h))).exists()
+
+    // A picture already made is there at once, without fading in as if it had just arrived.
     fun request(ctx: android.content.Context, model: Any, w: Int, h: Int) =
-        coil.request.ImageRequest.Builder(ctx).data(SizedPoster(sharper(model), w, h)).size(w, h).build()
+        coil.request.ImageRequest.Builder(ctx).data(SizedPoster(sharper(model), w, h)).size(w, h).apply { if (made(ctx, model, w, h)) crossfade(false) }.build()
 
     /** Into memory, for cards about to scroll into view. */
     fun warm(ctx: android.content.Context, models: List<Any>, w: Int, h: Int) {
@@ -335,15 +354,14 @@ object PosterPrefetch {
 
     /** Onto disk only, one at a time, for posters never made yet at this size; quick when all are made. */
     suspend fun prepare(ctx: android.content.Context, models: List<Any>, w: Int, h: Int) {
-        val loader = coil.Coil.imageLoader(ctx)
-        val dir = SizedPosterFetcher.dir(ctx)
-        for (m in models) {
-            if (java.io.File(dir, SizedPosterFetcher.key(SizedPoster(sharper(m), w, h))).exists()) continue
-            loader.execute(
-                coil.request.ImageRequest.Builder(ctx).data(SizedPoster(sharper(m), w, h)).size(w, h)
-                    .memoryCachePolicy(coil.request.CachePolicy.DISABLED).build(),
-            )
-        }
+        for (m in models) if (!made(ctx, m, w, h)) make(ctx, m, w, h)
+    }
+
+    suspend fun make(ctx: android.content.Context, model: Any, w: Int, h: Int) {
+        coil.Coil.imageLoader(ctx).execute(
+            coil.request.ImageRequest.Builder(ctx).data(SizedPoster(sharper(model), w, h)).size(w, h)
+                .memoryCachePolicy(coil.request.CachePolicy.DISABLED).build(),
+        )
     }
 }
 
@@ -361,13 +379,14 @@ class SizedPosterFetcher(private val data: SizedPoster, private val options: coi
                     .data(data.model)
                     .size(data.w * 2, data.h * 2)       // decode at least twice the target, then step down
                     .allowHardware(false)               // the resize needs a normal bitmap
+                    .diskCachePolicy(coil.request.CachePolicy.READ_ONLY)   // the finished file is what's kept; a whole library of originals would push out the backdrops
                     .transformations(SharpResize(data.w, data.h))
                     .memoryCachePolicy(coil.request.CachePolicy.DISABLED)
                     .build(),
             )
             val bmp = ((made as? coil.request.SuccessResult)?.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
                 ?: throw (made as? coil.request.ErrorResult)?.throwable ?: IllegalStateException("No picture for ${data.model}")
-            val tmp = java.io.File(file.path + ".tmp")
+            val tmp = java.io.File.createTempFile("poster", ".tmp", file.parentFile)
             tmp.outputStream().use { bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
             tmp.renameTo(file)
         } else file.setLastModified(System.currentTimeMillis())   // recently used: kept longest by trim()
@@ -385,13 +404,14 @@ class SizedPosterFetcher(private val data: SizedPoster, private val options: coi
     companion object {
         /** Bump when the look of finished posters changes, so old ones are made again. */
         private const val VERSION = 1
+        const val LIMIT = 400L shl 20
         fun dir(ctx: android.content.Context) = java.io.File(ctx.cacheDir, "posters-v$VERSION").apply { mkdirs() }
         fun key(d: SizedPoster): String {
             val id = "${d.model}|${d.w}x${d.h}"
             return java.security.MessageDigest.getInstance("MD5").digest(id.toByteArray()).joinToString("") { "%02x".format(it) } + ".png"
         }
         /** Keeps the folder under [limit] bytes, dropping the least recently used files first. */
-        fun trim(ctx: android.content.Context, limit: Long = 400L shl 20) {
+        fun trim(ctx: android.content.Context, limit: Long = LIMIT) {
             // Times read once first: posters loading meanwhile touch their files, and a sort whose keys change
             // under it throws ("Comparison method violates its general contract").
             val files = dir(ctx).listFiles()?.map { it to it.lastModified() }?.sortedBy { it.second }?.map { it.first } ?: return
@@ -505,7 +525,11 @@ fun PosterCard(item: Item, width: Dp = 160.dp, wanted: String? = null, onLongCli
             onLongClick = onLongClick?.let { { it(item) } },
             onClick = { onClick(item) },
         ) { focused ->
-            Poster(item.poster, item.title, Modifier.fillMaxSize())
+            Poster(item.poster, item.title, Modifier.fillMaxSize(), when (item) {
+                is Item.MovieItem -> item.movie.poster
+                is Item.ShowItem -> item.show.poster
+                else -> null
+            })
             if (s.watchedIndicators) when (item) {
                 is Item.MovieItem -> {
                     val p = progress[item.id]

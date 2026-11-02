@@ -116,6 +116,19 @@ fun HomeScreen(nav: Nav) {
     val watchlist = remember(data, user) { user.watchlist.mapNotNull { id -> lib.findMovie(id)?.let { Item.MovieItem(it) } ?: lib.findShow(id)?.let { Item.ShowItem(it) } } }
     val recentMovies = remember(data) { data.movies.filter { it.catalogued }.sortedByDescending { it.file.added }.take(20).map { Item.MovieItem(it) } }
     val recentShows = remember(data) { data.shows.sortedByDescending { s -> s.episodes.maxOf { it.file.added } }.take(20).map { Item.ShowItem(it) } }
+    // The first screens of Movies and TV Shows wait in memory, ready for the moment they're opened.
+    val homeCtx = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(data) {
+        delay(800)
+        val (w, h) = PosterPrefetch.grid(homeCtx, wide = false)
+        val first = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            val order = lib.settings.sortOrder
+            val films = filmItems(sortFilms(data.movies.filter { it.catalogued }.distinctBy { if (it.tmdbId != 0) "t${it.tmdbId}" else it.id }, order), lib).take(36)
+            val shows = sortSeries(data.shows, order).take(36).map { Item.ShowItem(it) }
+            (films + shows).mapNotNull { it.poster }
+        }
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { first.filter { PosterPrefetch.made(homeCtx, it, w, h) } }.let { PosterPrefetch.warm(homeCtx, it, w, h) }
+    }
 
     var sheet by remember { mutableStateOf<Item?>(null) }
     val firstTile = remember { FocusRequester() }
@@ -354,6 +367,38 @@ fun openPin(nav: Nav, key: String) {
     }
 }
 
+private fun sortFilms(list: List<Movie>, order: Int) = when (order) {
+    1 -> list.sortedByDescending { it.file.added }
+    2 -> list.sortedByDescending { it.releaseDate.ifEmpty { it.year } }
+    3 -> list.sortedByDescending { it.rating }
+    4 -> list.sortedByDescending { it.runtime }
+    5 -> list.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.file.name })
+    else -> list.sortedBy { sortTitle(it.title) }
+}
+
+private fun sortSeries(list: List<Show>, order: Int) = when (order) {
+    1 -> list.sortedByDescending { sh -> sh.episodes.maxOf { it.file.added } }
+    2 -> list.sortedByDescending { it.year }
+    3 -> list.sortedByDescending { it.rating }
+    5 -> list.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { sh -> sh.episodes.minOfOrNull { it.file.path } ?: sh.title })
+    else -> list.sortedBy { sortTitle(it.title) }
+}
+
+/** The Movies grid's cards, in this order: films of a collection collapse into one "N items" poster, where its first film would be. */
+private fun filmItems(sorted: List<Movie>, lib: Library): List<Item> {
+    if (!lib.settings.groupMovieCollections) return sorted.map { Item.MovieItem(it) }
+    val cols = lib.collections().associateBy { it.collectionId }
+    val seen = HashSet<Int>()
+    return sorted.mapNotNull { m ->
+        val c = cols[m.collectionId]
+        when {
+            c == null -> Item.MovieItem(m)
+            seen.add(c.collectionId) -> c
+            else -> null
+        }
+    }
+}
+
 private fun pinIcon(key: String): ImageVector = when (key.substringBefore(':')) {
     "genre" -> Icons.Filled.TheaterComedy
     "actor" -> Icons.Filled.Person
@@ -576,42 +621,13 @@ fun GridScreen(nav: Nav, kind: Kind) {
             2 -> sh.episodes.all { progress[it.id]?.watched == true }
             else -> sh.episodes.any { keep(it.id, it.file) }
         }
-        fun sortMovies(list: List<Movie>) = when (s.sortOrder) {
-            1 -> list.sortedByDescending { it.file.added }
-            2 -> list.sortedByDescending { it.releaseDate.ifEmpty { it.year } }
-            3 -> list.sortedByDescending { it.rating }
-            4 -> list.sortedByDescending { it.runtime }
-            5 -> list.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.file.name })
-            else -> list.sortedBy { sortTitle(it.title) }
-        }
-        fun sortShows(list: List<Show>) = when (s.sortOrder) {
-            1 -> list.sortedByDescending { sh -> sh.episodes.maxOf { it.file.added } }
-            2 -> list.sortedByDescending { it.year }
-            3 -> list.sortedByDescending { it.rating }
-            5 -> list.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { sh -> sh.episodes.minOfOrNull { it.file.path } ?: sh.title })
-            else -> list.sortedBy { sortTitle(it.title) }
-        }
+        fun sortMovies(list: List<Movie>) = sortFilms(list, s.sortOrder)
+        fun sortShows(list: List<Show>) = sortSeries(list, s.sortOrder)
         // Smart groups: several copies of one film (cuts, resolutions) show as one poster.
         val films = data.movies.filter { it.catalogued && keep(it.id, it.file) }
             .distinctBy { if (it.tmdbId != 0) "t${it.tmdbId}" else it.id }
         when (kind) {
-            Kind.Movies -> {
-                val sorted = sortMovies(films)
-                if (!s.groupMovieCollections) sorted.map { Item.MovieItem(it) }
-                else {
-                    // Films of a collection collapse into one "N items" poster, placed where its first film would be.
-                    val cols = lib.collections().associateBy { it.collectionId }
-                    val seen = HashSet<Int>()
-                    sorted.mapNotNull { m ->
-                        val c = cols[m.collectionId]
-                        when {
-                            c == null -> Item.MovieItem(m)
-                            seen.add(c.collectionId) -> c
-                            else -> null
-                        }
-                    }
-                }
-            }
+            Kind.Movies -> filmItems(sortMovies(films), lib)
             Kind.Shows -> sortShows(data.shows.filter(::keepShow)).map { Item.ShowItem(it) }
             Kind.Others -> data.movies.filter { !it.catalogued && keep(it.id, it.file) }.sortedByDescending { it.file.modified }.map { Item.MovieItem(it) }
             Kind.Collections -> lib.collections()
@@ -694,14 +710,14 @@ fun GridScreen(nav: Nav, kind: Kind) {
                 }
             } else {
             val ctx = androidx.compose.ui.platform.LocalContext.current
-            val cardDp = if (wide) 255 else 177
+            val cardPixels = remember(wide) { PosterPrefetch.grid(ctx, wide) }
+            val (w, h) = cardPixels
             fun picture(i: Item) = if (wide) i.backdrop ?: i.poster else i.poster
             // Pictures load before their cards scroll in: the rows just above and the next few below, as the grid
             // moves; meanwhile any never prepared at this size are made in the background, one at a time.
             LaunchedEffect(items) {
                 var done = IntRange.EMPTY
                 androidx.compose.runtime.snapshotFlow { (gridState.firstVisibleItemIndex - 1).coerceAtLeast(0) }.collect { first ->
-                    val (w, h) = PosterPrefetch.sizes[cardDp] ?: return@collect
                     val window = (first - 2 * cols).coerceAtLeast(0)..(first + 7 * cols).coerceAtMost(items.lastIndex)
                     PosterPrefetch.warm(ctx, window.filter { it !in done }.mapNotNull { picture(items[it]) }, w, h)
                     done = window
@@ -709,9 +725,9 @@ fun GridScreen(nav: Nav, kind: Kind) {
             }
             LaunchedEffect(items) {
                 delay(1500)   // after the first screen's own posters
-                val (w, h) = PosterPrefetch.sizes[cardDp] ?: return@LaunchedEffect
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { PosterPrefetch.prepare(ctx, items.mapNotNull(::picture), w, h) }
             }
+            androidx.compose.runtime.CompositionLocalProvider(LocalPosterPixels provides cardPixels) {
             LazyVerticalGrid(
                 GridCells.Fixed(cols),
                 // Right from a card in the last column opens the letters; Left from the first column, sort and filter.
@@ -748,6 +764,7 @@ fun GridScreen(nav: Nav, kind: Kind) {
                     if (wide) WideCard(item, width = 255.dp, wanted = wanted, label = (item as? Item.MovieItem)?.movie?.file?.name, onLongClick = { sheet = it }, onFocus = focus, onClick = { play(nav, it) })
                     else PosterCard(item, width = 177.dp, wanted = wanted, onLongClick = { sheet = it }, onFocus = focus, onClick = nav::open)
                 }
+            }
             }
             }
         }
