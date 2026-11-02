@@ -303,6 +303,12 @@ fun ListColumn(content: androidx.compose.foundation.lazy.LazyListScope.() -> Uni
 @Composable
 fun FocusFirst(): Modifier {
     val r = remember { FocusRequester() }
-    LaunchedEffect(Unit) { runCatching { r.requestFocus() } }
+    // Once. A list item scrolled away and back is composed anew and would pull focus back to itself mid-list; lists
+    // keep this saved for their items. Noted per Activity, so a screen rebuilt for a new language still takes focus.
+    val activity = System.identityHashCode(androidx.compose.ui.platform.LocalContext.current)
+    var focusedIn by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        if (focusedIn != activity) { focusedIn = activity; runCatching { r.requestFocus() } }
+    }
     return Modifier.focusRequester(r)
 }

@@ -66,6 +66,8 @@ fun ArtworkScreen(nav: Nav, screen: Screen.Artwork) {
         LazyVerticalGrid(
             GridCells.Fixed(if (wide) 4 else 6),
             Modifier.fillMaxSize(),
+            // Opens at the picture in use: one further down isn't composed otherwise and couldn't take focus.
+            androidx.compose.foundation.lazy.grid.rememberLazyGridState(list.indexOf(chosen) + 1),
             contentPadding = PaddingValues(start = 56.dp, end = 56.dp, top = 16.dp, bottom = 60.dp),
             horizontalArrangement = Arrangement.spacedBy(26.dp),
             verticalArrangement = Arrangement.spacedBy(30.dp),
