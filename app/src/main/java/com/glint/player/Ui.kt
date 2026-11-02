@@ -504,7 +504,7 @@ fun PosterCard(item: Item, width: Dp = 160.dp, wanted: String? = null, onLongCli
             onFocus = { onFocus(item) },
             onLongClick = onLongClick?.let { { it(item) } },
             onClick = { onClick(item) },
-        ) {
+        ) { focused ->
             Poster(item.poster, item.title, Modifier.fillMaxSize())
             if (s.watchedIndicators) when (item) {
                 is Item.MovieItem -> {
@@ -517,6 +517,8 @@ fun PosterCard(item: Item, width: Dp = 160.dp, wanted: String? = null, onLongCli
                 is Item.ShowItem -> if (item.show.episodes.any { progress[it.id]?.watched != true }) UnwatchedCorner(Modifier.align(Alignment.TopEnd))
                 else -> {}
             }
+            // The selected poster wears the theme colour, so it's easy to find on a busy page.
+            if (focused) Box(Modifier.matchParentSize().border(4.dp, Palette.Accent, RoundedCornerShape(12.dp)))
         }
         if (s.showPosterTitles) Caption(if (s.showFilenames) fileTitle(item) else item.title, subtitle(item), hasFocus, width)
     }
