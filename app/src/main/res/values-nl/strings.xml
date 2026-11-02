@@ -429,5 +429,5 @@
     <string name="hud_buffer_good">Goed</string>
     <string name="hud_buffer_low">Laag</string>
     <string name="poster_frame">Posterkader</string>
-    <string name="poster_frame_sub">Een kader in de themakleur rond de geselecteerde poster</string>
+    <string name="poster_frame_sub">Een kader in de themakleur rond de geselecteerde poster, aflevering of castfoto</string>
 </resources>

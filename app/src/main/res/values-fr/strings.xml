@@ -429,5 +429,5 @@
     <string name="hud_buffer_good">Bon</string>
     <string name="hud_buffer_low">Faible</string>
     <string name="poster_frame">Cadre de l\'affiche</string>
-    <string name="poster_frame_sub">Un cadre de la couleur du thème autour de l\'affiche sélectionnée</string>
+    <string name="poster_frame_sub">Un cadre de la couleur du thème autour de l\'affiche, de l\'épisode ou de la photo sélectionnés</string>
 </resources>

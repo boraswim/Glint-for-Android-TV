@@ -526,7 +526,7 @@ fun PosterCard(item: Item, width: Dp = 160.dp, wanted: String? = null, onLongCli
 
 /** Landscape card: watching, up next, episodes, other videos. */
 @Composable
-fun WideCard(item: Item, width: Dp = 330.dp, wanted: String? = null, label: String? = null, captionOnFocus: Boolean = false, corner: Dp = 12.dp, onLongClick: ((Item) -> Unit)? = null, onFocus: (Item) -> Unit, onClick: (Item) -> Unit) {
+fun WideCard(item: Item, width: Dp = 330.dp, wanted: String? = null, label: String? = null, captionOnFocus: Boolean = false, corner: Dp = 12.dp, frame: Boolean = false, onLongClick: ((Item) -> Unit)? = null, onFocus: (Item) -> Unit, onClick: (Item) -> Unit) {
     val all by App.library.progress.collectAsState()
     val p = all[item.id]
     var hasFocus by remember { mutableStateOf(false) }
@@ -537,9 +537,10 @@ fun WideCard(item: Item, width: Dp = 330.dp, wanted: String? = null, label: Stri
             onFocus = { onFocus(item) },
             onLongClick = onLongClick?.let { { it(item) } },
             onClick = { onClick(item) },
-        ) {
+        ) { focused ->
             Poster(item.backdrop ?: item.poster, item.title, Modifier.fillMaxSize())
             if (p?.inProgress == true) ProgressLine(p.fraction, Modifier.align(Alignment.BottomCenter))
+            if (focused && frame) Box(Modifier.matchParentSize().border(4.dp, Palette.Accent, RoundedCornerShape(corner)))
         }
         // The year (or episode line) a touch heavier under these wide cards, where it sits below a big title.
         // captionOnFocus (Home's Watching row): only the selected card shows it; the others keep its room.

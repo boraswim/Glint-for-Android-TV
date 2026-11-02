@@ -263,11 +263,12 @@ private fun CastRow(nav: Nav, cast: List<Person>, director: String = "") {
     Box(Modifier.bringIntoViewRequester(whole)) { Shelf(stringResource(R.string.cast_crew), row) {
         items(people) { p ->
             Column(Modifier.width(152.dp)) {
-                FocusCard((if (p.name == back) Modifier.focusRequester(backFocus) else Modifier).size(152.dp, 162.dp), shape = RoundedCornerShape(22.dp), onFocus = { scope.launch { whole.bringIntoView() } }, onLongClick = { App.library.pin(Pin("actor:${p.name}", p.name, row = true)) }, onClick = { nav.openedPerson = here to p.name; nav.push(Screen.PersonPage(p.name, p.id, p.photo)) }) {
+                FocusCard((if (p.name == back) Modifier.focusRequester(backFocus) else Modifier).size(152.dp, 162.dp), shape = RoundedCornerShape(22.dp), onFocus = { scope.launch { whole.bringIntoView() } }, onLongClick = { App.library.pin(Pin("actor:${p.name}", p.name, row = true)) }, onClick = { nav.openedPerson = here to p.name; nav.push(Screen.PersonPage(p.name, p.id, p.photo)) }) { focused ->
                     Box(Modifier.fillMaxSize().background(Color(0xFF3A3D43)), contentAlignment = Alignment.Center) {
                         Txt(p.name.split(' ').mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString(""), Type.Title)
                         if (p.photo != null) AsyncImage(p.photo, p.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                     }
+                    if (focused && App.library.settings.posterFrame) Box(Modifier.matchParentSize().border(4.dp, Palette.Accent, RoundedCornerShape(22.dp)))
                 }
                 Gap(14.dp)
                 Txt(p.name, Type.Heading.copy(color = Palette.Text, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, lineHeight = 21.sp), maxLines = 2)
@@ -629,7 +630,7 @@ fun ShowDetailScreen(nav: Nav, key: String, openSeason: Int? = null) {
                     val hide = lib.settings.hideSpoilers && progress[e.id]?.watched != true
                     val card = if (hide) item.copy(episode = e.copy(still = null)) else item
                     WideCard(
-                        card, width = 300.dp, wanted = if (lib.settings.autoSelectNext) next.id else nav.focused(screen),
+                        card, width = 300.dp, wanted = if (lib.settings.autoSelectNext) next.id else nav.focused(screen), frame = lib.settings.posterFrame,
                         label = "E${e.number}" + if (e.title.isNotBlank()) " - ${e.title}" else "",
                         onLongClick = { lib.setWatched(listOf(e.id), progress[e.id]?.watched != true) },
                         onFocus = { focused = e; nav.remember(screen, e.id) },
