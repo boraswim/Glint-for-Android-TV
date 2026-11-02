@@ -603,15 +603,16 @@ fun ShowDetailScreen(nav: Nav, key: String, openSeason: Int? = null) {
                     watched = allWatched, onWatched = { lib.setWatched(episodes.map { it.id }, !allWatched) },
                     listed = key in user.watchlist, onList = { lib.toggleWatchlist(key) },
                     stars = stars, onRate = { rating = true }, onCollect = { adding = key }, onMore = { more = true },
+                    hero = true,
                 )
                 Gap(16.dp)
-                Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     val resume = np?.inProgress == true
-                    PillButton(
+                    HeroButton(
                         if (resume) stringResource(R.string.resume_long, longClock(np!!.position)) else stringResource(R.string.play_episode, "S${next.season} • E${next.number}"),
-                        (if (nav.focused(screen) == null) FocusFirst() else Modifier).width(280.dp), primary = true, fill = if (resume) np!!.fraction else 0f,
+                        if (nav.focused(screen) == null) FocusFirst() else Modifier, primary = true, fill = if (resume) np!!.fraction else 0f,
                     ) { play(nav, Item.EpisodeItem(show, next)) }
-                    if (trailer != null) PillButton(stringResource(R.string.trailer), Modifier.width(260.dp)) { openTrailer(ctx, trailer) }
+                    if (trailer != null) HeroButton(stringResource(R.string.trailer)) { openTrailer(ctx, trailer) }
                 }
             }
             Gap(26.dp)
