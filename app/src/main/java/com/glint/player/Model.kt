@@ -18,7 +18,6 @@ data class Source(
     // Per-share options.
     val autoScan: Boolean = true,          // rescan when the app starts
     val precacheDetails: Boolean = true,   // look titles up on TMDB while scanning, not when first opened
-    val precacheArtwork: Boolean = false,  // download posters and backdrops while scanning
     val smartFolders: Boolean = true,      // a folder holding one film opens that film
     /** SMB only: "" lets client and server agree (newest both speak); "2.0", "2.1", "3.0" fix the version. */
     val smbVersion: String = "",

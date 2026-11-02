@@ -187,8 +187,6 @@ fun EditSourceScreen(nav: Nav, id: String?) {
     fun draft(share: String = existing?.share ?: "") = Source(
         existing?.id ?: "", name.ifBlank { host }, host.trim(), if (type == "nfs") export.trim() else if (type == "smb") share else "",
         folder.trim('/', ' '), user.trim(), password, "", type,
-        // A new share joins the others if they all pre-cache artwork.
-        precacheArtwork = existing?.precacheArtwork ?: lib.sources.value.let { all -> all.isNotEmpty() && all.all { it.precacheArtwork } },
     )
 
     LaunchedEffect(browse) {
@@ -380,10 +378,6 @@ private fun ShareOptions(id: String) {
         OnOffRow(stringResource(R.string.precache_details), src.precacheDetails, sub = stringResource(R.string.precache_details_sub)) { v ->
             lib.saveSource(src.copy(precacheDetails = v))
             if (v) lib.scanAll()   // turned on: look everything up now
-        }
-        OnOffRow(stringResource(R.string.precache_artwork), src.precacheArtwork, sub = stringResource(R.string.precache_artwork_sub)) { v ->
-            lib.saveSource(src.copy(precacheArtwork = v))
-            if (v) lib.scanAll()
         }
         OnOffRow(stringResource(R.string.smart_folders), src.smartFolders, sub = stringResource(R.string.smart_folders_sub)) { v -> lib.saveSource(src.copy(smartFolders = v)) }
         // Pick the SMB version for NAS boxes that stutter on what they and the TV agree on.

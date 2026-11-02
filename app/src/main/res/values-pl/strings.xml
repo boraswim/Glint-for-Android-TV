@@ -335,7 +335,6 @@
     <string name="precache_details_sub">Pobiera tytuły, opisy i plakaty podczas skanowania. Gdy wyłączone, są pobierane przy pierwszym otwarciu folderu.</string>
     <string name="precache_artwork">Wczytuj grafiki z wyprzedzeniem</string>
     <string name="precache_artwork_sub">Pobiera wszystkie plakaty i tła po skanowaniu, aby biblioteka otwierała się bez czekania.</string>
-    <string name="precache_artwork_all_sub">Dla wszystkich udziałów naraz. Teraz włączone dla %1$d z %2$d.</string>
     <string name="allowed_tv_ratings">Dozwolone kategorie TV</string>
     <string name="same_as_movies">Jak dla filmów</string>
     <string name="lock_search">Zablokuj wyszukiwanie</string>

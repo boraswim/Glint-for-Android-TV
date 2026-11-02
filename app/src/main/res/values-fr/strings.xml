@@ -335,7 +335,6 @@
     <string name="precache_details_sub">Récupère titres, résumés et affiches pendant l\'analyse. Désactivé, ils sont récupérés la première fois que vous ouvrez un dossier.</string>
     <string name="precache_artwork">Précharger les visuels</string>
     <string name="precache_artwork_sub">Télécharge toutes les affiches et arrière-plans après une analyse pour que la médiathèque s\'ouvre sans attendre.</string>
-    <string name="precache_artwork_all_sub">Pour tous les partages à la fois. Actuellement activé sur %1$d partages sur %2$d.</string>
     <string name="allowed_tv_ratings">Classifications TV autorisées</string>
     <string name="same_as_movies">Comme pour les films</string>
     <string name="lock_search">Verrouiller la recherche</string>

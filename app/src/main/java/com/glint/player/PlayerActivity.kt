@@ -333,6 +333,7 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        lib.playerShown(true)
         player.attachViews(videoLayout, null, true, false)
         player.videoScale = vlcScale(scale)   // keep the viewer's choice when coming back
         if (decoderLost) { decoderLost = false; exo?.player?.prepare() }
@@ -342,6 +343,7 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
+        lib.playerShown(false)
         saveProgress(force = true)
         lib.flush()
         modeResume?.cancel()

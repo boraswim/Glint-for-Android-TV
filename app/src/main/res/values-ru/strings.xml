@@ -335,7 +335,6 @@
     <string name="precache_details_sub">Загружает названия, описания и постеры во время сканирования. Если выключено, они загружаются при первом открытии папки.</string>
     <string name="precache_artwork">Заранее загружать изображения</string>
     <string name="precache_artwork_sub">Скачивает все постеры и фоны после сканирования, чтобы медиатека открывалась без ожидания.</string>
-    <string name="precache_artwork_all_sub">Сразу для всех сетевых папок. Сейчас включено для %1$d из %2$d.</string>
     <string name="allowed_tv_ratings">Разрешённые рейтинги ТВ</string>
     <string name="same_as_movies">Как у фильмов</string>
     <string name="lock_search">Заблокировать поиск</string>

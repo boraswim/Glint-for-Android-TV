@@ -272,11 +272,6 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                             }
                         }
                         OnOffRow(stringResource(R.string.poster_frame), s.posterFrame, sub = stringResource(R.string.poster_frame_sub)) { v -> change { s.posterFrame = v } }
-                        val shares by lib.sources.collectAsState()
-                        if (shares.isNotEmpty()) OnOffRow(
-                            stringResource(R.string.precache_artwork), shares.all { it.precacheArtwork },
-                            sub = stringResource(R.string.precache_artwork_all_sub, shares.count { it.precacheArtwork }, shares.size),
-                        ) { v -> lib.setPrecacheArtwork(v) }
                         val ctx = androidx.compose.ui.platform.LocalContext.current
                         ChoiceRow(stringResource(R.string.app_logo), listOf(false to stringResource(R.string.app_logo_black), true to stringResource(R.string.app_logo_white)), AppLogo.isWhite(ctx), sub = stringResource(R.string.app_logo_sub)) { white ->
                             change { AppLogo.set(ctx, white) }
@@ -323,6 +318,7 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         OnOffRow(stringResource(R.string.show_logos), s.showLogos, FocusFirst()) { v -> change { s.showLogos = v } }
                         OnOffRow(stringResource(R.string.prefer_local_metadata), s.preferLocalMetadata, sub = stringResource(R.string.prefer_local_metadata_sub)) { v -> change { s.preferLocalMetadata = v } }
+                        OnOffRow(stringResource(R.string.precache_artwork), s.precacheArtwork, sub = stringResource(R.string.precache_artwork_sub)) { v -> change { lib.setPrecacheArtwork(v) } }
                         OnOffRow(stringResource(R.string.show_ratings), s.showRatings) { v -> change { s.showRatings = v } }
                         // The viewer's own keys: TMDB for details, artwork and trailers; OMDb for IMDb and Rotten Tomatoes.
                         TmdbKeyField()

@@ -122,6 +122,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val lib = App.library
         if (lib.sources.value.isNotEmpty() && System.currentTimeMillis() - lib.data.value.scannedAt > 6 * 3600_000L) lib.scanAll(auto = true)
+        else lib.resumePrecache()
         setContent {
             val nav = remember {
                 Nav().apply {

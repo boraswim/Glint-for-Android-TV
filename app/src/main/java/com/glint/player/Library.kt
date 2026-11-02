@@ -14,6 +14,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.Locale
@@ -165,12 +166,19 @@ class Library(private val context: Context) {
         return src
     }
 
-    /** Pre-Cache Artwork for every share at once; when switched on, it starts right away instead of at the next scan. */
+    /** Pre-Cache Artwork; when switched on, it starts right away instead of at the next scan. */
     fun setPrecacheArtwork(on: Boolean) {
-        _sources.value = _sources.value.map { it.copy(precacheArtwork = on) }
-        store("sources.json", _sources.value)
+        settings.precacheArtwork = on
         if (on) startPrecache() else artworkJob?.cancel()
     }
+
+    /** Picks up what's left of the pictures when the app opens without a scan (new titles' or an interrupted run's). */
+    fun resumePrecache() = startPrecache()
+
+    private val playersShown = kotlinx.coroutines.flow.MutableStateFlow(0)
+
+    /** A film on screen has the network and the disks to itself: pre-caching waits until it's closed. */
+    fun playerShown(shown: Boolean) { playersShown.value += if (shown) 1 else -1 }
 
     fun removeSource(id: String) {
         _sources.value = _sources.value.filter { it.id != id }
@@ -621,11 +629,13 @@ class Library(private val context: Context) {
     }
 
     /**
-     * Pre-cache Artwork, for shares that ask for it, so grids open without waiting: each poster made ready for its grid,
-     * exactly as the cards ask for it, then the backdrops of the newest titles, as many as the image cache can keep.
+     * Pre-cache Artwork, so grids open without waiting: each poster made ready for its grid, exactly as the cards ask
+     * for it, then the backdrops of the newest titles, as many as the image cache can keep. Waits while a film plays,
+     * and stops when the box is short of space.
      */
     private suspend fun precacheArtwork(unreachable: List<String>) {
-        val wanted = _sources.value.filter { it.precacheArtwork && it.name !in unreachable }.map { it.id }.toSet()
+        if (!settings.precacheArtwork) return
+        val wanted = _sources.value.filter { it.name !in unreachable }.map { it.id }.toSet()
         if (wanted.isEmpty()) return
         val d = _data.value
         val movies = d.movies.filter { it.file.source in wanted }.sortedByDescending { it.file.added }
@@ -640,25 +650,38 @@ class Library(private val context: Context) {
             others.mapNotNull { it.backdrop ?: it.poster }.distinct().map { Triple(it, wideW, wideH) }
         val loader = coil.Coil.imageLoader(context)
         val gate = Semaphore(3)
+        // A share that fails once (a disk unplugged) is left alone for this run, not tried again for each of its pictures.
+        val down = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+        fun reachable(m: Any) = m !is NasImage || m.source !in down
+        suspend fun mayGoOn(): Boolean {
+            playersShown.first { it == 0 }
+            return context.cacheDir.usableSpace >= MIN_FREE_FOR_ARTWORK
+        }
         withContext(Dispatchers.IO) {
             // Below the size the folder is trimmed to (a finished poster is about 300 KB), or each scan would make again what the last pushed out.
             val used = SizedPosterFetcher.dir(context).listFiles().orEmpty().sumOf { it.length() }
             val room = ((SizedPosterFetcher.LIMIT * 9 / 10 - used) / (300L shl 10)).coerceAtLeast(0).toInt()
             cards.filter { (m, cw, ch) -> !PosterPrefetch.made(context, m, cw, ch) }.take(room).map { (m, cw, ch) ->
-                async { gate.withPermit { PosterPrefetch.make(context, m, cw, ch) } }
+                async {
+                    gate.withPermit {
+                        if (reachable(m) && mayGoOn() && !PosterPrefetch.make(context, m, cw, ch) && m is NasImage) down += m.source
+                    }
+                }
             }.awaitAll()
             // Originals are large: all of a big library's would only push each other out of the 250 MB cache, and be fetched again every scan.
             (films + series).mapNotNull { it.backdrop }.distinct().take(60).map { img ->
                 async {
                     gate.withPermit {
                         // Small decode: only the cached download matters, not the bitmap.
-                        loader.execute(coil.request.ImageRequest.Builder(context).data(sharper(img)).size(160, 240)
+                        if (reachable(img) && mayGoOn()) loader.execute(coil.request.ImageRequest.Builder(context).data(sharper(img)).size(160, 240)
                             .memoryCachePolicy(coil.request.CachePolicy.DISABLED).build())
                     }
                 }
             }.awaitAll()
         }
     }
+
+    private val MIN_FREE_FOR_ARTWORK = 500L shl 20
 
     /** "Fix match": pins a file (or a whole series) to a TMDB id and refetches it. */
     fun rematchMovie(movie: Movie, tmdbId: Int) = scope.launch {

@@ -357,12 +357,11 @@ object PosterPrefetch {
         for (m in models) if (!made(ctx, m, w, h)) make(ctx, m, w, h)
     }
 
-    suspend fun make(ctx: android.content.Context, model: Any, w: Int, h: Int) {
+    suspend fun make(ctx: android.content.Context, model: Any, w: Int, h: Int) =
         coil.Coil.imageLoader(ctx).execute(
             coil.request.ImageRequest.Builder(ctx).data(SizedPoster(sharper(model), w, h)).size(w, h)
                 .memoryCachePolicy(coil.request.CachePolicy.DISABLED).build(),
-        )
-    }
+        ) is coil.request.SuccessResult
 }
 
 /**

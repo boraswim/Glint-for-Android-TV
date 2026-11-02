@@ -341,7 +341,6 @@
     <string name="precache_details_sub">Tarama sırasında başlık, özet ve afişleri bul. Kapalıysa bir klasörü ilk açtığınızda bulunur.</string>
     <string name="precache_artwork">Görselleri önceden al</string>
     <string name="precache_artwork_sub">Taramadan sonra tüm afiş ve arka planları indir; kütüphane beklemeden açılır.</string>
-    <string name="precache_artwork_all_sub">Tüm paylaşımlar için tek seçim. Şu an %2$d paylaşımın %1$d tanesinde açık.</string>
     <string name="allowed_tv_ratings">İzin verilen dizi sınırı</string>
     <string name="same_as_movies">Filmlerle aynı</string>
     <string name="lock_search">Aramayı kilitle</string>

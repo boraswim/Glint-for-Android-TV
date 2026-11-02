@@ -354,7 +354,6 @@
     <string name="precache_details_sub">Look up titles, plots and posters while scanning. When off, they are looked up the first time you open a folder.</string>
     <string name="precache_artwork">Pre-cache Artwork</string>
     <string name="precache_artwork_sub">Download all posters and backdrops after a scan, so the library opens without waiting.</string>
-    <string name="precache_artwork_all_sub">For all shares at once. On for %1$d of %2$d shares now.</string>
     <string name="allowed_tv_ratings">Allowed TV ratings</string>
     <string name="same_as_movies">Same as movies</string>
     <string name="lock_search">Lock Search</string>

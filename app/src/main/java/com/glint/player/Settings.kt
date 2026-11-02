@@ -56,6 +56,10 @@ class Settings(context: Context) {
         set(v) = prefs.edit().putBoolean("matchFrameRate", v).apply()
 
     /** A frame in the theme colour around the selected poster, episode or cast photo. */
+    var precacheArtwork: Boolean
+        get() = prefs.getBoolean("precacheArtwork", true)
+        set(v) = prefs.edit().putBoolean("precacheArtwork", v).apply()
+
     var posterFrame: Boolean
         get() = prefs.getBoolean("posterFrame", false)
         set(v) = prefs.edit().putBoolean("posterFrame", v).apply()
