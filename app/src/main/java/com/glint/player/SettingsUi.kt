@@ -272,6 +272,11 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                             }
                         }
                         OnOffRow(stringResource(R.string.poster_frame), s.posterFrame, sub = stringResource(R.string.poster_frame_sub)) { v -> change { s.posterFrame = v } }
+                        val shares by lib.sources.collectAsState()
+                        if (shares.isNotEmpty()) OnOffRow(
+                            stringResource(R.string.precache_artwork), shares.all { it.precacheArtwork },
+                            sub = stringResource(R.string.precache_artwork_all_sub, shares.count { it.precacheArtwork }, shares.size),
+                        ) { v -> lib.setPrecacheArtwork(v) }
                         val ctx = androidx.compose.ui.platform.LocalContext.current
                         ChoiceRow(stringResource(R.string.app_logo), listOf(false to stringResource(R.string.app_logo_black), true to stringResource(R.string.app_logo_white)), AppLogo.isWhite(ctx), sub = stringResource(R.string.app_logo_sub)) { white ->
                             change { AppLogo.set(ctx, white) }

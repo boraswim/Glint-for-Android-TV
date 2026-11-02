@@ -187,6 +187,8 @@ fun EditSourceScreen(nav: Nav, id: String?) {
     fun draft(share: String = existing?.share ?: "") = Source(
         existing?.id ?: "", name.ifBlank { host }, host.trim(), if (type == "nfs") export.trim() else if (type == "smb") share else "",
         folder.trim('/', ' '), user.trim(), password, "", type,
+        // A new share joins the others if they all pre-cache artwork.
+        precacheArtwork = existing?.precacheArtwork ?: lib.sources.value.let { all -> all.isNotEmpty() && all.all { it.precacheArtwork } },
     )
 
     LaunchedEffect(browse) {

@@ -335,6 +335,7 @@
     <string name="precache_details_sub">Titel, Inhalte und Poster schon beim Durchsuchen abrufen. Wenn aus, werden sie beim ersten Öffnen eines Ordners geladen.</string>
     <string name="precache_artwork">Bilder vorab laden</string>
     <string name="precache_artwork_sub">Alle Poster und Hintergründe nach dem Durchsuchen laden, damit die Mediathek ohne Warten öffnet.</string>
+    <string name="precache_artwork_all_sub">Für alle Freigaben auf einmal. Derzeit bei %1$d von %2$d Freigaben an.</string>
     <string name="allowed_tv_ratings">Erlaubte TV-Freigaben</string>
     <string name="same_as_movies">Wie bei Filmen</string>
     <string name="lock_search">Suche sperren</string>

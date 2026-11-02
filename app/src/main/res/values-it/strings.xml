@@ -335,6 +335,7 @@
     <string name="precache_details_sub">Cerca titoli, trame e poster durante la scansione. Se disattivato, vengono cercati la prima volta che apri una cartella.</string>
     <string name="precache_artwork">Precarica immagini</string>
     <string name="precache_artwork_sub">Scarica tutti i poster e gli sfondi dopo la scansione, così la libreria si apre senza attese.</string>
+    <string name="precache_artwork_all_sub">Per tutte le condivisioni insieme. Ora attivo su %1$d di %2$d.</string>
     <string name="allowed_tv_ratings">Classificazioni TV consentite</string>
     <string name="same_as_movies">Come per i film</string>
     <string name="lock_search">Blocca ricerca</string>

@@ -335,6 +335,7 @@
     <string name="precache_details_sub">Busca títulos, sinopses e pôsteres durante a varredura. Desativado, eles são buscados na primeira vez que você abre uma pasta.</string>
     <string name="precache_artwork">Pré-carregar imagens</string>
     <string name="precache_artwork_sub">Baixa todos os pôsteres e fundos após a varredura, para a biblioteca abrir sem espera.</string>
+    <string name="precache_artwork_all_sub">Para todos os compartilhamentos de uma vez. Agora ativado em %1$d de %2$d.</string>
     <string name="allowed_tv_ratings">Classificações de TV permitidas</string>
     <string name="same_as_movies">Igual aos filmes</string>
     <string name="lock_search">Bloquear busca</string>

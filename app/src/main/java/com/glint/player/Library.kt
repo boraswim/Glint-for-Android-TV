@@ -158,10 +158,18 @@ class Library(private val context: Context) {
 
     fun saveSource(s: Source): Source {
         val src = if (s.id.isEmpty()) s.copy(id = UUID.randomUUID().toString().take(8)) else s
-        _sources.value = _sources.value.filter { it.id != src.id } + src
+        // An edited share keeps its place in the list.
+        _sources.value = if (_sources.value.any { it.id == src.id }) _sources.value.map { if (it.id == src.id) src else it } else _sources.value + src
         Fs.forget(src)
         store("sources.json", _sources.value)
         return src
+    }
+
+    /** Pre-Cache Artwork for every share at once; when switched on, it starts right away instead of at the next scan. */
+    fun setPrecacheArtwork(on: Boolean) {
+        _sources.value = _sources.value.map { it.copy(precacheArtwork = on) }
+        store("sources.json", _sources.value)
+        if (on) startPrecache() else artworkJob?.cancel()
     }
 
     fun removeSource(id: String) {

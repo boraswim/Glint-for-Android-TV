@@ -335,6 +335,7 @@
     <string name="precache_details_sub">Zoekt titels, samenvattingen en posters op tijdens het scannen. Uit: ze worden opgezocht als je een map voor het eerst opent.</string>
     <string name="precache_artwork">Afbeeldingen vooraf laden</string>
     <string name="precache_artwork_sub">Downloadt alle posters en achtergronden na een scan, zodat de bibliotheek zonder wachten opent.</string>
+    <string name="precache_artwork_all_sub">Voor alle shares tegelijk. Nu aan voor %1$d van %2$d shares.</string>
     <string name="allowed_tv_ratings">Toegestane tv-classificaties</string>
     <string name="same_as_movies">Zelfde als films</string>
     <string name="lock_search">Zoeken vergrendelen</string>
