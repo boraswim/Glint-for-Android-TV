@@ -1197,6 +1197,8 @@ class PlayerActivity : ComponentActivity() {
         if (mode == 0) { skipKind = null; return }
         val i = chapters.indexOfLast { it.second <= position }
         val name = chapters.getOrNull(i)?.first.orEmpty()
+        // A skipped chapter is skipped once: coming back into it (rewound, or a chapter back) offers the button again.
+        if (skippedChapter >= 0 && i != skippedChapter) skippedChapter = -1
         val fromChapter = when {
             chapters.size < 2 || i < 0 || i == skippedChapter -> null
             INTRO.containsMatchIn(name) -> R.string.skip_intro
