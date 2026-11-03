@@ -199,7 +199,7 @@ class PlayerActivity : ComponentActivity() {
             // Media3 takes its subtitle files when the film opens: reopen it where it is, now with this one, and pick it.
             val (src, share, path) = playingFrom ?: return
             pickLastSubtitle = true
-            e.load(src, share, path, subtitleFiles, subtitleFiles.map { subtitleLabel(it) }, now?.file?.dubs.orEmpty(), position)
+            e.load(src, share, path, subtitleFiles, subtitleFiles.map { subtitleLabel(it) }, now?.file?.dubs.orEmpty(), position, subtitleFiles.map { sidecarCode(it) })
         } else {
             player.addSlave(IMedia.Slave.Type.Subtitle, Uri.fromFile(copy), true)
         }
@@ -476,7 +476,7 @@ class PlayerActivity : ComponentActivity() {
             resumeAt = start
             useExo(DolbyVision.shouldUse(this@PlayerActivity, src, now?.file))
             exo?.let { e ->
-                e.load(src, share, path, subs, subs.map { subtitleLabel(it) }, dubs, start)
+                e.load(src, share, path, subs, subs.map { subtitleLabel(it) }, dubs, start, subs.map { sidecarCode(it) })
                 startTicker()
                 // Media3 doesn't give MKV chapters; read them from the file for the chapter list and skipping.
                 exoChapters = withContext(Dispatchers.IO) { runCatching { MkvChapters.read(src, share, path) }.getOrDefault(emptyList()) }
@@ -621,20 +621,12 @@ class PlayerActivity : ComponentActivity() {
 
     private fun subtitleLabel(f: File) = when {
         isDubSubtitle(f) -> getString(if (isForced(f)) R.string.dub_subtitle_forced else R.string.dub_subtitle)
-        else -> getString(R.string.external_subtitle, sidecarLanguage(f.name) ?: f.name.substringAfter('-').substringBeforeLast('.'))
+        else -> getString(R.string.external_subtitle, sidecarCode(f)?.let(::languageOf) ?: f.name.substringAfter('-').substringBeforeLast('.'))
     }
 
-    /** The language a sidecar subtitle's name gives ("Film.2013.tr.srt", "…Turkish.srt"), or null. */
-    private fun sidecarLanguage(name: String): String? {
-        val words = mapOf("turkish" to "tr", "turkce" to "tr", "türkçe" to "tr", "english" to "en", "german" to "de", "french" to "fr", "spanish" to "es", "italian" to "it")
-        val tokens = name.substringBeforeLast('.').lowercase(Locale.ROOT).split('.', '_', '-', ' ', '[', ']', '(', ')').filter { it.isNotBlank() }
-        for (t in tokens.asReversed()) {
-            val code = words[t] ?: t.takeIf { it.length in 2..3 && it.all(Char::isLetter) } ?: continue
-            val lang = languageOf(code)
-            if (lang.isNotBlank() && !lang.equals(code, true)) return lang
-        }
-        return null
-    }
+    /** The language code an added subtitle file's name gives ("Film.2013.tr.srt" → "tr"), or null; see [sidecarLanguageCode]. */
+    private fun sidecarCode(f: File): String? =
+        sidecarLanguageCode(f.name.substringAfter('-'), playingFrom?.third?.substringAfterLast('/')?.substringBeforeLast('.'))
 
     private fun refreshTracks() {
         exo?.let { e ->
@@ -713,8 +705,7 @@ class PlayerActivity : ComponentActivity() {
     private fun languageOf(code: String?): String {
         val c = code?.trim()?.lowercase(Locale.ROOT).orEmpty()
         if (c.isEmpty() || c == "und") return ""
-        val bibliographic = mapOf("ger" to "de", "fre" to "fr", "dut" to "nl", "chi" to "zh", "cze" to "cs", "gre" to "el", "rum" to "ro", "per" to "fa", "slo" to "sk", "alb" to "sq", "arm" to "hy", "ice" to "is", "mac" to "mk", "may" to "ms", "wel" to "cy", "geo" to "ka", "baq" to "eu", "bur" to "my")
-        val two = bibliographic[c] ?: if (c.length == 3) Locale.getAvailableLocales().firstOrNull { runCatching { it.isO3Language }.getOrNull() == c }?.language ?: c else c
+        val two = BIBLIOGRAPHIC[c] ?: if (c.length == 3) Locale.getAvailableLocales().firstOrNull { runCatching { it.isO3Language }.getOrNull() == c }?.language ?: c else c
         return Locale(two).getDisplayLanguage(Locale.getDefault()).replaceFirstChar { it.titlecase(Locale.getDefault()) }.ifBlank { c }
     }
 
@@ -775,14 +766,16 @@ class PlayerActivity : ComponentActivity() {
             val text = tracks.filter { it.type == IMedia.Track.Type.Text }
             fun forcedTrack(t: IMedia.Track) = (t.description ?: "").contains("forced", true) ||
                 subtitleTracks.firstOrNull { it.id == t.id }?.label?.contains("forced", true) == true
-            val sidecars = spuIds.drop(embedded).filterIndexed { i, _ -> subtitleFiles.getOrNull(i)?.let { !isForced(it) } != false }
+            // Files next to the film: one named for the language wanted first, then one naming none; never another language's.
+            val sidecars = spuIds.drop(embedded).mapIndexedNotNull { i, id -> subtitleFiles.getOrNull(i)?.takeIf { !isForced(it) }?.let { id to sidecarCode(it) } }
+            val sidecar = (sidecars.firstOrNull { (_, code) -> code != null && iso3(lang).contains(code) } ?: sidecars.firstOrNull { it.second == null })?.first
             val wanted = when {
                 lang.isEmpty() -> null
                 // Already listening in that language: only forced subtitles, below.
                 audioLang != null && iso3(lang).contains(audioLang.lowercase(Locale.ROOT)) -> null
                 else -> text.firstOrNull { matches(it, lang) && !forcedTrack(it) }?.id
                     ?: text.firstOrNull { matches(it, lang) }?.id
-                    ?: sidecars.firstOrNull()
+                    ?: sidecar
             }
             // Forced subtitles (signs, lines in another language) in the language being listened to,
             // even with subtitles off. A track without a language tag counts as a match.
@@ -829,7 +822,8 @@ class PlayerActivity : ComponentActivity() {
                 audioLang != null && audioLang in iso3(want) -> null
                 else -> text.firstOrNull { lang(it)?.let { l -> l in iso3(want) } == true && !e.isForced(it) }
                     ?: text.firstOrNull { lang(it)?.let { l -> l in iso3(want) } == true }
-                    ?: text.firstOrNull { e.isSidecar(it) && !e.isForced(it) }
+                    // Files next to the film carry the language their names give, so those match above; one naming none comes next.
+                    ?: text.firstOrNull { e.isSidecar(it) && !e.isForced(it) && lang(it).let { l -> l == null || l == "und" } }
             }
             val forced = if (pick != null || !lib.settings.forcedSubtitles) null
             else text.firstOrNull { e.isForced(it) && (lang(it) == null || lang(it) == "und" || lang(it) == audioLang) }

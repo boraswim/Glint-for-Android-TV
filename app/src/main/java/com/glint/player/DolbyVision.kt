@@ -256,7 +256,7 @@ class ExoPlayback(private val a: PlayerActivity) {
         })
     }
 
-    fun load(src: Source, share: String, path: String, subs: List<File>, subLabels: List<String>, dubs: List<DubFile>, startMs: Long) {
+    fun load(src: Source, share: String, path: String, subs: List<File>, subLabels: List<String>, dubs: List<DubFile>, startMs: Long, subLanguages: List<String?> = emptyList()) {
         measuredFps = null; measureAgain = true
         factory.subtitleOffsetUs = 0
         subtitleLabels = subs.mapIndexed { i, _ -> "sub$i" to subLabels.getOrElse(i) { "" } }
@@ -264,7 +264,7 @@ class ExoPlayback(private val a: PlayerActivity) {
             .setUri(SmbDataSource.uri(src, share, path))
             .setSubtitleConfigurations(subs.mapIndexed { i, f ->
                 MediaItem.SubtitleConfiguration.Builder(Uri.fromFile(f))
-                    .setId("sub$i").setLabel(subLabels.getOrNull(i)).setMimeType(subtitleMime(f.name))
+                    .setId("sub$i").setLabel(subLabels.getOrNull(i)).setMimeType(subtitleMime(f.name)).setLanguage(subLanguages.getOrNull(i))
                     .setSelectionFlags(if (Regex("(?i)forced|zorunlu").containsMatchIn(f.name)) C.SELECTION_FLAG_FORCED else 0)
                     .build()
             })
