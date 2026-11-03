@@ -1162,6 +1162,9 @@ class PlayerActivity : ComponentActivity() {
     // ---- skip intros & credits (from chapter names, or an intro the viewer marked for the series) ----
 
     var skipKind by mutableStateOf<Int?>(null)   // string resource of the button, null when nothing to skip
+    // The button stays for 10 seconds on screen, enough to decide; after that OK pauses again, as anywhere else.
+    var skipShown by mutableStateOf(false)
+    private var skipHideJob: Job? = null
     private var skipTarget = 0L
     private var skippedChapter = -1
     private var skippedMarked = false
@@ -1206,6 +1209,14 @@ class PlayerActivity : ComponentActivity() {
         val kind = fromChapter ?: marked?.let { R.string.skip_intro }
         if (kind == skipKind) return
         skipKind = kind
+        skipHideJob?.cancel()
+        skipShown = kind != null
+        // Counted only while it's actually showing: not while paused, or under the controls or a panel.
+        if (kind != null) skipHideJob = lifecycleScope.launch {
+            var left = 10_000
+            while (left > 0) { delay(250); if (playing && !controls && !panel && upNext == null) left -= 250 }
+            skipShown = false
+        }
         skipTarget = if (fromChapter != null) chapters.getOrNull(i + 1)?.second ?: duration else marked?.second ?: 0L
         autoSkipJob?.cancel()
         if (kind != null && mode >= 2) autoSkipJob = lifecycleScope.launch { if (mode == 2) delay(3000); doSkip() }
@@ -1216,6 +1227,7 @@ class PlayerActivity : ComponentActivity() {
         if (markedIntro?.second == target) skippedMarked = true
         else skippedChapter = chapters.indexOfLast { it.second <= position }
         skipKind = null
+        skipHideJob?.cancel(); skipShown = false
         autoSkipJob?.cancel()
         if (target >= duration - 1000) onEnded() else { seekPlayback(target); position = target }
     }
@@ -1277,7 +1289,7 @@ class PlayerActivity : ComponentActivity() {
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_HEADSETHOOK -> if (event.repeatCount == 0) {
                 when {
                     seekTarget != null -> commitSeek()
-                    skipKind != null && !controls && !paused -> doSkip()
+                    skipKind != null && skipShown && !controls && !paused -> doSkip()
                     else -> togglePause()
                 }
             }
