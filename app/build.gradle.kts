@@ -23,8 +23,8 @@ android {
         applicationId = "com.glint.player"
         minSdk = 24
         targetSdk = 36
-        versionCode = 10
-        versionName = "1.7.0"
+        versionCode = 11
+        versionName = "1.7.1"
         // Mi Box S is 32-bit ARM; arm64 covers newer boxes. Skipping x86 keeps libVLC's size down.
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
         // -PglintTest builds "Glint Test", which installs beside the Play version instead of replacing it.
