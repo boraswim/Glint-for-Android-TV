@@ -264,6 +264,10 @@ class PlayerActivity : ComponentActivity() {
     private var tickJob: Job? = null
     private var upNextJob: Job? = null
     private var tracksApplied = false
+    // Picked by the viewer in the menu (or kept from an earlier pick): only these are remembered for the file; the
+    // rest follows the language settings each time.
+    private var audioChosen = false
+    private var subtitleChosen = false
     private var externalSubs = 0
     private var subtitleFiles: List<File> = emptyList()   // our added subtitle files, in the order added
     private var dubLabels: List<String> = emptyList()     // names for the dub audio tracks, in the order added
@@ -438,7 +442,7 @@ class PlayerActivity : ComponentActivity() {
 
     fun load(key: String, fromStart: Boolean) {
         upNextJob?.cancel(); upNext = null
-        error = null; tracksApplied = false; modeSwitched = false; declaredFps = null; modeResume?.cancel(); paused = false
+        error = null; tracksApplied = false; audioChosen = false; subtitleChosen = false; modeSwitched = false; declaredFps = null; modeResume?.cancel(); paused = false
         hud = lib.settings.playbackStats; sampledAt = 0; flowMbps = 0.0; peakMbps = 0.0; netMbps = 0.0; flowSamples = 0; shownFps = 0.0; sampledShown = 0; shownWindow.clear()
         muxer = null; muxerAsked = false
         position = 0; duration = 0; resumeAt = 0; chapters = emptyList(); exoChapters = emptyList(); techInfo = emptyList()
@@ -751,19 +755,19 @@ class PlayerActivity : ComponentActivity() {
             return listOf(l.getDisplayLanguage(Locale.ENGLISH), l.getDisplayLanguage(l), l.displayLanguage).any { it.isNotEmpty() && name.contains(it.lowercase()) }
         }
 
-        if (saved != null && saved.audioTrack != -2 && audioTracks.any { it.id == saved.audioTrack }) player.audioTrack = saved.audioTrack
+        if (saved != null && saved.audioTrack != -2 && audioTracks.any { it.id == saved.audioTrack }) { player.audioTrack = saved.audioTrack; audioChosen = true }
         else {
             val lang = lib.settings.audioLanguage
             val inFile = tracks.firstOrNull { it.type == IMedia.Track.Type.Audio && matches(it, lang) }
             when {
                 inFile != null -> player.audioTrack = inFile.id
                 // The dubs on the NAS are Turkish; use one when Turkish is wanted and the file has none.
-                dubIds.isNotEmpty() && "tur" in iso3(lang) -> chooseAudio(dubIds.first())
+                dubIds.isNotEmpty() && "tur" in iso3(lang) -> chooseAudio(dubIds.first(), byViewer = false)
             }
         }
 
         if (saved != null && saved.subtitleTrack != -2) {
-            if (saved.subtitleTrack == -1 || spuIds.contains(saved.subtitleTrack)) player.spuTrack = saved.subtitleTrack
+            if (saved.subtitleTrack == -1 || spuIds.contains(saved.subtitleTrack)) { player.spuTrack = saved.subtitleTrack; subtitleChosen = true }
         } else {
             val pref = lib.settings.subtitleLanguage
             val lang = if (pref == "auto") AppLanguage.system.language else pref
@@ -801,21 +805,24 @@ class PlayerActivity : ComponentActivity() {
         val textType = androidx.media3.common.C.TRACK_TYPE_TEXT
         fun lang(id: Int) = e.format(id)?.language?.lowercase(Locale.ROOT)
         val saved = lib.progressOf(n.key)
-        if (saved != null && saved.audioTrack != -2 && audioTracks.any { it.id == saved.audioTrack }) e.select(audioType, saved.audioTrack)
+        // The track picked here: Media3 reports a new selection only once the player has applied it, a moment later.
+        var audioPick = -2
+        if (saved != null && saved.audioTrack != -2 && audioTracks.any { it.id == saved.audioTrack }) { e.select(audioType, saved.audioTrack); audioChosen = true; audioPick = saved.audioTrack }
         else {
             val want = lib.settings.audioLanguage
             val inFile = audioTracks.firstOrNull { it.id !in dubIds && want.isNotEmpty() && lang(it.id)?.let { l -> l in iso3(want) } == true }
             when {
-                inFile != null -> e.select(audioType, inFile.id)
-                dubIds.isNotEmpty() && "tur" in iso3(want) -> chooseAudio(dubIds.first())
+                inFile != null -> { e.select(audioType, inFile.id); audioPick = inFile.id }
+                dubIds.isNotEmpty() && "tur" in iso3(want) -> { chooseAudio(dubIds.first(), byViewer = false); audioPick = dubIds.first() }
             }
         }
         if (saved != null && saved.subtitleTrack != -2) {
-            if (saved.subtitleTrack == -1 || subtitleTracks.any { it.id == saved.subtitleTrack }) e.select(textType, saved.subtitleTrack)
+            if (saved.subtitleTrack == -1 || subtitleTracks.any { it.id == saved.subtitleTrack }) { e.select(textType, saved.subtitleTrack); subtitleChosen = true }
         } else {
             val pref = lib.settings.subtitleLanguage
             val want = if (pref == "auto") AppLanguage.system.language else pref
-            val audioLang = lang(e.selected(audioType))
+            // The dubs on the NAS are Turkish.
+            val audioLang = if (audioPick in dubIds) "tr" else lang(if (audioPick != -2) audioPick else e.selected(audioType))
             val text = subtitleTracks.map { it.id }
             val pick = when {
                 want.isEmpty() -> null
@@ -1049,16 +1056,20 @@ class PlayerActivity : ComponentActivity() {
             // Closed before playback got going (no length yet, or the resume point not reached): the title still
             // moves to the front of Watching, keeping any earlier place.
             val length = ((lib.findMovie(n.key)?.runtime ?: lib.findEpisode(n.key)?.second?.runtime ?: 0) * 60_000L).coerceAtLeast(1)
-            lib.saveProgress(n.key, old?.takeIf { it.position > 0 }?.copy(updated = t) ?: Progress(1, length, t, false, audioTrack, subtitleTrack))
+            lib.saveProgress(n.key, old?.takeIf { it.position > 0 }?.copy(updated = t) ?: Progress(1, length, t, false, chosenAudio(), chosenSubtitle()))
             return
         }
         val watched = position > duration * 0.92
-        lib.saveProgress(n.key, Progress(position.coerceAtLeast(1), duration, t, watched, audioTrack, subtitleTrack))
+        lib.saveProgress(n.key, Progress(position.coerceAtLeast(1), duration, t, watched, chosenAudio(), chosenSubtitle()))
     }
+
+    private fun chosenAudio() = if (audioChosen) audioTrack else -2
+    private fun chosenSubtitle() = if (subtitleChosen) subtitleTrack else -2
 
     // ---- choices from the overlay ----
 
-    fun chooseAudio(id: Int) {
+    fun chooseAudio(id: Int, byViewer: Boolean = true) {
+        if (byViewer) audioChosen = true
         if (reopenAt != null) return     // the film is reopening for the last change; it isn't there to switch yet
         exo?.let { e -> e.select(androidx.media3.common.C.TRACK_TYPE_AUDIO, id); audioTrack = id } ?: run {
             player.audioTrack = id
@@ -1068,7 +1079,7 @@ class PlayerActivity : ComponentActivity() {
         // A dub's forced subtitles cover the lines it leaves in English, so they come on with it.
         if (id in dubIds) {
             val forced = subtitleFiles.indexOfFirst { isDubSubtitle(it) && isForced(it) }
-            spuIds.getOrNull(embeddedSubs + forced)?.takeIf { forced >= 0 }?.let { chooseSubtitle(it) }
+            spuIds.getOrNull(embeddedSubs + forced)?.takeIf { forced >= 0 }?.let { chooseSubtitle(it, byViewer = false) }
         }
         saveProgress(true)
         techInfo = buildTechInfo()
@@ -1078,7 +1089,8 @@ class PlayerActivity : ComponentActivity() {
     private fun isForced(f: File) = Regex("""(?i)forced|zorunlu""").containsMatchIn(f.name)
     /** The subtitle playing is pictures (Blu-ray PGS and the like): its size can change, its colour and lettering can't. */
     fun imageSubtitles() = exo?.imageSubtitles() == true
-    fun chooseSubtitle(id: Int) {
+    fun chooseSubtitle(id: Int, byViewer: Boolean = true) {
+        if (byViewer) subtitleChosen = true
         exo?.let { e -> e.select(androidx.media3.common.C.TRACK_TYPE_TEXT, id); subtitleTrack = id } ?: run { player.spuTrack = id; subtitleTrack = player.spuTrack }
         saveProgress(true)
     }

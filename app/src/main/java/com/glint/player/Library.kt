@@ -52,6 +52,18 @@ class Library(private val context: Context) {
     private val _visible = MutableStateFlow(visible(_data.value))
     val data: StateFlow<LibraryData> = _visible
 
+    // Before this, every save kept whatever audio and subtitles were playing as the viewer's choice for that file, so
+    // later language settings never applied to anything watched once. Those can't be told from real choices: all go, once.
+    private val autoTracksForgotten = File(dir, "tracks-v2").let { marker ->
+        if (!marker.exists()) {
+            dir.listFiles { f -> f.name.startsWith("progress") && f.name.endsWith(".json") }.orEmpty().forEach { f ->
+                store(f.name, load(f.name) { emptyMap<String, Progress>() }.mapValues { it.value.copy(audioTrack = -2, subtitleTrack = -2) })
+            }
+            marker.createNewFile()
+        }
+        true
+    }
+
     private val _progress = MutableStateFlow(load(progressFile) { emptyMap<String, Progress>() })
     val progress: StateFlow<Map<String, Progress>> = _progress
 
