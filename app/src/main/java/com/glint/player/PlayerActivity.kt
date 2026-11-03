@@ -1162,7 +1162,8 @@ class PlayerActivity : ComponentActivity() {
     // ---- skip intros & credits (from chapter names, or an intro the viewer marked for the series) ----
 
     var skipKind by mutableStateOf<Int?>(null)   // string resource of the button, null when nothing to skip
-    // The button stays for 10 seconds on screen, enough to decide; after that OK pauses again, as anywhere else.
+    // On its own the button stays for 10 seconds on screen, enough to decide; after that it comes back only with the
+    // controls, until the intro or credits end.
     var skipShown by mutableStateOf(false)
     private var skipHideJob: Job? = null
     private var skipTarget = 0L
@@ -1221,6 +1222,10 @@ class PlayerActivity : ComponentActivity() {
         autoSkipJob?.cancel()
         if (kind != null && mode >= 2) autoSkipJob = lifecycleScope.launch { if (mode == 2) delay(3000); doSkip() }
     }
+
+    /** The skip button is on screen: alone for its first 10 seconds, then whenever the controls are up (not on the track buttons). */
+    fun skipButtonShown() = skipKind != null && playing && !paused && !panel && upNext == null &&
+        if (controls) seekTarget == null && trackFocus < 0 && trackPopup < 0 else skipShown
 
     fun doSkip() {
         val target = skipTarget
@@ -1289,7 +1294,7 @@ class PlayerActivity : ComponentActivity() {
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_HEADSETHOOK -> if (event.repeatCount == 0) {
                 when {
                     seekTarget != null -> commitSeek()
-                    skipKind != null && skipShown && !controls && !paused -> doSkip()
+                    skipButtonShown() -> doSkip()
                     else -> togglePause()
                 }
             }

@@ -141,9 +141,9 @@ fun PlayerOverlay(p: PlayerActivity) {
 
         p.upNext?.let { (show, ep) -> UpNextCard(p, show, ep, Modifier.align(Alignment.BottomEnd)) }
 
-        // Skip intro / credits: OK on the remote presses it while the controls are hidden.
+        // Skip intro / credits: OK on the remote presses it. With the controls up it sits above them.
         p.skipKind?.let { kind ->
-            if (p.skipShown && !p.controls && !p.panel && p.upNext == null && p.playing) Box(Modifier.align(Alignment.BottomEnd).padding(end = 60.dp, bottom = 60.dp)) {
+            if (p.skipButtonShown()) Box(Modifier.align(Alignment.BottomEnd).padding(end = 60.dp, bottom = if (p.controls) 170.dp else 60.dp)) {
                 Box(Modifier.clip(RoundedCornerShape(30.dp)).background(Color.White).padding(horizontal = 30.dp, vertical = 14.dp)) {
                     Txt(stringResource(kind), Type.Button.copy(color = Color.Black))
                 }
