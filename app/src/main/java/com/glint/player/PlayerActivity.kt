@@ -736,57 +736,36 @@ class PlayerActivity : ComponentActivity() {
         tracksApplied = true
         val embedded = embeddedSubs
         val saved = lib.progressOf(n.key)
-        val tracks = mediaTracks()
+        val info = mediaTracks().associateBy { it.id }
         // Language from the stream's tag, or failing that from the name libVLC gives the track ("Türkçe", "[English]").
-        fun matches(t: IMedia.Track, lang: String): Boolean {
-            if (lang.isEmpty()) return false
-            if (t.language?.let { l -> iso3(lang).contains(l.lowercase(Locale.ROOT)) } == true) return true
+        fun speaks(t: TrackInfo, lang: String): Boolean {
+            if (lang.isEmpty() || t.sidecar || TrackRules.speaks(t, lang)) return TrackRules.speaks(t, lang)
             val name = (audioTracks + subtitleTracks).firstOrNull { it.id == t.id }?.label?.lowercase() ?: return false
             val l = Locale(lang)
             return listOf(l.getDisplayLanguage(Locale.ENGLISH), l.getDisplayLanguage(l), l.displayLanguage).any { it.isNotEmpty() && name.contains(it.lowercase()) }
         }
 
-        if (saved != null && saved.audioTrack != -2 && audioTracks.any { it.id == saved.audioTrack }) { player.audioTrack = saved.audioTrack; audioChosen = true }
-        else {
-            val lang = lib.settings.audioLanguage
-            val inFile = tracks.firstOrNull { it.type == IMedia.Track.Type.Audio && matches(it, lang) }
-            when {
-                inFile != null -> player.audioTrack = inFile.id
-                // The dubs on the NAS are Turkish; use one when Turkish is wanted and the file has none.
-                dubIds.isNotEmpty() && "tur" in iso3(lang) -> chooseAudio(dubIds.first(), byViewer = false)
-            }
+        val audio = audioTracks.map { TrackInfo(it.id, info[it.id]?.language, dub = it.id in dubIds) }
+        TrackRules.audio(audio, lib.settings.audioLanguage, saved?.audioTrack ?: -2, ::speaks)?.let { pick ->
+            if (pick.id in dubIds && !pick.byViewer) chooseAudio(pick.id, byViewer = false) else player.audioTrack = pick.id
+            if (pick.byViewer) audioChosen = true
         }
 
-        if (saved != null && saved.subtitleTrack != -2) {
-            if (saved.subtitleTrack == -1 || spuIds.contains(saved.subtitleTrack)) { player.spuTrack = saved.subtitleTrack; subtitleChosen = true }
-        } else {
-            val pref = lib.settings.subtitleLanguage
-            val lang = if (pref == "auto") AppLanguage.system.language else pref
-            val audioLang = tracks.firstOrNull { it.type == IMedia.Track.Type.Audio && it.id == player.audioTrack }?.language
-            val text = tracks.filter { it.type == IMedia.Track.Type.Text }
-            fun forcedTrack(t: IMedia.Track) = (t.description ?: "").contains("forced", true) ||
-                subtitleTracks.firstOrNull { it.id == t.id }?.label?.contains("forced", true) == true
-            // Files next to the film: one named for the language wanted first, then one naming none; never another language's.
-            val sidecars = spuIds.drop(embedded).mapIndexedNotNull { i, id -> subtitleFiles.getOrNull(i)?.takeIf { !isForced(it) }?.let { id to sidecarCode(it) } }
-            val sidecar = (sidecars.firstOrNull { (_, code) -> code != null && iso3(lang).contains(code) } ?: sidecars.firstOrNull { it.second == null })?.first
-            val wanted = when {
-                lang.isEmpty() -> null
-                // Already listening in that language: only forced subtitles, below.
-                audioLang != null && iso3(lang).contains(audioLang.lowercase(Locale.ROOT)) -> null
-                else -> text.firstOrNull { matches(it, lang) && !forcedTrack(it) }?.id
-                    ?: text.firstOrNull { matches(it, lang) }?.id
-                    ?: sidecar
-            }
-            // Forced subtitles (signs, lines in another language) in the language being listened to,
-            // even with subtitles off. A track without a language tag counts as a match.
-            val forced = if (wanted != null || !lib.settings.forcedSubtitles) null else {
-                val list = text.filter(::forcedTrack)
-                val audioIso = audioLang?.lowercase(Locale.ROOT)
-                (list.firstOrNull { audioIso != null && it.language?.lowercase(Locale.ROOT) == audioIso } ?: list.firstOrNull { it.language.isNullOrBlank() })?.id
-                    ?: subtitleFiles.indexOfFirst { isForced(it) && !isDubSubtitle(it) }.takeIf { it >= 0 }?.let { spuIds.getOrNull(embedded + it) }
-            }
-            player.spuTrack = wanted ?: forced ?: -1
+        fun forcedTrack(t: IMedia.Track) = (t.description ?: "").contains("forced", true) ||
+            subtitleTracks.firstOrNull { it.id == t.id }?.label?.contains("forced", true) == true
+        val subs = spuIds.mapIndexed { i, id ->
+            val file = subtitleFiles.getOrNull(i - embedded)?.takeIf { i >= embedded }
+            if (file != null) TrackInfo(id, sidecarCode(file), isForced(file), sidecar = true, dub = isDubSubtitle(file))
+            else TrackInfo(id, info[id]?.language, info[id]?.let(::forcedTrack) == true)
         }
+        val pref = lib.settings.subtitleLanguage
+        val dubPlaying = player.audioTrack in dubIds
+        // The dubs on the NAS are Turkish.
+        val audioLang = if (dubPlaying) "tr" else info[player.audioTrack]?.language
+        val sub = TrackRules.subtitle(subs, if (pref == "auto") AppLanguage.system.language else pref, audioLang, dubPlaying,
+            lib.settings.forcedSubtitles, saved?.subtitleTrack ?: -2, ::speaks)
+        player.spuTrack = sub.id
+        if (sub.byViewer) subtitleChosen = true
         audioTrack = player.audioTrack
         subtitleTrack = player.spuTrack
     }
@@ -799,44 +778,27 @@ class PlayerActivity : ComponentActivity() {
         fun lang(id: Int) = e.format(id)?.language?.lowercase(Locale.ROOT)
         val saved = lib.progressOf(n.key)
         // The track picked here: Media3 reports a new selection only once the player has applied it, a moment later.
-        var audioPick = -2
-        if (saved != null && saved.audioTrack != -2 && audioTracks.any { it.id == saved.audioTrack }) { e.select(audioType, saved.audioTrack); audioChosen = true; audioPick = saved.audioTrack }
-        else {
-            val want = lib.settings.audioLanguage
-            val inFile = audioTracks.firstOrNull { it.id !in dubIds && want.isNotEmpty() && lang(it.id)?.let { l -> l in iso3(want) } == true }
-            when {
-                inFile != null -> { e.select(audioType, inFile.id); audioPick = inFile.id }
-                dubIds.isNotEmpty() && "tur" in iso3(want) -> { chooseAudio(dubIds.first(), byViewer = false); audioPick = dubIds.first() }
-            }
+        val audio = audioTracks.map { TrackInfo(it.id, lang(it.id), dub = it.id in dubIds) }
+        val audioPick = TrackRules.audio(audio, lib.settings.audioLanguage, saved?.audioTrack ?: -2)?.also { pick ->
+            if (pick.id in dubIds && !pick.byViewer) chooseAudio(pick.id, byViewer = false) else e.select(audioType, pick.id)
+            if (pick.byViewer) audioChosen = true
+        }?.id ?: e.selected(audioType)
+        // Files next to the film carry the language their names give; "sub3" is the fourth file added.
+        val subs = subtitleTracks.map {
+            val file = e.format(it.id)?.id?.let { f -> SIDECAR_ID.find(f) }?.groupValues?.get(1)?.toIntOrNull()?.let(subtitleFiles::getOrNull)
+            TrackInfo(it.id, lang(it.id), e.isForced(it.id), e.isSidecar(it.id), dub = file != null && isDubSubtitle(file))
         }
-        if (saved != null && saved.subtitleTrack != -2) {
-            if (saved.subtitleTrack == -1 || subtitleTracks.any { it.id == saved.subtitleTrack }) { e.select(textType, saved.subtitleTrack); subtitleChosen = true }
-        } else {
-            val pref = lib.settings.subtitleLanguage
-            val want = if (pref == "auto") AppLanguage.system.language else pref
-            // The dubs on the NAS are Turkish.
-            val audioLang = if (audioPick in dubIds) "tr" else lang(if (audioPick != -2) audioPick else e.selected(audioType))
-            val text = subtitleTracks.map { it.id }
-            val pick = when {
-                want.isEmpty() -> null
-                audioLang != null && audioLang in iso3(want) -> null
-                else -> text.firstOrNull { lang(it)?.let { l -> l in iso3(want) } == true && !e.isForced(it) }
-                    ?: text.firstOrNull { lang(it)?.let { l -> l in iso3(want) } == true }
-                    // Files next to the film carry the language their names give, so those match above; one naming none comes next.
-                    ?: text.firstOrNull { e.isSidecar(it) && !e.isForced(it) && lang(it).let { l -> l == null || l == "und" } }
-            }
-            val forced = if (pick != null || !lib.settings.forcedSubtitles) null
-            else text.firstOrNull { e.isForced(it) && (lang(it) == null || lang(it) == "und" || lang(it) == audioLang) }
-            e.select(textType, pick ?: forced ?: -1)
-        }
+        val pref = lib.settings.subtitleLanguage
+        val dubPlaying = audioPick in dubIds
+        // The dubs on the NAS are Turkish.
+        val audioLang = if (dubPlaying) "tr" else lang(audioPick)
+        val sub = TrackRules.subtitle(subs, if (pref == "auto") AppLanguage.system.language else pref, audioLang, dubPlaying,
+            lib.settings.forcedSubtitles, saved?.subtitleTrack ?: -2)
+        e.select(textType, sub.id)
+        if (sub.byViewer) subtitleChosen = true
         audioTrack = e.selected(audioType)
         subtitleTrack = e.selected(textType)
     }
-
-    private fun iso3(lang: String): Set<String> = runCatching {
-        val l = Locale(lang)
-        setOf(lang.lowercase(Locale.ROOT), l.isO3Language, ISO_B[l.isO3Language] ?: "")
-    }.getOrDefault(setOf(lang)) - ""
 
     // The details box's live figures, from the last two samples a second apart.
     private var sampledAt = 0L
@@ -1201,21 +1163,9 @@ class PlayerActivity : ComponentActivity() {
     private fun checkIntro() {
         val mode = lib.settings.skipIntros
         if (mode == 0) { skipKind = null; return }
-        val i = chapters.indexOfLast { it.second <= position }
-        val name = chapters.getOrNull(i)?.first.orEmpty()
-        // A skipped chapter is skipped once: coming back into it (rewound, or a chapter back) offers the button again.
-        if (skippedChapter >= 0 && i != skippedChapter) skippedChapter = -1
-        val fromChapter = when {
-            chapters.size < 2 || i < 0 || i == skippedChapter -> null
-            INTRO.containsMatchIn(name) -> R.string.skip_intro
-            CREDITS.containsMatchIn(name) -> R.string.skip_credits
-            else -> null
-        }
-        // Back before the intro (rewound, or the next episode): offer to skip it again.
-        markedIntro?.let { if (position < it.first) skippedMarked = false }
-        // A marked intro counts while it plays, up to two seconds before it ends.
-        val marked = markedIntro?.takeIf { (s, e) -> !skippedMarked && position >= s && position < e - 2_000 }
-        val kind = fromChapter ?: marked?.let { R.string.skip_intro }
+        val c = SkipRules.check(chapters, position, duration, markedIntro, skippedChapter, skippedMarked)
+        skippedChapter = c.skippedChapter; skippedMarked = c.skippedMarked
+        val kind = when (c.kind) { SkipKind.INTRO -> R.string.skip_intro; SkipKind.CREDITS -> R.string.skip_credits; null -> null }
         if (kind == skipKind) return
         skipKind = kind
         skipHideJob?.cancel()
@@ -1223,22 +1173,21 @@ class PlayerActivity : ComponentActivity() {
         // Counted only while it's actually showing: not while paused, or under the controls or a panel.
         if (kind != null) skipHideJob = lifecycleScope.launch {
             var left = 10_000
-            while (left > 0) { delay(250); if (playing && !controls && !panel && upNext == null) left -= 250 }
+            while (left > 0) { delay(250); if (SkipRules.aloneCounts(playing, controls, panel, upNext != null)) left -= 250 }
             skipShown = false
         }
-        skipTarget = if (fromChapter != null) chapters.getOrNull(i + 1)?.second ?: duration else marked?.second ?: 0L
+        skipTarget = c.target
         autoSkipJob?.cancel()
         if (kind != null && mode >= 2) autoSkipJob = lifecycleScope.launch { if (mode == 2) delay(3000); doSkip() }
     }
 
     /** The skip button is on screen: alone for its first 10 seconds, then whenever the controls are up (not on the track buttons). */
-    fun skipButtonShown() = skipKind != null && playing && !paused && !panel && upNext == null &&
-        if (controls) seekTarget == null && trackFocus < 0 && trackPopup < 0 else skipShown
+    fun skipButtonShown() = SkipRules.buttonShown(skipKind != null, playing, paused, panel, upNext != null,
+        controls, seekTarget != null, trackFocus >= 0 || trackPopup >= 0, skipShown)
 
     fun doSkip() {
         val target = skipTarget
-        if (markedIntro?.second == target) skippedMarked = true
-        else skippedChapter = chapters.indexOfLast { it.second <= position }
+        SkipRules.afterSkip(chapters, position, target, markedIntro, skippedChapter, skippedMarked).let { (c, m) -> skippedChapter = c; skippedMarked = m }
         skipKind = null
         skipHideJob?.cancel(); skipShown = false
         autoSkipJob?.cancel()
@@ -1393,14 +1342,10 @@ class PlayerActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "Player"
-        private val INTRO = Regex("""(?i)(intro|opening|recap|previously|giriş|önceki bölüm)""")
-        private val CREDITS = Regex("""(?i)(credits|ending|outro|end titles|jenerik)""")
+        private val SIDECAR_ID = Regex("""sub(\d+)""")
         private const val EXTRA_KEY = "key"
         private const val EXTRA_FROM_START = "fromStart"
         private const val EXTRA_QUEUE = "queue"
-
-        // ISO 639-2/B codes that differ from the /T codes Java returns (Matroska uses /B).
-        private val ISO_B = mapOf("deu" to "ger", "fra" to "fre", "nld" to "dut", "zho" to "chi", "ces" to "cze", "ell" to "gre", "fas" to "per", "ron" to "rum", "slk" to "slo", "sqi" to "alb", "hye" to "arm", "mkd" to "mac", "isl" to "ice", "kat" to "geo", "eus" to "baq", "msa" to "may", "mya" to "bur", "cym" to "wel")
 
         fun start(context: Context, key: String, fromStart: Boolean = false, queue: List<String>? = null) {
             context.startActivity(
