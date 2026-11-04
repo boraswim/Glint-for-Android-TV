@@ -708,7 +708,7 @@ fun BareIcon(icon: ImageVector, modifier: Modifier = Modifier, spinning: Boolean
  * in red, for a row that deletes something.
  */
 @Composable
-fun ListRow(label: String, value: String = "", modifier: Modifier = Modifier, sub: String? = null, chevron: Boolean = false, icon: ImageVector? = null, danger: Boolean = false, onLongClick: (() -> Unit)? = null, onClick: () -> Unit) {
+fun ListRow(label: String, value: String = "", modifier: Modifier = Modifier, sub: String? = null, chevron: Boolean = false, icon: ImageVector? = null, danger: Boolean = false, leading: (@Composable () -> Unit)? = null, onLongClick: (() -> Unit)? = null, onClick: () -> Unit) {
     val source = remember { MutableInteractionSource() }
     val focused by source.collectIsFocusedAsState()
     val scale by animateFloatAsState(if (focused) 1.03f else 1f, label = "row")
@@ -724,6 +724,7 @@ fun ListRow(label: String, value: String = "", modifier: Modifier = Modifier, su
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icon != null) { Icon(icon, if (focused) Color.Black else Palette.Text, Modifier.size(22.dp)); Spacer(Modifier.width(14.dp)) }
+        if (leading != null) { leading(); Spacer(Modifier.width(16.dp)) }
         Column(Modifier.weight(1f)) {
             val labelColor = when { danger && focused -> Color(0xFFD32F2F); danger -> Color(0xFFFF5A5F); focused -> Color.Black; else -> Palette.Text }
             Txt(label, Type.Button.copy(color = labelColor, fontWeight = FontWeight.Medium, fontSize = 19.sp), maxLines = 1)

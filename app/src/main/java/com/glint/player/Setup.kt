@@ -20,6 +20,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -416,6 +421,7 @@ fun FolderScreen(nav: Nav, screen: Screen.Folder) {
     val lib = App.library
     val sources by lib.sources.collectAsState()
     val progress by lib.progress.collectAsState()
+    val data by lib.data.collectAsState()
     var entries by remember(screen) { mutableStateOf<List<SmbEntry>?>(null) }
     var shares by remember(screen) { mutableStateOf<List<String>?>(null) }
     var error by remember(screen) { mutableStateOf<String?>(null) }
@@ -455,6 +461,15 @@ fun FolderScreen(nav: Nav, screen: Screen.Folder) {
             if (lib.findMovie(key) != null) nav.push(Screen.MovieDetail(key)) else play(nav, key, fileTitle(key, vids[0].name))
         }
     }
+    // Files the library knows (films with a match or own poster, episodes): shown by name with a poster.
+    val prefix = "${src?.id}|$share|"
+    val known = remember(data, prefix) {
+        buildMap<String, Item> {
+            data.movies.forEach { m -> if (m.catalogued && m.id.startsWith(prefix)) put(m.id, Item.MovieItem(m)) }
+            data.shows.forEach { s -> s.episodes.forEach { ep -> if (ep.id.startsWith(prefix)) put(ep.id, Item.EpisodeItem(s, ep)) } }
+        }
+    }
+    val posterPixels = PosterPrefetch.grid(LocalContext.current, wide = false)
     if (src == null) { SharesScreen(nav); return }
     Column(Modifier.fillMaxSize().screenBackground()) {
         ScreenTitle(if (screen.sourceId == null) stringResource(R.string.tab_folders) else listOfNotNull(src?.name, share?.ifEmpty { null }, screen.path.substringAfterLast('/').ifEmpty { null }).joinToString(" / "))
@@ -484,7 +499,22 @@ fun FolderScreen(nav: Nav, screen: Screen.Folder) {
                                 p?.inProgress == true -> clock(p.position) + "  ·  "
                                 else -> ""
                             }
-                            ListRow("▶  ${e.name}", state + bytes(e.size), mod) { play(nav, key, fileTitle(key, e.name)) }
+                            val item = known[key]
+                            if (item == null) ListRow("▶  ${e.name}", state + bytes(e.size), mod) { play(nav, key, fileTitle(key, e.name)) }
+                            else ListRow(
+                                when (item) {
+                                    is Item.EpisodeItem -> "${item.show.title}  ·  ${item.episode.code}"
+                                    is Item.MovieItem -> item.movie.year.ifBlank { null }?.let { "${item.title} ($it)" } ?: item.title
+                                    else -> item.title
+                                },
+                                state + bytes(e.size), mod, sub = e.name,
+                                leading = {
+                                    // Drawn from the grid-size copy the library already keeps, so no new files are made for it.
+                                    CompositionLocalProvider(LocalPosterPixels provides posterPixels) {
+                                        Poster(item.poster, item.title, Modifier.width(40.dp).height(60.dp).clip(RoundedCornerShape(6.dp)))
+                                    }
+                                },
+                            ) { play(nav, key, item.title) }
                         }
                     }
                 }
