@@ -452,7 +452,7 @@ fun FolderScreen(nav: Nav, screen: Screen.Folder) {
         if (vids.size == 1 && list.none { it.isDir }) {
             val key = "${src.id}|${share}|${vids[0].path}"
             nav.pop()
-            if (lib.findMovie(key) != null) nav.push(Screen.MovieDetail(key)) else PlayerActivity.start(App.instance, key)
+            if (lib.findMovie(key) != null) nav.push(Screen.MovieDetail(key)) else play(nav, key, fileTitle(key, vids[0].name))
         }
     }
     if (src == null) { SharesScreen(nav); return }
@@ -484,7 +484,7 @@ fun FolderScreen(nav: Nav, screen: Screen.Folder) {
                                 p?.inProgress == true -> clock(p.position) + "  ·  "
                                 else -> ""
                             }
-                            ListRow("▶  ${e.name}", state + bytes(e.size), mod) { PlayerActivity.startFile(App.instance, key) }
+                            ListRow("▶  ${e.name}", state + bytes(e.size), mod) { play(nav, key, fileTitle(key, e.name)) }
                         }
                     }
                 }
@@ -492,6 +492,9 @@ fun FolderScreen(nav: Nav, screen: Screen.Folder) {
         }
     }
 }
+
+/** The film's or series' name when the library knows the file, else its file name. */
+private fun fileTitle(key: String, name: String) = App.library.let { it.findMovie(key)?.title ?: it.findEpisode(key)?.first?.title } ?: name
 
 /** After the first share: Home, with the key setup on top when there's no TMDB key yet (Back from it goes Home). */
 private fun firstShareAdded(nav: Nav) {

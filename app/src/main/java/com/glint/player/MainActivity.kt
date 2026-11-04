@@ -89,7 +89,7 @@ sealed interface Screen {
 class Nav {
     val stack = mutableStateListOf<Screen>(Screen.Home)
     /** Set when playing something half-watched and the settings say to ask. */
-    var resumeAsk by mutableStateOf<Item?>(null)
+    var resumeAsk by mutableStateOf<Pair<String, String>?>(null)   // file key, title
     private val focus = mutableStateMapOf<Screen, String>()
     /** Locked screens opened with the PIN; they stay open while they're on the stack. */
     val unlocked = mutableStateListOf<Screen>()
@@ -255,17 +255,22 @@ fun TextInput(
 }
 
 fun play(nav: Nav, item: Item, fromStart: Boolean = false, decided: Boolean = false) {
-    val ctx = App.instance
     val key = when (item) {
         is Item.MovieItem -> item.movie.id
         is Item.EpisodeItem -> item.episode.id
         else -> return nav.open(item)
     }
+    play(nav, key, item.title, fromStart, decided)
+}
+
+/** Plays a file by its key, asking first (resume setting "Ask") when it has a place to resume from. */
+fun play(nav: Nav, key: String, title: String, fromStart: Boolean = false, decided: Boolean = false) {
+    val ctx = App.instance
     val lib = App.library
     val half = lib.progressOf(key)?.inProgress == true
     when {
         decided || fromStart || !half -> PlayerActivity.start(ctx, key, fromStart)
-        lib.settings.resumeMode == 0 -> nav.resumeAsk = item          // ask
+        lib.settings.resumeMode == 0 -> nav.resumeAsk = key to title  // ask
         lib.settings.resumeMode == 2 -> PlayerActivity.start(ctx, key, fromStart = true)
         else -> PlayerActivity.start(ctx, key, fromStart = false)
     }
@@ -274,12 +279,11 @@ fun play(nav: Nav, item: Item, fromStart: Boolean = false, decided: Boolean = fa
 /** "Resume 00:42:10" or "Start over", for the resume setting "Ask". */
 @Composable
 fun ResumePrompt(nav: Nav) {
-    val item = nav.resumeAsk ?: return
-    val key = (item as? Item.MovieItem)?.movie?.id ?: (item as? Item.EpisodeItem)?.episode?.id ?: return
+    val (key, title) = nav.resumeAsk ?: return
     val pos = App.library.progressOf(key)?.position ?: 0
-    OptionSheet(item.title, listOf(
-        stringResource(R.string.resume_long, longClock(pos)) to { play(nav, item, decided = true) },
-        stringResource(R.string.start_over) to { play(nav, item, fromStart = true) },
+    OptionSheet(title, listOf(
+        stringResource(R.string.resume_long, longClock(pos)) to { play(nav, key, title, decided = true) },
+        stringResource(R.string.start_over) to { play(nav, key, title, fromStart = true) },
     )) { nav.resumeAsk = null }
 }
 

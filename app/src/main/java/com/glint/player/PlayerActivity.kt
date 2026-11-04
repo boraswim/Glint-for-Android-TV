@@ -1411,7 +1411,5 @@ class PlayerActivity : ComponentActivity() {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
         }
-
-        fun startFile(context: Context, key: String) = start(context, key)
     }
 }
