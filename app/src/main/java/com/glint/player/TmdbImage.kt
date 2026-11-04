@@ -22,12 +22,17 @@ data class TmdbImage(val url: String, val width: Int, val height: Int, val langu
 
     companion object {
         /**
-         * By language in [languages]' order ("" for no text; others after), then sharpest step first, then best voted.
-         * Steps rather than pixels, so a few pixels more don't win over many more votes.
+         * Posters by language in [languages]' order ("" for no text; others after), then sharpest step first, then best
+         * voted. Backgrounds sharpest step first, then by language, then votes: a sharp one with text beats a soft one
+         * without. Steps rather than pixels, so a few pixels more don't win over many more votes.
          */
         fun order(images: List<TmdbImage>, languages: List<String>, wide: Boolean): List<TmdbImage> {
             fun rank(i: TmdbImage) = languages.indexOf(i.language ?: "").let { if (it < 0) languages.size else it }
-            return images.sortedWith(compareBy<TmdbImage>(::rank).thenByDescending { it.tier(wide) }.thenByDescending { it.vote })
+            val sharp = compareByDescending<TmdbImage> { it.tier(wide) }
+            return images.sortedWith(
+                if (wide) sharp.thenBy(::rank).thenByDescending { it.vote }
+                else compareBy<TmdbImage>(::rank).then(sharp).thenByDescending { it.vote }
+            )
         }
     }
 }

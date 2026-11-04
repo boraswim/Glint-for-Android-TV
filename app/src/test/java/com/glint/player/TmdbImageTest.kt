@@ -22,9 +22,15 @@ class TmdbImageTest {
         assertEquals(listOf("b", "a"), TmdbImage.order(list, listOf(""), wide = true).map { it.url })
     }
 
-    @Test fun languageStillComesFirst() {
-        val list = listOf(img("en4k", 3840, 6.0, "en"), img("plain", 1920, 5.0))
-        assertEquals(listOf("plain", "en4k"), TmdbImage.order(list, listOf("", "en"), wide = true).map { it.url })
+    @Test fun backgroundsBySharpnessWithOrWithoutText() {
+        // Adele: 1080p ones with the title on them come before 720p ones without.
+        val list = listOf(img("plain720", 1280, 6.0), img("en1080", 1920, 5.0, "en"), img("plain1080", 1920, 4.0))
+        assertEquals(listOf("plain1080", "en1080", "plain720"), TmdbImage.order(list, listOf("", "en"), wide = true).map { it.url })
+    }
+
+    @Test fun postersStillByLanguageFirst() {
+        val list = listOf(TmdbImage("en2000", 2000, 3000, "en", 6.0), TmdbImage("tr1000", 1000, 1500, "tr", 5.0))
+        assertEquals(listOf("tr1000", "en2000"), TmdbImage.order(list, listOf("tr", "en"), wide = false).map { it.url })
     }
 
     @Test fun labels() {
