@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -53,7 +54,7 @@ fun ArtworkScreen(nav: Nav, screen: Screen.Artwork) {
     // The picture next to the file, offered like Kodi's local art.
     val local = (automatic as? Item.MovieItem)?.let { if (wide) it.localBackdrop else it.localPoster }
         ?: (automatic as? Item.ShowItem)?.let { if (wide) it.localBackdrop else it.localPoster }
-    var images by remember { mutableStateOf<List<String>?>(null) }
+    var images by remember { mutableStateOf<List<TmdbImage>?>(null) }
     LaunchedEffect(tmdbId) {
         images = if (tmdbId == 0 || !lib.tmdb.enabled) emptyList()
         else withContext(Dispatchers.IO) { runCatching { lib.tmdb.images(tmdbId, screen.tv, wide) }.getOrDefault(emptyList()) }
@@ -75,14 +76,15 @@ fun ArtworkScreen(nav: Nav, screen: Screen.Artwork) {
             stringResource(if (tmdbId == 0 || !lib.tmdb.enabled) R.string.artwork_needs_match else R.string.artwork_none),
             Type.Body, Modifier.padding(start = 56.dp, bottom = 16.dp),
         )
-        val focusAutomatic = chosen == null || (chosen !in list && chosenImage == null && (chosen != LOCAL_ART || local == null))
+        val inList = list.indexOfFirst { it.url == chosen }
+        val focusAutomatic = chosen == null || (inList < 0 && chosenImage == null && (chosen != LOCAL_ART || local == null))
         // Automatic, the picture next to the file, Browse, then TMDB's.
         val before = if (local != null) 3 else 2
         LazyVerticalGrid(
             GridCells.Fixed(if (wide) 4 else 6),
             Modifier.fillMaxSize(),
             // Opens at the picture in use: one further down isn't composed otherwise and couldn't take focus.
-            androidx.compose.foundation.lazy.grid.rememberLazyGridState(if (chosen == LOCAL_ART && local != null) 1 else if (chosenImage != null) before - 1 else if (chosen in list) list.indexOf(chosen) + before else 0),
+            androidx.compose.foundation.lazy.grid.rememberLazyGridState(if (chosen == LOCAL_ART && local != null) 1 else if (chosenImage != null) before - 1 else if (inList >= 0) inList + before else 0),
             contentPadding = PaddingValues(start = 56.dp, end = 56.dp, top = 16.dp, bottom = 60.dp),
             horizontalArrangement = Arrangement.spacedBy(26.dp),
             verticalArrangement = Arrangement.spacedBy(30.dp),
@@ -99,10 +101,11 @@ fun ArtworkScreen(nav: Nav, screen: Screen.Artwork) {
             item {
                 ArtChoice(chosenImage, wide, chosenImage != null, stringResource(R.string.artwork_browse), if (chosenImage != null) FocusFirst() else Modifier, folder = true) { browsing = true }
             }
-            items(list, key = { it }) { url ->
+            items(list, key = { it.url }) { image ->
+                val url = image.url
                 // A smaller copy for the grid: the full-size picture is what the cards and the page then use.
                 val thumb = url.replace("/w1280/", "/w780/").replace("/w500/", "/w342/")
-                ArtChoice(thumb, wide, url == chosen, null, if (url == chosen) FocusFirst() else Modifier) { pick(url) }
+                ArtChoice(thumb, wide, url == chosen, null, if (url == chosen) FocusFirst() else Modifier, badge = image.sizeLabel(wide)) { pick(url) }
             }
         }
     }
@@ -183,7 +186,7 @@ private fun ArtBrowser(wide: Boolean, here: VideoFile?, title: String?, onPick: 
 
 /** One picture to pick: lifted when focused, ringed in the accent colour when it's the one in use. */
 @Composable
-private fun ArtChoice(model: Any?, wide: Boolean, current: Boolean, label: String?, modifier: Modifier, folder: Boolean = false, onClick: () -> Unit) {
+private fun ArtChoice(model: Any?, wide: Boolean, current: Boolean, label: String?, modifier: Modifier, folder: Boolean = false, badge: String? = null, onClick: () -> Unit) {
     val shape = RoundedCornerShape(12.dp)
     FocusCard(modifier.fillMaxWidth().aspectRatio(if (wide) 16f / 9f else 2f / 3f), shape, onClick = onClick) {
         Box(Modifier.fillMaxSize().background(Color(0xFF3A3D43)))
@@ -193,6 +196,12 @@ private fun ArtChoice(model: Any?, wide: Boolean, current: Boolean, label: Strin
             Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Color(0xCC000000)).padding(vertical = 8.dp),
             contentAlignment = Alignment.Center,
         ) { Txt(label, Type.Meta.copy(color = Color.White), maxLines = 1) }
+        // How sharp the picture is, so a smaller copy of the same one isn't picked by mistake.
+        if (badge != null) Txt(
+            badge, Type.Meta.copy(color = Color.White, fontSize = 13.sp),
+            Modifier.align(Alignment.TopEnd).padding(8.dp).background(Color(0xCC000000), RoundedCornerShape(6.dp)).padding(horizontal = 7.dp, vertical = 2.dp),
+            maxLines = 1,
+        )
         if (current) Box(Modifier.fillMaxSize().border(4.dp, Palette.Accent, shape))
     }
 }
