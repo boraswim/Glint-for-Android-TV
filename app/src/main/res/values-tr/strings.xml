@@ -440,4 +440,8 @@
     <string name="poster_frame_sub">Seçili afişin, bölümün veya oyuncu fotoğrafının çevresinde tema renginde çerçeve</string>
     <string name="artwork_local">Dosyanın yanındaki</string>
     <string name="artwork_browse">Gözat…</string>
+    <string name="animation_audio">Animasyonlarda ses</string>
+    <string name="animation_subtitles">Animasyonlarda altyazı</string>
+    <string name="same_as_preferred">Tercih edilenle aynı</string>
+    <string name="animation_sub">Animasyon film ve diziler. Bu ses yoksa tercih edilen ses ve altyazı kullanılır.</string>
 </resources>

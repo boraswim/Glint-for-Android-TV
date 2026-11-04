@@ -433,4 +433,8 @@
     <string name="poster_frame_sub">Ramka w kolorze motywu wokół wybranego plakatu, odcinka lub zdjęcia obsady</string>
     <string name="artwork_local">Obok pliku</string>
     <string name="artwork_browse">Przeglądaj…</string>
+    <string name="animation_audio">Dźwięk w animacjach</string>
+    <string name="animation_subtitles">Napisy w animacjach</string>
+    <string name="same_as_preferred">Jak preferowane</string>
+    <string name="animation_sub">Filmy i seriale animowane. Gdy brak tego dźwięku, używane są preferowany dźwięk i napisy.</string>
 </resources>

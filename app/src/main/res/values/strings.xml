@@ -453,4 +453,8 @@
     <string name="poster_frame_sub">A frame in the theme colour around the selected poster, episode or cast photo</string>
     <string name="artwork_local">Next to the file</string>
     <string name="artwork_browse">Browse…</string>
+    <string name="animation_audio">Animation audio</string>
+    <string name="animation_subtitles">Animation subtitles</string>
+    <string name="same_as_preferred">Same as preferred</string>
+    <string name="animation_sub">Animated films and series. If this audio isn\'t there, the preferred audio and subtitles are used.</string>
 </resources>

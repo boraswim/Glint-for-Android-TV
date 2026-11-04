@@ -433,4 +433,8 @@
     <string name="poster_frame_sub">Een kader in de themakleur rond de geselecteerde poster, aflevering of castfoto</string>
     <string name="artwork_local">Naast het bestand</string>
     <string name="artwork_browse">Bladeren…</string>
+    <string name="animation_audio">Audio bij animatie</string>
+    <string name="animation_subtitles">Ondertiteling bij animatie</string>
+    <string name="same_as_preferred">Zelfde als voorkeur</string>
+    <string name="animation_sub">Animatiefilms en -series. Ontbreekt deze audio, dan gelden de voorkeursaudio en -ondertiteling.</string>
 </resources>

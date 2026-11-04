@@ -384,6 +384,7 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                     fun label(code: String, empty: Int) = when (code) {
                         "" -> ctx.getString(empty)
                         "auto" -> ctx.getString(R.string.lang_device)
+                        "same" -> ctx.getString(R.string.same_as_preferred)
                         "original" -> ctx.getString(R.string.lang_original)
                         else -> langName(code)
                     }
@@ -400,6 +401,8 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         }
                         ChoiceRow(stringResource(R.string.audio_language), (listOf("") + LANGS).map { it to label(it, R.string.lang_default) }, s.audioLanguage) { v -> change { s.audioLanguage = v } }
                         ChoiceRow(stringResource(R.string.subtitle_language), (listOf("auto", "") + LANGS).map { it to label(it, R.string.subs_off) }, s.subtitleLanguage) { v -> change { s.subtitleLanguage = v } }
+                        ChoiceRow(stringResource(R.string.animation_audio), (listOf("same", "") + LANGS).map { it to label(it, R.string.lang_default) }, s.animationAudio, sub = stringResource(R.string.animation_sub)) { v -> change { s.animationAudio = v } }
+                        ChoiceRow(stringResource(R.string.animation_subtitles), (listOf("same", "auto", "") + LANGS).map { it to label(it, R.string.subs_off) }, s.animationSubtitles) { v -> change { s.animationSubtitles = v } }
                         ChoiceRow(stringResource(R.string.metadata_language), meta.map { it to label(it, R.string.lang_device) }, s.metadataLanguage, sub = stringResource(R.string.metadata_language_sub)) { v -> change { s.metadataLanguage = v } }
                         ChoiceRow(stringResource(R.string.artwork_language), (listOf("", "original") + LANGS).map { it to label(it, R.string.same_as_metadata) }, s.artworkLanguage, sub = stringResource(R.string.artwork_language_sub)) { v -> change { s.artworkLanguage = v } }
                     }

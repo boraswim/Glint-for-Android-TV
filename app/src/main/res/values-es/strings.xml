@@ -433,4 +433,8 @@
     <string name="poster_frame_sub">Un marco del color del tema alrededor del póster, episodio o foto del reparto seleccionados</string>
     <string name="artwork_local">Junto al archivo</string>
     <string name="artwork_browse">Explorar…</string>
+    <string name="animation_audio">Audio de animación</string>
+    <string name="animation_subtitles">Subtítulos de animación</string>
+    <string name="same_as_preferred">Igual que el preferido</string>
+    <string name="animation_sub">Películas y series de animación. Si falta este audio, se usan el audio y los subtítulos preferidos.</string>
 </resources>

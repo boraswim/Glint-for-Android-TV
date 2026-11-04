@@ -433,4 +433,8 @@
     <string name="poster_frame_sub">Uma moldura na cor do tema em volta do pôster, episódio ou foto do elenco selecionados</string>
     <string name="artwork_local">Ao lado do arquivo</string>
     <string name="artwork_browse">Procurar…</string>
+    <string name="animation_audio">Áudio de animação</string>
+    <string name="animation_subtitles">Legendas de animação</string>
+    <string name="same_as_preferred">Igual ao preferido</string>
+    <string name="animation_sub">Filmes e séries de animação. Sem este áudio, usam-se o áudio e as legendas preferidos.</string>
 </resources>

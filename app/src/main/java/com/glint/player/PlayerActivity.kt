@@ -746,7 +746,9 @@ class PlayerActivity : ComponentActivity() {
         }
 
         val audio = audioTracks.map { TrackInfo(it.id, info[it.id]?.language, dub = it.id in dubIds) }
-        TrackRules.audio(audio, lib.settings.audioLanguage, saved?.audioTrack ?: -2, ::speaks)?.let { pick ->
+        val (audioChoice, subtitlePref) = TrackRules.audioFor(audio, saved?.audioTrack ?: -2, lib.settings.audioLanguage,
+            lib.settings.subtitleLanguage, animationLanguages(n.key), ::speaks)
+        audioChoice?.let { pick ->
             if (pick.id in dubIds && !pick.byViewer) chooseAudio(pick.id, byViewer = false) else player.audioTrack = pick.id
             if (pick.byViewer) audioChosen = true
         }
@@ -758,7 +760,7 @@ class PlayerActivity : ComponentActivity() {
             if (file != null) TrackInfo(id, sidecarCode(file), isForced(file), sidecar = true, dub = isDubSubtitle(file))
             else TrackInfo(id, info[id]?.language, info[id]?.let(::forcedTrack) == true)
         }
-        val pref = lib.settings.subtitleLanguage
+        val pref = subtitlePref
         val dubPlaying = player.audioTrack in dubIds
         // The dubs on the NAS are Turkish.
         val audioLang = if (dubPlaying) "tr" else info[player.audioTrack]?.language
@@ -770,6 +772,12 @@ class PlayerActivity : ComponentActivity() {
         subtitleTrack = player.spuTrack
     }
 
+    /** An animated film or series: its own audio and subtitle settings; null for anything else. */
+    private fun animationLanguages(key: String): Pair<String, String>? {
+        val genres = lib.findMovie(key)?.genres ?: lib.findEpisode(key)?.first?.genres ?: return null
+        return if (TrackRules.isAnimation(genres)) lib.settings.animationAudio to lib.settings.animationSubtitles else null
+    }
+
     /** The same choices as for libVLC, made with Media3's track formats. */
     private fun applyExoPreferences(e: ExoPlayback, n: NowPlaying) {
         tracksApplied = true
@@ -779,7 +787,9 @@ class PlayerActivity : ComponentActivity() {
         val saved = lib.progressOf(n.key)
         // The track picked here: Media3 reports a new selection only once the player has applied it, a moment later.
         val audio = audioTracks.map { TrackInfo(it.id, lang(it.id), dub = it.id in dubIds) }
-        val audioPick = TrackRules.audio(audio, lib.settings.audioLanguage, saved?.audioTrack ?: -2)?.also { pick ->
+        val (audioChoice, subtitlePref) = TrackRules.audioFor(audio, saved?.audioTrack ?: -2, lib.settings.audioLanguage,
+            lib.settings.subtitleLanguage, animationLanguages(n.key))
+        val audioPick = audioChoice?.also { pick ->
             if (pick.id in dubIds && !pick.byViewer) chooseAudio(pick.id, byViewer = false) else e.select(audioType, pick.id)
             if (pick.byViewer) audioChosen = true
         }?.id ?: e.selected(audioType)
@@ -788,7 +798,7 @@ class PlayerActivity : ComponentActivity() {
             val file = e.format(it.id)?.id?.let { f -> SIDECAR_ID.find(f) }?.groupValues?.get(1)?.toIntOrNull()?.let(subtitleFiles::getOrNull)
             TrackInfo(it.id, lang(it.id), e.isForced(it.id), e.isSidecar(it.id), dub = file != null && isDubSubtitle(file))
         }
-        val pref = lib.settings.subtitleLanguage
+        val pref = subtitlePref
         val dubPlaying = audioPick in dubIds
         // The dubs on the NAS are Turkish.
         val audioLang = if (dubPlaying) "tr" else lang(audioPick)

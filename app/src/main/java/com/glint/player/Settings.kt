@@ -95,6 +95,14 @@ class Settings(context: Context) {
         get() = prefs.getString("subtitleLanguage", "auto")!!
         set(v) = prefs.edit().putString("subtitleLanguage", v).apply()
 
+    /** Audio and subtitles for animated films and series: an ISO 639 code, "" as above, or "same" for the preferred ones. */
+    var animationAudio: String
+        get() = prefs.getString("animationAudio", "same")!!
+        set(v) = prefs.edit().putString("animationAudio", v).apply()
+    var animationSubtitles: String
+        get() = prefs.getString("animationSubtitles", "same")!!
+        set(v) = prefs.edit().putString("animationSubtitles", v).apply()
+
     /** ISO 639 code preferred for audio ("" = the file's default). */
     var audioLanguage: String
         get() = prefs.getString("audioLanguage", "")!!

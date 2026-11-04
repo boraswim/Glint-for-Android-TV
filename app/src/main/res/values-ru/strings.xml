@@ -433,4 +433,8 @@
     <string name="poster_frame_sub">Рамка цвета темы вокруг выбранного постера, серии или фото актёра</string>
     <string name="artwork_local">Рядом с файлом</string>
     <string name="artwork_browse">Обзор…</string>
+    <string name="animation_audio">Звук в мультфильмах</string>
+    <string name="animation_subtitles">Субтитры в мультфильмах</string>
+    <string name="same_as_preferred">Как основные</string>
+    <string name="animation_sub">Мультфильмы и мультсериалы. Если такой дорожки нет, действуют основные настройки звука и субтитров.</string>
 </resources>

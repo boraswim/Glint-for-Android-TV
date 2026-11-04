@@ -102,6 +102,41 @@ class PlaybackRulesTest {
         assertEquals(TrackPick(50, false), sub(tracks, audio = "eng"))
     }
 
+    // ---- animation languages ----
+
+    @Test fun animationGenre() {
+        assertTrue(TrackRules.isAnimation(listOf("Aile", "Animasyon")))
+        assertTrue(TrackRules.isAnimation(listOf("Animation")))
+        assertTrue(TrackRules.isAnimation(listOf("Мультфильм")))
+        assertFalse(TrackRules.isAnimation(listOf("Aksiyon", "Macera")))
+    }
+
+    @Test fun animationUsesItsOwnLanguages() {
+        // Preferred English audio with Turkish subtitles; cartoons in Turkish, no subtitles.
+        val cartoon = "tr" to ""
+        assertEquals(TrackPick(3, false) to "", TrackRules.audioFor(toyAudio, -2, "en", "tr", cartoon))
+        // Not an animation: the preferred ones.
+        assertEquals(TrackPick(1, false) to "tr", TrackRules.audioFor(toyAudio, -2, "en", "tr", null))
+    }
+
+    @Test fun animationWithoutItsAudioFallsBackToThePreferred() {
+        val englishOnly = listOf(TrackInfo(1, "eng"), TrackInfo(2, "jpn"))
+        assertEquals(TrackPick(1, false) to "tr", TrackRules.audioFor(englishOnly, -2, "en", "tr", "tr" to ""))
+        // A Turkish dub from the NAS counts as Turkish audio.
+        val withDub = englishOnly + TrackInfo(9, null, dub = true)
+        assertEquals(TrackPick(9, false) to "", TrackRules.audioFor(withDub, -2, "en", "tr", "tr" to ""))
+    }
+
+    @Test fun animationSettingsThatFollowThePreferred() {
+        assertEquals(TrackPick(1, false) to "", TrackRules.audioFor(toyAudio, -2, "en", "tr", TrackRules.SAME to ""))
+        assertEquals(TrackPick(3, false) to "tr", TrackRules.audioFor(toyAudio, -2, "en", "tr", "tr" to TrackRules.SAME))
+        assertEquals(TrackPick(1, false) to "tr", TrackRules.audioFor(toyAudio, -2, "en", "tr", TrackRules.SAME to TrackRules.SAME))
+    }
+
+    @Test fun viewersPickStillWinsInAnimation() {
+        assertEquals(TrackPick(2, true) to "", TrackRules.audioFor(toyAudio, 2, "en", "tr", "tr" to ""))
+    }
+
     // ---- skip intro / credits ----
 
     // Toy Story: "Opening Credits" from 2:03 to 4:01.

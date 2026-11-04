@@ -433,4 +433,8 @@
     <string name="poster_frame_sub">Una cornice del colore del tema attorno al poster, all\'episodio o alla foto del cast selezionati</string>
     <string name="artwork_local">Accanto al file</string>
     <string name="artwork_browse">Sfoglia…</string>
+    <string name="animation_audio">Audio animazione</string>
+    <string name="animation_subtitles">Sottotitoli animazione</string>
+    <string name="same_as_preferred">Come preferito</string>
+    <string name="animation_sub">Film e serie d\'animazione. Se manca questo audio, valgono audio e sottotitoli preferiti.</string>
 </resources>

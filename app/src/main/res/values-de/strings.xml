@@ -433,4 +433,8 @@
     <string name="poster_frame_sub">Ein Rahmen in der Designfarbe um das ausgewählte Poster, die Folge oder das Besetzungsfoto</string>
     <string name="artwork_local">Neben der Datei</string>
     <string name="artwork_browse">Durchsuchen…</string>
+    <string name="animation_audio">Ton bei Animation</string>
+    <string name="animation_subtitles">Untertitel bei Animation</string>
+    <string name="same_as_preferred">Wie bevorzugt</string>
+    <string name="animation_sub">Animationsfilme und -serien. Fehlt dieser Ton, gelten bevorzugter Ton und Untertitel.</string>
 </resources>

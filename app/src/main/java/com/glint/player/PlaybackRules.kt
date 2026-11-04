@@ -28,6 +28,31 @@ fun languageCodes(lang: String): Set<String> = runCatching {
 }.getOrDefault(setOf(lang.lowercase(Locale.ROOT))) - ""
 
 object TrackRules {
+    /** An animation language setting that follows the preferred one. */
+    const val SAME = "same"
+
+    /** TMDB's Animation genre, in the languages titles are fetched in. */
+    fun isAnimation(genres: List<String>) = genres.any { g ->
+        g.lowercase(Locale.ROOT).let { it.startsWith("anim") || it == "мультфильм" || it == "zeichentrick" }
+    }
+
+    /**
+     * The audio picked, and the subtitle language then wanted. An animation ([animation] its audio and subtitle
+     * settings, null for anything else) has its own, [SAME] following the preferred ones; but only when its audio is
+     * there, so a cartoon without that language still comes with the preferred audio and subtitles.
+     */
+    fun audioFor(
+        tracks: List<TrackInfo>, saved: Int, audio: String, subtitle: String, animation: Pair<String, String>?,
+        speaks: (TrackInfo, String) -> Boolean = ::speaks,
+    ): Pair<TrackPick?, String> {
+        if (animation != null) {
+            val (animAudio, animSubtitle) = animation
+            val pick = audio(tracks, if (animAudio == SAME) audio else animAudio, saved, speaks)
+            if (animAudio == SAME || pick != null) return pick to (if (animSubtitle == SAME) subtitle else animSubtitle)
+        }
+        return audio(tracks, audio, saved, speaks) to subtitle
+    }
+
     fun untagged(t: TrackInfo) = t.language.isNullOrBlank() || t.language.equals("und", true)
 
     /** Two codes for the same language ("en" and "eng", "de" and "ger"). */
