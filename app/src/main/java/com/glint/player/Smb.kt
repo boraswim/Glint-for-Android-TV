@@ -36,6 +36,10 @@ data class FoundHost(val address: String, val name: String)
  * dropped and reopened once. Android has no MD4 for NTLM, hence BouncyCastle.
  */
 open class SmbLane {
+    private companion object {
+        const val IDLE_MS = 15_000L
+    }
+
     /** One client per SMB version a share asks for ("" = any); each offers only that dialect to the server. */
     private val clients = ConcurrentHashMap<String, SMBClient>()
     private fun client(version: String) = clients.getOrPut(version) {
@@ -57,12 +61,40 @@ open class SmbLane {
     }
     private val sessions = ConcurrentHashMap<String, Session>()
     private val shares = ConcurrentHashMap<String, DiskShare>()
+    /** When each session last served a request: one left idle is checked before it's trusted again. */
+    private val lastUsed = ConcurrentHashMap<String, Long>()
 
     private fun sessionKey(s: Source) = "${s.host}|${s.domain}|${s.user}|${s.smbVersion}"
 
+    /**
+     * A connection left idle can be dead while still looking open (NASes, Windows and routers drop quiet ones without
+     * a word); a request on it then waited out the full 20 s timeout. After [IDLE_MS] without use, an echo has 1 s to
+     * come back (a NAS on the same network answers in milliseconds, sleeping disks or not), or a fresh session is made
+     * for what comes next (a quarter of a second). The old one isn't closed: a film may still be reading through it
+     * (its reads don't count as use here), and a dead one closes itself.
+     */
+    private fun stale(s: Source): Boolean {
+        val key = sessionKey(s)
+        val session = sessions[key] ?: return false
+        val now = System.currentTimeMillis()
+        val idle = now - (lastUsed.put(key, now) ?: now)
+        if (idle < IDLE_MS) return false
+        val alive = runCatching<Unit> {
+            val c = session.connection
+            c.send<com.hierynomus.mssmb2.SMB2Packet>(com.hierynomus.mssmb2.messages.SMB2Echo(c.negotiatedProtocol.dialect)).get(1, TimeUnit.SECONDS)
+        }.isSuccess
+        if (!alive) {
+            sessions.remove(key)
+            shares.keys.filter { it.startsWith("$key|") }.forEach { shares.remove(it) }
+        }
+        return !alive
+    }
+
     @Synchronized
     private fun session(s: Source): Session {
+        stale(s)
         sessions[sessionKey(s)]?.takeIf { it.connection.isConnected }?.let { return it }
+        lastUsed[sessionKey(s)] = System.currentTimeMillis()
         val connection = client(s.smbVersion).connect(s.host)
         val contexts = if (s.user.isBlank()) listOf(AuthenticationContext.guest(), AuthenticationContext.anonymous())
         else listOf(AuthenticationContext(s.user, s.password.toCharArray(), s.domain.ifBlank { null }))
@@ -82,6 +114,7 @@ open class SmbLane {
     @Synchronized
     fun share(s: Source, name: String): DiskShare {
         val key = "${sessionKey(s)}|$name"
+        stale(s)
         shares[key]?.takeIf { it.isConnected }?.let { return it }
         val share = session(s).connectShare(name) as DiskShare
         shares[key] = share
