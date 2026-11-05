@@ -86,8 +86,6 @@ class PlayerActivity : ComponentActivity() {
     var holdTab = false
     /** The menu's current tab: Up from the top of a list goes back to it, not to the nearest tab. */
     val menuTabFocus = androidx.compose.ui.focus.FocusRequester()
-    /** Frames for the seek preview of the film playing (NAS files only). */
-    var thumbs by mutableStateOf<SeekThumbs?>(null)
     /** Which of the track buttons above the timeline has focus (index into [trackButtons]), -1 for none. */
     var trackFocus by mutableIntStateOf(-1)
 
@@ -361,7 +359,6 @@ class PlayerActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         tickJob?.cancel()
-        thumbs?.release()
         player.setEventListener(null)
         player.stop()
         player.release()
@@ -456,8 +453,6 @@ class PlayerActivity : ComponentActivity() {
         val path = parts[2]
         playingFrom = Triple(src, share, path)
         now = describe(key, path)
-        thumbs?.release()
-        thumbs = if (src.type == "smb") SeekThumbs(src, share, path) else null
         showControls()
 
         lifecycleScope.launch {
@@ -1317,7 +1312,6 @@ class PlayerActivity : ComponentActivity() {
         if (duration <= 0) return
         val base = seekTarget ?: position
         seekTarget = (base + delta).coerceIn(0, duration - 1000)
-        thumbs?.request(seekTarget!!)
         showControls(sticky = true)
         seekJob?.cancel()
         seekJob = lifecycleScope.launch { delay(900); commitSeek() }

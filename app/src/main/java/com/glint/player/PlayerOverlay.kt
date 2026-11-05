@@ -118,7 +118,6 @@ fun PlayerOverlay(p: PlayerActivity) {
                         }
                     }
                     Gap(14.dp)
-                    SeekPreview(p)
                     Timeline(p)
                     Gap(8.dp)
                     // The elapsed time rides under the playhead, the time left sits at the right end.
@@ -211,32 +210,6 @@ private fun Clock() {
     var now by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) { while (true) { delay(10_000); now = System.currentTimeMillis() } }
     Txt(DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(now)), Type.Heading.copy(color = Color(0xFFDDDDDD)))
-}
-
-/**
- * While scrubbing, the picture at the new time sits on the bar right above the playhead
- * (a 16:9 frame with a thin light rim). Takes no room otherwise.
- */
-@Composable
-private fun SeekPreview(p: PlayerActivity) {
-    val t = p.seekTarget ?: return
-    val thumbs = p.thumbs ?: return
-    val frame by thumbs.frame.collectAsState()
-    val unavailable by thumbs.unavailable.collectAsState()
-    if (unavailable) return
-    BoxWithConstraints(Modifier.fillMaxWidth().height(0.dp)) {
-        val w = 266.dp; val h = 150.dp
-        val at = if (p.duration > 0) t.toFloat() / p.duration else 0f
-        val x = (maxWidth * at - w / 2).coerceIn(0.dp, maxWidth - w)
-        Box(
-            Modifier.offset(x = x, y = -h - 6.dp).requiredSize(w, h).clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFF111214)).border(2.dp, Color(0xCCFFFFFF), RoundedCornerShape(10.dp)),
-        ) {
-            frame?.let { (_, bmp) ->
-                androidx.compose.foundation.Image(bmp.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
-            }
-        }
-    }
 }
 
 @Composable
