@@ -1341,6 +1341,16 @@ class PlayerActivity : ComponentActivity() {
 
     override fun finish() {
         if (window.attributes.preferredDisplayModeId != 0) window.attributes = window.attributes.apply { preferredDisplayModeId = 0 }
+        // Like Kodi: the picture goes the moment the film is left, so the TV leaves Dolby Vision or HDR at once rather
+        // than when this screen is gone, and the next film switches in afresh (its banner shows again). The place is
+        // saved first; nothing updates it after this.
+        saveProgress(force = true)
+        tickJob?.cancel()
+        player.setEventListener(null)
+        exo?.let { e -> e.player.stop(); e.player.clearVideoSurface(); root.removeView(e.view) }
+        if (player.media != null) player.stop()
+        player.detachViews()
+        root.removeView(videoLayout)
         super.finish()
     }
 
