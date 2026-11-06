@@ -700,9 +700,11 @@ class PlayerActivity : ComponentActivity() {
     /** Downloads are kept as "<n>os-<name>" (see [addSubtitle]); everything else came with the film from the NAS or USB. */
     private fun kindOf(f: File) = if (OS_FILE.containsMatchIn(f.name)) SubtitleKind.Downloaded else SubtitleKind.Beside
 
-    /** The icon for a row of the open pop-up: in the subtitle list, how a track came; nothing for the film's own. */
-    fun popupKind(row: Int): SubtitleKind? =
-        if (trackPopup == 3) subtitleTracks.getOrNull(row - 1)?.let { subtitleKinds[it.id] } else null
+    /** How the subtitle at a row of a subtitle list came (row 0 is "None"); nothing for the film's own. */
+    fun subtitleKind(row: Int): SubtitleKind? = subtitleTracks.getOrNull(row - 1)?.let { subtitleKinds[it.id] }
+
+    /** The icon for a row of the open pop-up: in the subtitle list, how a track came. */
+    fun popupKind(row: Int): SubtitleKind? = if (trackPopup == 3) subtitleKind(row) else null
 
     private var spuIds: List<Int> = emptyList()
     private var dubIds: List<Int> = emptyList()

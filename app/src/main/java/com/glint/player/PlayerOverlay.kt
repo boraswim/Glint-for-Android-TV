@@ -398,11 +398,11 @@ private fun OptionsColumn(p: PlayerActivity, options: List<MenuOption>, modifier
 
 /** "İZLER": the tracks, the playing one ticked. */
 @Composable
-private fun TracksColumn(rows: List<Pair<String, Boolean>>, modifier: Modifier = Modifier, up: androidx.compose.ui.focus.FocusRequester? = null, onPick: (Int) -> Unit) {
+private fun TracksColumn(rows: List<Pair<String, Boolean>>, modifier: Modifier = Modifier, up: androidx.compose.ui.focus.FocusRequester? = null, kind: (Int) -> SubtitleKind? = { null }, onPick: (Int) -> Unit) {
     Column(modifier) {
         MenuHeading(stringResource(R.string.menu_tracks).uppercase())
         Column(Modifier.heightIn(max = 330.dp).verticalScroll(rememberScrollState())) {
-            rows.forEachIndexed { i, (label, on) -> MenuRow(label, checked = on, up = if (i == 0) up else null) { onPick(i) } }
+            rows.forEachIndexed { i, (label, on) -> MenuRow(label, checked = on, up = if (i == 0) up else null, kind = kind(i)) { onPick(i) } }
         }
     }
 }
@@ -413,7 +413,7 @@ private fun MenuHeading(text: String) =
 
 /** One line of a menu column: a tick (or room for one), the text, and an optional value at the right. */
 @Composable
-private fun MenuRow(text: String, value: String? = null, checked: Boolean = false, first: Boolean = false, up: androidx.compose.ui.focus.FocusRequester? = null, enabled: Boolean = true, onFocused: () -> Unit = {}, onClick: () -> Unit) {
+private fun MenuRow(text: String, value: String? = null, checked: Boolean = false, first: Boolean = false, up: androidx.compose.ui.focus.FocusRequester? = null, enabled: Boolean = true, kind: SubtitleKind? = null, onFocused: () -> Unit = {}, onClick: () -> Unit) {
     val source = remember { MutableInteractionSource() }
     var focused by remember { mutableStateOf(false) }
     val focus = remember { androidx.compose.ui.focus.FocusRequester() }
@@ -428,6 +428,9 @@ private fun MenuRow(text: String, value: String? = null, checked: Boolean = fals
     ) {
         val ink = if (focused) Color(0xFF3A3C3F) else if (enabled) Color.White else Color.White.copy(alpha = 0.35f)
         Box(Modifier.width(28.dp)) { if (checked) Txt("✓", Type.Heading.copy(fontSize = 22.sp, fontWeight = FontWeight.Bold, color = ink)) }
+        // A subtitle file beside the film, or one downloaded from OpenSubtitles, as in the quick pop-up.
+        if (kind != null) Icon(if (kind == SubtitleKind.Downloaded) Icons.Filled.Download else Icons.AutoMirrored.Filled.InsertDriveFile,
+            ink.copy(alpha = ink.alpha * 0.8f), Modifier.padding(end = 10.dp).size(22.dp))
         Txt(text, Type.Heading.copy(fontSize = 21.sp, fontWeight = FontWeight.SemiBold, color = ink), Modifier.weight(1f), maxLines = 1)
         if (value != null) Txt(value, Type.Heading.copy(fontSize = 20.sp, fontWeight = FontWeight.Medium, color = ink.copy(alpha = ink.alpha * 0.85f)), Modifier.padding(start = 20.dp), maxLines = 1)
     }
@@ -552,7 +555,7 @@ private fun SubtitlesTab(p: PlayerActivity) {
     val rows = listOf(stringResource(R.string.none_choice) to (p.subtitleTrack == -1)) + p.subtitleTracks.map { it.label to (it.id == p.subtitleTrack) }
     Row(Modifier.fillMaxWidth()) {
         Spacer(Modifier.weight(0.3f))
-        TracksColumn(rows, Modifier.width(470.dp), up = p.menuTabFocus) { i -> p.chooseSubtitle(if (i == 0) -1 else p.subtitleTracks[i - 1].id) }
+        TracksColumn(rows, Modifier.width(470.dp), up = p.menuTabFocus, kind = p::subtitleKind) { i -> p.chooseSubtitle(if (i == 0) -1 else p.subtitleTracks[i - 1].id) }
         Spacer(Modifier.width(50.dp))
         OptionsColumn(p, options, Modifier.width(470.dp))
         Spacer(Modifier.weight(0.3f))
