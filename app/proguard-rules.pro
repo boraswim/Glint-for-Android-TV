@@ -31,3 +31,7 @@
 -dontwarn com.jcraft.jsch.**
 -dontwarn org.jboss.netty.**
 -dontwarn javax.annotation.**
+# The Dolby Vision player sets Media3's subtitle outline width by reflection (DolbyVision.outlineWidth).
+-keep class androidx.media3.ui.SubtitlePainter { <init>(android.content.Context); float outlineWidth; }
+-keep class androidx.media3.ui.CanvasSubtitleOutput { java.util.List painters; }
+-keep class androidx.media3.ui.SubtitleView { android.view.View innerSubtitleView; }

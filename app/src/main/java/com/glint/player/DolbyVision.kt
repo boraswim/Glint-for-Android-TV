@@ -331,9 +331,31 @@ class ExoPlayback(private val a: PlayerActivity) {
                 if (s.subtitleBold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT,
             )
         )
+        outlineWidth(sub, s.subtitleOutline)
         sub.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * s.subtitleScale / 100f)
         sub.setBottomPaddingFraction(SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION + s.subtitlePosition / 1080f)
         sub.setApplyEmbeddedStyles(true)
+    }
+
+    /**
+     * Media3 takes an outline only as on or off, always 2 dp thick; Thin / Normal / Thick (2, 4, 6, as libVLC
+     * counts them) set its painters' width instead: 1, 2 and 4.5 dp. The painters are made ahead (a cue each),
+     * since the output only makes one when a cue comes. Kept by proguard-rules.pro; if Media3 changes inside,
+     * the outline just stays at 2 dp.
+     */
+    private fun outlineWidth(sub: SubtitleView, thickness: Int) {
+        if (thickness <= 0) return
+        runCatching {
+            val px = sub.resources.displayMetrics.density * when { thickness <= 2 -> 1f; thickness <= 4 -> 2f; else -> 4.5f }
+            val inner = SubtitleView::class.java.getDeclaredField("innerSubtitleView").apply { isAccessible = true }.get(sub) ?: return
+            @Suppress("UNCHECKED_CAST")
+            val painters = inner.javaClass.getDeclaredField("painters").apply { isAccessible = true }.get(inner) as MutableList<Any>
+            val painter = Class.forName("androidx.media3.ui.SubtitlePainter")
+            val make = painter.getDeclaredConstructor(android.content.Context::class.java).apply { isAccessible = true }
+            while (painters.size < 8) painters.add(make.newInstance(sub.context))
+            val width = painter.getDeclaredField("outlineWidth").apply { isAccessible = true }
+            painters.forEach { width.setFloat(it, px) }
+        }.onFailure { android.util.Log.w("Glint", "subtitle outline width", it) }
     }
 
     // ---- tracks ----
