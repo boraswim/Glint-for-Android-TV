@@ -301,6 +301,8 @@ class PlayerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // A film that played DTS last time is opened decoding it at once (see [matchPassthrough]).
+        intent.getStringExtra(EXTRA_KEY)?.let { dtsDecoded = lib.settings.passthrough && lib.settings.decodesDts(it) }
         createVlc()
 
         videoLayout = VLCVideoLayout(this)
@@ -1120,6 +1122,7 @@ class PlayerActivity : ComponentActivity() {
     private fun matchPassthrough(): Boolean {
         if (exo != null || !lib.settings.passthrough) return false
         val dts = isDts(audioTrack)
+        now?.key?.let { lib.settings.rememberDts(it, dts) }
         if (dts == dtsDecoded) return false
         dtsDecoded = dts
         reopenVlc()

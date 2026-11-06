@@ -365,10 +365,10 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                 }
                 8 -> item {
                     if (tick < 0) return@item   // read so a change redraws the rows
-                    val colors = listOf(0xFFFFFF to R.string.color_white, 0xFFE15A to R.string.color_yellow, 0xB4B4B4 to R.string.color_grey)
+                    val colors = SubtitleStyle.COLORS
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         OnOffRow(stringResource(R.string.forced_subtitles), s.forcedSubtitles, FocusFirst(), sub = stringResource(R.string.forced_subtitles_sub)) { v -> change { s.forcedSubtitles = v } }
-                        ChoiceRow(stringResource(R.string.subtitle_size), listOf(75, 100, 125, 150, 175).map { it to "$it%" }, s.subtitleScale) { v -> change { s.subtitleScale = v } }
+                        ChoiceRow(stringResource(R.string.subtitle_size), SubtitleStyle.SIZES.map { (v, r) -> v to stringResource(r) }, s.subtitleScale) { v -> change { s.subtitleScale = v } }
                         ChoiceRow(stringResource(R.string.subtitle_color), colors.map { (c, r) -> c to stringResource(r) }, s.subtitleColor) { v -> change { s.subtitleColor = v } }
                         OnOffRow(stringResource(R.string.subtitle_background), s.subtitleBackground) { v -> change { s.subtitleBackground = v } }
                         ChoiceRow(stringResource(R.string.subtitle_position), listOf(0 to stringResource(R.string.pos_bottom), 60 to stringResource(R.string.pos_raised), 140 to stringResource(R.string.pos_high)), s.subtitlePosition) { v -> change { s.subtitlePosition = v } }

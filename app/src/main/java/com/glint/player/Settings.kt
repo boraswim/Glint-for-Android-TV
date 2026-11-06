@@ -49,6 +49,17 @@ class Settings(context: Context) {
         get() = prefs.getString("osBaseUrl", "")!!
         set(v) = prefs.edit().putString("osBaseUrl", v).apply()
 
+    /**
+     * Films whose audio last played as DTS with passthrough on, so had to be decoded here: the player opens them
+     * that way straight off instead of finding out once playing and reopening the film (about three seconds).
+     */
+    fun decodesDts(key: String) = key in prefs.getStringSet("dtsFilms", emptySet())!!
+    fun rememberDts(key: String, dts: Boolean) {
+        val now = prefs.getStringSet("dtsFilms", emptySet())!!
+        if ((key in now) == dts) return
+        prefs.edit().putStringSet("dtsFilms", if (dts) (now + key).toList().takeLast(500).toSet() else now - key).apply()
+    }
+
     /** Send Dolby/DTS bitstreams to the TV or receiver instead of decoding them. */
     var passthrough: Boolean
         get() = prefs.getBoolean("passthrough", false)
@@ -77,17 +88,22 @@ class Settings(context: Context) {
         get() = prefs.getBoolean("autoplayNext", true)
         set(v) = prefs.edit().putBoolean("autoplayNext", v).apply()
 
-    /** Subtitle size in percent of normal. */
-    /** Subtitle size in %. The menu's old Large (130) and Extra large (160) became 115 and 130: a saved one keeps its name. */
+    /**
+     * Subtitle size in %, one of [SubtitleStyle.SIZES]. The menu's old Large (130) and Extra large (160) became 115
+     * and 130; a size Settings offered before (125, 150, 175) becomes the nearest one, so both lists show it.
+     */
     var subtitleScale: Int
         get() = prefs.getInt("subtitleScale", 100).let { v ->
-            if (prefs.getBoolean("subtitleScaleV2", false)) v
-            else (when (v) { 130 -> 115; 160 -> 130; else -> v }).also { prefs.edit().putInt("subtitleScale", it).putBoolean("subtitleScaleV2", true).apply() }
+            val was = if (prefs.getBoolean("subtitleScaleV2", false)) v else when (v) { 130 -> 115; 160 -> 130; else -> v }
+            val now = SubtitleStyle.SIZES.map { it.first }.minBy { kotlin.math.abs(it - was) }
+            if (now != v || !prefs.getBoolean("subtitleScaleV2", false)) prefs.edit().putInt("subtitleScale", now).putBoolean("subtitleScaleV2", true).apply()
+            now
         }
         set(v) = prefs.edit().putInt("subtitleScale", v).apply()
 
+    /** Subtitle colour, one of [SubtitleStyle.COLORS]; the player menu's old yellow becomes the one both list. */
     var subtitleColor: Int
-        get() = prefs.getInt("subtitleColor", 0xFFFFFF)
+        get() = prefs.getInt("subtitleColor", 0xFFFFFF).let { if (it == 0xFFE135) 0xFFE15A else it }
         set(v) = prefs.edit().putInt("subtitleColor", v).apply()
 
     var subtitleBackground: Boolean
@@ -203,4 +219,10 @@ class Settings(context: Context) {
     /** Kodi's "Dolby Vision compatibility mode": profile 7 films are converted to 8.1 while they play. */
     var doviCompat: Boolean get() = flag("doviCompat", false); set(v) = setFlag("doviCompat", v)
     var forcedSubtitles: Boolean get() = flag("forcedSubtitles", true); set(v) = setFlag("forcedSubtitles", v)
+}
+
+/** The subtitle sizes and colours, the same in Settings and in the player's menu. */
+object SubtitleStyle {
+    val SIZES = listOf(75 to R.string.size_small, 100 to R.string.size_medium, 115 to R.string.size_large, 130 to R.string.size_xlarge)
+    val COLORS = listOf(0xFFFFFF to R.string.color_white, 0xFFE15A to R.string.color_yellow, 0xB4B4B4 to R.string.color_grey)
 }

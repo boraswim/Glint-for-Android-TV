@@ -531,9 +531,9 @@ private fun SubtitlesTab(p: PlayerActivity) {
     var tick by remember { mutableStateOf(0) }       // settings aren't observable; redraw after a change
     fun change(block: () -> Unit) { block(); tick++; p.restyleSubtitles() }
     if (tick < 0) return
-    // Large sits between Medium and what Large was; Extra large is the old Large (160 was too big).
-    val sizes = listOf(75 to R.string.size_small, 100 to R.string.size_medium, 115 to R.string.size_large, 130 to R.string.size_xlarge).map { it.first to stringResource(it.second) }
-    val colors = listOf(0xFFFFFF to R.string.color_white, 0xFFE135 to R.string.color_yellow).map { it.first to stringResource(it.second) }
+    // The same sizes and colours as Settings → Subtitles (one setting behind both).
+    val sizes = SubtitleStyle.SIZES.map { it.first to stringResource(it.second) }
+    val colors = SubtitleStyle.COLORS.map { it.first to stringResource(it.second) }
     val weights = listOf(false to R.string.weight_normal, true to R.string.weight_bold).map { it.first to stringResource(it.second) }
     val outlines = listOf(0 to R.string.none_choice, 2 to R.string.outline_thin, 4 to R.string.weight_normal, 6 to R.string.outline_thick).map { it.first to stringResource(it.second) }
     val backs = listOf(false to R.string.off, true to R.string.on).map { it.first to stringResource(it.second) }
