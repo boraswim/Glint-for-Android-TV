@@ -1299,6 +1299,20 @@ class PlayerActivity : ComponentActivity() {
             if (event.action == KeyEvent.ACTION_UP) onBack()
             return true
         }
+        // The remote's playback keys work over the menu, a track pop-up and the up-next card too: those take
+        // only arrows and OK, and Stop or Play/Pause pressed there did nothing.
+        if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) when (code) {
+            KeyEvent.KEYCODE_MEDIA_STOP -> { finish(); return true }
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PAUSE ->
+                if ((panel || trackPopup >= 0 || upNext != null) && error == null && reopenAt == null) {
+                    when (code) {
+                        KeyEvent.KEYCODE_MEDIA_PLAY -> resumePlayback()
+                        KeyEvent.KEYCODE_MEDIA_PAUSE -> pausePlayback()
+                        else -> togglePause()
+                    }
+                    return true
+                }
+        }
         // Menus and the up-next card are ordinary focusable Compose UI.
         if (panel || upNext != null || error != null) return super.dispatchKeyEvent(event)
         // While a reopen catches up (a few seconds), the controls wait; Back is handled above.
