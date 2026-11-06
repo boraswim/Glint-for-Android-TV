@@ -156,3 +156,6 @@ object SkipRules {
     /** The 10 seconds alone count only while the button can be seen on its own. */
     fun aloneCounts(playing: Boolean, controls: Boolean, panel: Boolean, upNext: Boolean) = playing && !controls && !panel && !upNext
 }
+
+/** Where a subtitle that isn't inside the film came from: a file beside it (NAS or USB), or downloaded from OpenSubtitles. */
+enum class SubtitleKind { Beside, Downloaded }

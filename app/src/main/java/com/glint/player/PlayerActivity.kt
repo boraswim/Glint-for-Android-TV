@@ -651,6 +651,9 @@ class PlayerActivity : ComponentActivity() {
             dubIds = e.dubIds()
             subtitleTracks = e.subtitleOptions()
             spuIds = subtitleTracks.map { it.id }
+            subtitleKinds = subtitleTracks.mapNotNull { o ->
+                e.format(o.id)?.id?.let { f -> SIDECAR_ID.find(f) }?.groupValues?.get(1)?.toIntOrNull()?.let(subtitleFiles::getOrNull)?.let { o.id to kindOf(it) }
+            }.toMap()
             audioTrack = e.selected(androidx.media3.common.C.TRACK_TYPE_AUDIO)
             subtitleTrack = e.selected(androidx.media3.common.C.TRACK_TYPE_TEXT)
             if (pickLastSubtitle && subtitleTracks.isNotEmpty()) {
@@ -677,6 +680,7 @@ class PlayerActivity : ComponentActivity() {
             }
             TrackOption(t.id, label)
         }
+        subtitleKinds = spu.mapIndexedNotNull { i, t -> subtitleFiles.getOrNull(i - embedded)?.takeIf { i >= embedded }?.let { t.id to kindOf(it) } }.toMap()
         // A restyle reopening the film: libVLC picks its own tracks while the streams come back, before the
         // viewer's are put back; the menu keeps showing the viewer's meanwhile, so its tick doesn't wander.
         if (reopenAt == null || tracksApplied) {
@@ -687,6 +691,16 @@ class PlayerActivity : ComponentActivity() {
         spuIds = spu.map { it.id }
         embeddedSubs = embedded
     }
+
+    /** Where each subtitle track that isn't in the film comes from, by track id: a file beside it, or a download. */
+    private var subtitleKinds: Map<Int, SubtitleKind> = emptyMap()
+
+    /** Downloads are kept as "<n>os-<name>" (see [addSubtitle]); everything else came with the film from the NAS or USB. */
+    private fun kindOf(f: File) = if (OS_FILE.containsMatchIn(f.name)) SubtitleKind.Downloaded else SubtitleKind.Beside
+
+    /** The icon for a row of the open pop-up: in the subtitle list, how a track came; nothing for the film's own. */
+    fun popupKind(row: Int): SubtitleKind? =
+        if (trackPopup == 3) subtitleTracks.getOrNull(row - 1)?.let { subtitleKinds[it.id] } else null
 
     private var spuIds: List<Int> = emptyList()
     private var dubIds: List<Int> = emptyList()
@@ -1384,6 +1398,7 @@ class PlayerActivity : ComponentActivity() {
     companion object {
         private const val TAG = "Player"
         private val SIDECAR_ID = Regex("""sub(\d+)""")
+        private val OS_FILE = Regex("""^\d+os-""")
         private const val EXTRA_KEY = "key"
         private const val EXTRA_FROM_START = "fromStart"
         private const val EXTRA_QUEUE = "queue"

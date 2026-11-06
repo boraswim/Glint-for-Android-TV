@@ -41,6 +41,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.ViewList
@@ -198,6 +200,11 @@ private fun TrackPopup(p: PlayerActivity, modifier: Modifier) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(Modifier.width(30.dp)) { if (on) Txt("✓", Type.Body.copy(fontSize = 19.sp, color = if (focused) Color.Black else Color.White)) }
+                    // A subtitle file beside the film, or one downloaded from OpenSubtitles; the film's own have none.
+                    p.popupKind(i)?.let { k ->
+                        Icon(if (k == SubtitleKind.Downloaded) Icons.Filled.Download else Icons.AutoMirrored.Filled.InsertDriveFile,
+                            if (focused) Color.Black else Color(0xFFBBBBBB), Modifier.padding(end = 10.dp).size(20.dp))
+                    }
                     val style = Type.Body.copy(fontSize = 17.sp, lineHeight = 22.sp, color = if (focused) Color.Black else Color.White)
                     val os = p.osRow(i)
                     if (os == null) Txt(label, style, maxLines = 2)
