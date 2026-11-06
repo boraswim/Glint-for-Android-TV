@@ -226,8 +226,9 @@ class Settings(context: Context) {
 /** The volume boost's steps, the same in Settings and the player menu. */
 object VolumeBoost {
     val LEVELS = listOf(100, 200, 300)
-    /** The percent as the language writes it ("%200" in Turkish, "200 %" in German). */
-    fun label(v: Int): String = java.text.NumberFormat.getPercentInstance(java.util.Locale.getDefault()).format(v / 100.0)
+    /** "Off" for 100 (the film as it is), else the percent as the language writes it ("%200" in Turkish, "200 %" in German). */
+    fun label(v: Int): String = if (v == 100) App.instance.getString(R.string.off)
+        else java.text.NumberFormat.getPercentInstance(java.util.Locale.getDefault()).format(v / 100.0)
 }
 
 object SubtitleStyle {
