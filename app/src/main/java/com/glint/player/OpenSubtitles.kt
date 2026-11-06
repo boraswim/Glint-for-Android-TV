@@ -35,23 +35,38 @@ object OpenSubtitles {
     private fun call(r: Request): JSONObject = http.newCall(r).execute().use { resp ->
         val body = resp.body?.string().orEmpty()
         val o = runCatching { JSONObject(body) }.getOrDefault(JSONObject())
-        if (resp.code == 403 && "consume" in body) throw IOException(App.instance.getString(R.string.os_bad_key))
-        if (!resp.isSuccessful) throw IOException(o.optString("message").ifBlank { o.optJSONArray("errors")?.optString(0) }.orEmpty().ifBlank { "OpenSubtitles ${resp.code}" })
+        // "You cannot consume this service" (and a 503 on downloads) is what a wrong key gets, but also a right one
+        // while the service has a fault: a key that has worked before means the service, not the key.
+        if ((resp.code == 403 && "consume" in body) || resp.code >= 500)
+            throw Refused(resp.code, App.instance.getString(if (s.osKeyWorked) R.string.os_busy else R.string.os_bad_key))
+        if (!resp.isSuccessful) throw Refused(resp.code, o.optString("message").ifBlank { o.optJSONArray("errors")?.optString(0) }.orEmpty().ifBlank { "OpenSubtitles ${resp.code}" })
         o
     }
 
+    /** A request the service answered with an error: its HTTP code and message. */
+    private class Refused(val code: Int, message: String) : IOException(message)
+
     /**
-     * Whether [key] looks like an OpenSubtitles API key (letters and digits, about 32 of them), not a pasted address.
-     * The service can't check a key on its own: searching takes any key, and a sign-in without an account answers
-     * a right key and a wrong one alike. Signing in with the account (Settings) is the real check.
+     * Whether OpenSubtitles accepts [key]. Searches don't tell (they're answered from a cache, whatever the key), but
+     * a sign-in does: with a made-up account a right key gets "wrong user name or password", a wrong one is refused.
+     * Uses none of the day's downloads. When the service can't be reached, only the key's shape is checked.
      */
-    fun works(key: String): Boolean = key.matches(Regex("[A-Za-z0-9]{20,64}"))
+    fun works(key: String): Boolean {
+        if (!key.matches(Regex("[A-Za-z0-9]{20,64}"))) return false
+        val body = JSONObject().put("username", "glint-key-check").put("password", "-").toString().toRequestBody(json)
+        val code = runCatching { http.newCall(request("$API/login", key).post(body).build()).execute().use { it.code } }.getOrDefault(0)
+        if (key == s.osApiKey && code in 400..403) s.osKeyWorked = code != 403
+        return code in 400..401 || code == 0 || code == 429 || code >= 500
+    }
 
     /** Logs in with the saved account; returns the downloads it allows a day. Keeps the token for later downloads. */
     fun login(): Int {
         val body = JSONObject().put("username", s.osUser).put("password", s.osPassword).toString().toRequestBody(json)
-        val o = call(request("$API/login").post(body).build())
+        // The service allows one sign-in a second: a refused one is tried once more after a pause.
+        val o = try { call(request("$API/login").post(body).build()) }
+            catch (e: Refused) { if (e.code != 429) throw e; Thread.sleep(1_100); call(request("$API/login").post(body).build()) }
         s.osToken = o.getString("token")
+        s.osKeyWorked = true
         s.osBaseUrl = o.optString("base_url").takeIf { it.isNotBlank() }?.let { "https://$it/api/v1" }.orEmpty()
         return o.optJSONObject("user")?.optInt("allowed_downloads") ?: 0
     }
@@ -104,9 +119,18 @@ object OpenSubtitles {
         val body = JSONObject().put("file_id", fileId).toString().toRequestBody(json)
         fun ask(t: String?) = call(request(s.osBaseUrl.ifBlank { API } + "/download").apply { if (t != null) header("Authorization", "Bearer $t") }.post(body).build())
         // No account: OpenSubtitles allows a few downloads a day with the key alone. With one, a token the server
-        // dropped early means logging in again once.
+        // dropped early (401) means signing in again once, a second later; any other error is shown as it is.
+        // A sign-in that fails (a changed password, say) still leaves the key's own few downloads a day: those are used.
         val o = if (s.osUser.isBlank() || s.osPassword.isEmpty()) ask(null)
-            else runCatching { ask(token()) }.getOrElse { s.osToken = ""; ask(token()) }
+            else {
+                val t = try { token() } catch (e: Refused) { null }
+                if (t == null) ask(null)
+                else try { ask(t) } catch (e: Refused) {
+                    if (e.code != 401) throw e
+                    s.osToken = ""; Thread.sleep(1_100); ask(runCatching { token() }.getOrNull())
+                }
+            }
+        s.osKeyWorked = true
         val link = o.optString("link").ifBlank { throw IOException(o.optString("message").ifBlank { "OpenSubtitles: no link" }) }
         return http.newCall(Request.Builder().url(link).header("User-Agent", "Glint v${BuildConfig.VERSION_NAME}").build()).execute().use { r ->
             if (!r.isSuccessful) throw IOException("OpenSubtitles ${r.code}")

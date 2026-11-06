@@ -431,6 +431,9 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
     }
 }
 
+/** A key or sign-in that works: green, beside the red of one that doesn't (whatever the theme colour). */
+private val KeyOk = Color(0xFF34C759)
+
 /**
  * A field for one of the viewer's own API keys, saved as typed; finishing the entry (OK on the keyboard) asks
  * [check] (off the main thread) whether the service accepts it, and says so below.
@@ -452,7 +455,7 @@ private fun ApiKeyField(label: Int, sub: Int, value: String, onSave: (String) ->
         })
         when {
             checking -> Txt(stringResource(R.string.key_checking), Type.Small)
-            state == true -> Txt(stringResource(R.string.key_ok), Type.Small.copy(color = Palette.Accent))
+            state == true -> Txt(stringResource(R.string.key_ok), Type.Small.copy(color = KeyOk))
             state == false -> Txt(stringResource(R.string.key_bad), Type.Small.copy(color = Color(0xFFE5484D)))
         }
     }
@@ -506,7 +509,7 @@ private fun OpenSubtitlesAccount() {
             TextInput(pass, { pass = it; s.osPassword = it; result = null }, "", Modifier.fillMaxWidth(), password = true, onDone = ::check)
             when {
                 checking -> Txt(stringResource(R.string.key_checking), Type.Small)
-                result != null -> Txt(result!!, Type.Small.copy(color = if (ok) Palette.Accent else Color(0xFFE5484D)))
+                result != null -> Txt(result!!, Type.Small.copy(color = if (ok) KeyOk else Color(0xFFE5484D)))
             }
         }
     }

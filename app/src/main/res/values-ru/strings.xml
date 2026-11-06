@@ -269,6 +269,7 @@
     <string name="os_password">Пароль (необязательно)</string>
     <string name="os_logged_in">Вход выполнен · %1$d загрузок в день</string>
     <string name="os_bad_key">OpenSubtitles не принимает этот API-ключ. Проверьте его в Настройки → Субтитры: это ключ из Профиль → API consumers, а не веб-адрес.</string>
+    <string name="os_busy">OpenSubtitles сейчас не отвечает. Попробуйте снова через несколько минут.</string>
     <string name="playlists">Плейлисты</string>
     <string name="playlists_empty">Плейлистов пока нет. Добавьте фильм со страницы фильма через «Ещё» (…).</string>
     <string name="delete_playlist">Удалить плейлист</string>

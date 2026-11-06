@@ -269,6 +269,7 @@
     <string name="os_password">Passwort (optional)</string>
     <string name="os_logged_in">Angemeldet · %1$d Downloads pro Tag</string>
     <string name="os_bad_key">OpenSubtitles akzeptiert diesen API-Schlüssel nicht. Unter Einstellungen → Untertitel prüfen: der Schlüssel aus Profil → API consumers, keine Webadresse.</string>
+    <string name="os_busy">OpenSubtitles antwortet gerade nicht. In ein paar Minuten erneut versuchen.</string>
     <string name="playlists">Playlists</string>
     <string name="playlists_empty">Noch keine Playlists. Füge einen Film auf seiner Seite über Mehr (…) hinzu.</string>
     <string name="delete_playlist">Playlist löschen</string>

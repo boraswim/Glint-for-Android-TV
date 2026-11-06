@@ -133,6 +133,19 @@ class PlayerActivity : ComponentActivity() {
         else -> emptyList()
     }
 
+    /**
+     * A subtitle result split for its row: language and release name (cut short on one line), then frame rate,
+     * SDH and downloads, always whole at the right. Null while a status line shows instead of results.
+     */
+    fun osRow(i: Int): Pair<String, String>? {
+        if (trackPopup != 5 || osStatus != null) return null
+        val h = osHits.getOrNull(i) ?: return null
+        return "${langName(h.language)}  ·  ${h.release}" to listOfNotNull(
+            h.fps.takeIf { it > 0 }?.let { String.format(Locale.ROOT, "%.3f fps", it).replace(".000 ", " ") },
+            if (h.hearingImpaired) "SDH" else null, "↓ ${h.downloads}",
+        ).joinToString("  ·  ")
+    }
+
     /** "Search subtitles": the results (pop-up 5) and a line shown instead of them while busy or after an error. */
     private var osHits by mutableStateOf<List<OpenSubtitles.Hit>>(emptyList())
     private var osStatus by mutableStateOf<String?>(null)
@@ -197,6 +210,7 @@ class PlayerActivity : ComponentActivity() {
             // Media3 takes its subtitle files when the film opens: reopen it where it is, now with this one, and pick it.
             val (src, share, path) = playingFrom ?: return
             pickLastSubtitle = true
+            keepAudio = audioTracks.indexOfFirst { it.id == audioTrack }
             e.load(src, share, path, subtitleFiles, subtitleFiles.map { subtitleLabel(it) }, now?.file?.dubs.orEmpty(), position, subtitleFiles.map { sidecarCode(it) })
         } else {
             player.addSlave(IMedia.Slave.Type.Subtitle, Uri.fromFile(copy), true)
@@ -205,6 +219,11 @@ class PlayerActivity : ComponentActivity() {
 
     /** Set when Media3 reopened with a new subtitle: select the last subtitle once its tracks are known. */
     private var pickLastSubtitle = false
+    /**
+     * The place in the audio list of the track that was playing when Media3 reopened for a subtitle (-1: none), so
+     * the same one plays on; otherwise Media3 picks its own, by the TV's language, and the sound changes.
+     */
+    private var keepAudio = -1
     /** Where the film playing comes from, for reopening it in Media3. */
     private var playingFrom: Triple<Source, String, String>? = null
 
@@ -631,7 +650,12 @@ class PlayerActivity : ComponentActivity() {
             spuIds = subtitleTracks.map { it.id }
             audioTrack = e.selected(androidx.media3.common.C.TRACK_TYPE_AUDIO)
             subtitleTrack = e.selected(androidx.media3.common.C.TRACK_TYPE_TEXT)
-            if (pickLastSubtitle && subtitleTracks.isNotEmpty()) { pickLastSubtitle = false; chooseSubtitle(subtitleTracks.last().id) }
+            if (pickLastSubtitle && subtitleTracks.isNotEmpty()) {
+                pickLastSubtitle = false
+                audioTracks.getOrNull(keepAudio)?.let { if (it.id != audioTrack) chooseAudio(it.id, byViewer = audioChosen) }
+                keepAudio = -1
+                chooseSubtitle(subtitleTracks.last().id)
+            }
             chapters = exoChapters
             return
         }

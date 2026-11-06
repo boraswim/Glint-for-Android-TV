@@ -269,6 +269,7 @@
     <string name="os_password">Şifre (isteğe bağlı)</string>
     <string name="os_logged_in">Giriş yapıldı · günde %1$d indirme</string>
     <string name="os_bad_key">OpenSubtitles bu API anahtarını kabul etmiyor. Ayarlar → Altyazılar\'da kontrol edin: Profil → API consumers\'daki anahtar olmalı, web adresi değil.</string>
+    <string name="os_busy">OpenSubtitles şu an yanıt vermiyor. Birkaç dakika sonra tekrar deneyin.</string>
     <string name="playlists">Oynatma Listeleri</string>
     <string name="playlists_empty">Henüz oynatma listesi yok. Bir filmi sayfasındaki Diğer (…) menüsünden ekleyin.</string>
     <string name="delete_playlist">Listeyi sil</string>

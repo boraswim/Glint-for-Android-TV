@@ -269,6 +269,7 @@
     <string name="os_password">Mot de passe (facultatif)</string>
     <string name="os_logged_in">Connecté · %1$d téléchargements par jour</string>
     <string name="os_bad_key">OpenSubtitles refuse cette clé d\'API. Vérifiez-la dans Réglages → Sous-titres : c\'est la clé de Profil → API consumers, pas une adresse web.</string>
+    <string name="os_busy">OpenSubtitles ne répond pas pour le moment. Réessayez dans quelques minutes.</string>
     <string name="playlists">Listes de lecture</string>
     <string name="playlists_empty">Aucune liste pour l\'instant. Ajoutez un film depuis sa page avec Plus (…).</string>
     <string name="delete_playlist">Supprimer la liste</string>

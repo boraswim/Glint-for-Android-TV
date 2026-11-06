@@ -269,6 +269,7 @@
     <string name="os_password">Wachtwoord (optioneel)</string>
     <string name="os_logged_in">Ingelogd · %1$d downloads per dag</string>
     <string name="os_bad_key">OpenSubtitles accepteert deze API-sleutel niet. Controleer hem bij Instellingen → Ondertitels: de sleutel uit Profiel → API consumers, geen webadres.</string>
+    <string name="os_busy">OpenSubtitles reageert nu niet. Probeer het over een paar minuten opnieuw.</string>
     <string name="playlists">Afspeellijsten</string>
     <string name="playlists_empty">Nog geen afspeellijsten. Voeg een film toe via Meer (…) op de pagina ervan.</string>
     <string name="delete_playlist">Afspeellijst verwijderen</string>

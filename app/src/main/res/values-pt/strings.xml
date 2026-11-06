@@ -269,6 +269,7 @@
     <string name="os_password">Senha (opcional)</string>
     <string name="os_logged_in">Conectado · %1$d downloads por dia</string>
     <string name="os_bad_key">O OpenSubtitles não aceita esta chave de API. Confira em Configurações → Legendas: é a chave de Perfil → API consumers, não um endereço web.</string>
+    <string name="os_busy">O OpenSubtitles não está respondendo agora. Tente de novo em alguns minutos.</string>
     <string name="playlists">Playlists</string>
     <string name="playlists_empty">Ainda não há playlists. Adicione um filme pela página dele com Mais (…).</string>
     <string name="delete_playlist">Excluir playlist</string>

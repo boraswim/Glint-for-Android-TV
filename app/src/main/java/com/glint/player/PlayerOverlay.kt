@@ -198,7 +198,14 @@ private fun TrackPopup(p: PlayerActivity, modifier: Modifier) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(Modifier.width(30.dp)) { if (on) Txt("✓", Type.Body.copy(fontSize = 19.sp, color = if (focused) Color.Black else Color.White)) }
-                    Txt(label, Type.Body.copy(fontSize = 17.sp, lineHeight = 22.sp, color = if (focused) Color.Black else Color.White), maxLines = 2)
+                    val style = Type.Body.copy(fontSize = 17.sp, lineHeight = 22.sp, color = if (focused) Color.Black else Color.White)
+                    val os = p.osRow(i)
+                    if (os == null) Txt(label, style, maxLines = 2)
+                    else {
+                        // A long release name is cut short; the frame rate and downloads stay whole on the same line.
+                        Txt(os.first, style, Modifier.weight(1f), maxLines = 1)
+                        Txt("  ·  " + os.second, style, maxLines = 1)
+                    }
                 }
             }
         }

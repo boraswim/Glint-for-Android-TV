@@ -30,7 +30,11 @@ class Settings(context: Context) {
     /** OpenSubtitles.com: the viewer's API key and account, for searching subtitles from the player. */
     var osApiKey: String
         get() = prefs.getString("osApiKey", "")!!
-        set(v) = prefs.edit().putString("osApiKey", v.trim()).remove("osToken").apply()
+        set(v) = prefs.edit().putString("osApiKey", v.trim()).remove("osToken").remove("osKeyWorked").apply()
+    /** Whether OpenSubtitles has accepted this key once (a search or the check in Settings went through). */
+    var osKeyWorked: Boolean
+        get() = prefs.getBoolean("osKeyWorked", false)
+        set(v) = prefs.edit().putBoolean("osKeyWorked", v).apply()
     var osUser: String
         get() = prefs.getString("osUser", "")!!
         set(v) = prefs.edit().putString("osUser", v.trim()).remove("osToken").apply()
