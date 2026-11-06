@@ -398,6 +398,8 @@ class PlayerActivity : ComponentActivity() {
         player.videoScale = vlcScale(scale)   // keep the viewer's choice when coming back
         if (decoderLost) { decoderLost = false; exo?.player?.prepare() }
         if (exo?.isDolbyVision() == true) announceDolbyVision(true)
+        // Back from Settings with another volume boost: play on with it.
+        lib.settings.volumeBoost.let { if (it != volume) chooseVolume(it) }
         if (paused) showControls()
     }
 
@@ -1286,11 +1288,13 @@ class PlayerActivity : ComponentActivity() {
     }
 
     /**
-     * The volume boost playing, 100–300 percent: the setting's, until the menu changes it while the player is open.
-     * Media3 applies it at once; libVLC reads its gain only when it's created, so the film reopens where it was.
+     * The volume boost playing, 100–300 percent: one value with Settings, as the subtitle options are, so a change in
+     * either shows in the other. Media3 applies it at once; libVLC reads its gain only when it's created, so the film
+     * reopens where it was.
      */
     var volume by mutableIntStateOf(100)
     fun chooseVolume(v: Int) {
+        lib.settings.volumeBoost = v
         if (v == volume) return
         volume = v
         exo?.let { it.setGain(v / 100f); return }
