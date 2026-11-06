@@ -458,4 +458,6 @@
     <string name="animation_subtitles">Animation subtitles</string>
     <string name="same_as_preferred">Same as preferred</string>
     <string name="animation_sub">Animated films and series. If this audio isn\'t there, the preferred audio and subtitles are used.</string>
+    <string name="remove_subtitle_confirm">Remove this subtitle?</string>
+    <string name="remove_subtitle_sub">%1$s is deleted from this title. You can download it again from Search subtitles.</string>
 </resources>

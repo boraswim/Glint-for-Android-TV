@@ -438,4 +438,6 @@
     <string name="animation_subtitles">Ondertiteling bij animatie</string>
     <string name="same_as_preferred">Zelfde als voorkeur</string>
     <string name="animation_sub">Animatiefilms en -series. Ontbreekt deze audio, dan gelden de voorkeursaudio en -ondertiteling.</string>
+    <string name="remove_subtitle_confirm">Deze ondertitel verwijderen?</string>
+    <string name="remove_subtitle_sub">%1$s wordt van deze titel verwijderd. Je kunt hem opnieuw downloaden via Ondertitels zoeken.</string>
 </resources>

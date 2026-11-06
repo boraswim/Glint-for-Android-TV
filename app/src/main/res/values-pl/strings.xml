@@ -438,4 +438,6 @@
     <string name="animation_subtitles">Napisy w animacjach</string>
     <string name="same_as_preferred">Jak preferowane</string>
     <string name="animation_sub">Filmy i seriale animowane. Gdy brak tego dźwięku, używane są preferowany dźwięk i napisy.</string>
+    <string name="remove_subtitle_confirm">Usunąć te napisy?</string>
+    <string name="remove_subtitle_sub">%1$s zostaną usunięte z tego tytułu. Możesz pobrać je ponownie przez wyszukiwanie napisów.</string>
 </resources>

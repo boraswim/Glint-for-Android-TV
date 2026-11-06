@@ -184,7 +184,9 @@ class PlayerActivity : ComponentActivity() {
                 runCatching {
                     val dir = savedSubtitleDir(key).apply { mkdirs() }
                     val name = h.release.replace(Regex("""[\\/:*?"<>|]"""), "_").take(80)
-                    File(dir, "${dir.list()?.size ?: 0}-$name.${h.language}.srt").also { it.writeText(decodeSubtitle(OpenSubtitles.download(h.fileId)), Charsets.UTF_8) }
+                    // Numbered after the highest kept, so a removed one's number isn't handed out again over a kept one.
+                    val n = dir.list().orEmpty().mapNotNull { it.substringBefore('-').toIntOrNull() }.maxOrNull()?.plus(1) ?: 0
+                    File(dir, "$n-$name.${h.language}.srt").also { it.writeText(decodeSubtitle(OpenSubtitles.download(h.fileId)), Charsets.UTF_8) }
                 }
             }
             r.onSuccess { f ->
@@ -209,7 +211,7 @@ class PlayerActivity : ComponentActivity() {
         if (e != null) {
             // Media3 takes its subtitle files when the film opens: reopen it where it is, now with this one, and pick it.
             val (src, share, path) = playingFrom ?: return
-            pickLastSubtitle = true
+            pickSubtitle = LAST
             keepAudio = audioTracks.indexOfFirst { it.id == audioTrack }
             e.load(src, share, path, subtitleFiles, subtitleFiles.map { subtitleLabel(it) }, now?.file?.dubs.orEmpty(), position, subtitleFiles.map { sidecarCode(it) })
         } else {
@@ -217,8 +219,42 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
-    /** Set when Media3 reopened with a new subtitle: select the last subtitle once its tracks are known. */
-    private var pickLastSubtitle = false
+    /**
+     * Set when the film reopens for a subtitle added or removed: the place in the subtitle list to select once its
+     * tracks are known ([LAST]: the one just added; -1: none).
+     */
+    private var pickSubtitle: Int? = null
+
+    /** The downloaded subtitle at this row of the subtitle list (row 0 is "None") that the viewer asked to remove, or null. */
+    var removingSubtitle by mutableStateOf<Int?>(null)
+
+    /** The added subtitle file a track plays, or null for the film's own. */
+    private fun subtitleFileOf(id: Int): File? = exo?.let { e ->
+        e.format(id)?.id?.let { f -> SIDECAR_ID.find(f) }?.groupValues?.get(1)?.toIntOrNull()?.let(subtitleFiles::getOrNull)
+    } ?: spuIds.indexOf(id).takeIf { it >= embeddedSubs }?.let { subtitleFiles.getOrNull(it - embeddedSubs) }
+
+    /**
+     * Removes a downloaded subtitle from this title for good (it isn't brought back next time) and reopens the
+     * film where it is without it; the subtitle that was on stays on, or none if it was this one.
+     */
+    fun removeSubtitle(row: Int) {
+        removingSubtitle = null
+        val t = subtitleTracks.getOrNull(row - 1)?.takeIf { subtitleKinds[it.id] == SubtitleKind.Downloaded } ?: return
+        val key = now?.key ?: return
+        val file = subtitleFileOf(t.id) ?: return
+        val on = subtitleTracks.indexOfFirst { it.id == subtitleTrack }
+        pickSubtitle = when { on < 0 || on == row - 1 -> -1; on > row - 1 -> on - 1; else -> on }
+        keepAudio = audioTracks.indexOfFirst { it.id == audioTrack }
+        savedSubtitleDir(key).listFiles()?.firstOrNull { it.name.substringAfter('-') == file.name.substringAfter('-') }?.delete()
+        file.delete()
+        subtitleFiles = subtitleFiles - file
+        externalSubs = subtitleFiles.size
+        val e = exo
+        if (e != null) {
+            val (src, share, path) = playingFrom ?: return
+            e.load(src, share, path, subtitleFiles, subtitleFiles.map { subtitleLabel(it) }, now?.file?.dubs.orEmpty(), position, subtitleFiles.map { sidecarCode(it) })
+        } else reopenVlc()     // libVLC can't drop a subtitle file it was given; a fresh one opens without it
+    }
     /**
      * The place in the audio list of the track that was playing when Media3 reopened for a subtitle (-1: none), so
      * the same one plays on; otherwise Media3 picks its own, by the TV's language, and the sound changes.
@@ -658,11 +694,12 @@ class PlayerActivity : ComponentActivity() {
             }.toMap()
             audioTrack = e.selected(androidx.media3.common.C.TRACK_TYPE_AUDIO)
             subtitleTrack = e.selected(androidx.media3.common.C.TRACK_TYPE_TEXT)
-            if (pickLastSubtitle && subtitleTracks.isNotEmpty()) {
-                pickLastSubtitle = false
+            val pick = pickSubtitle
+            if (pick != null && (subtitleTracks.isNotEmpty() || (pick == -1 && audioTracks.isNotEmpty()))) {
+                pickSubtitle = null
                 audioTracks.getOrNull(keepAudio)?.let { if (it.id != audioTrack) chooseAudio(it.id, byViewer = audioChosen) }
                 keepAudio = -1
-                chooseSubtitle(subtitleTracks.last().id)
+                chooseSubtitle(if (pick == LAST) subtitleTracks.last().id else subtitleTracks.getOrNull(pick)?.id ?: -1)
             }
             chapters = exoChapters
             return
@@ -808,6 +845,8 @@ class PlayerActivity : ComponentActivity() {
             lib.settings.forcedSubtitles, saved?.subtitleTrack ?: -2, ::speaks)
         player.spuTrack = sub.id
         if (sub.byViewer) subtitleChosen = true
+        // Reopened without a removed subtitle: the one that was on, by its new place (the saved track id may have moved).
+        pickSubtitle?.let { i -> pickSubtitle = null; player.spuTrack = subtitleTracks.getOrNull(i)?.id ?: -1; subtitleChosen = true }
         audioTrack = player.audioTrack
         subtitleTrack = player.spuTrack
     }
@@ -1404,6 +1443,8 @@ class PlayerActivity : ComponentActivity() {
         private const val TAG = "Player"
         private val SIDECAR_ID = Regex("""sub(\d+)""")
         private val OS_FILE = Regex("""^\d+os-""")
+        /** [pickSubtitle]: the subtitle just added, last in the list. */
+        private const val LAST = -2
         private const val EXTRA_KEY = "key"
         private const val EXTRA_FROM_START = "fromStart"
         private const val EXTRA_QUEUE = "queue"

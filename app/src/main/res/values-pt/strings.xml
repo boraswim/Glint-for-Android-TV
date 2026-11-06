@@ -438,4 +438,6 @@
     <string name="animation_subtitles">Legendas de animação</string>
     <string name="same_as_preferred">Igual ao preferido</string>
     <string name="animation_sub">Filmes e séries de animação. Sem este áudio, usam-se o áudio e as legendas preferidos.</string>
+    <string name="remove_subtitle_confirm">Remover esta legenda?</string>
+    <string name="remove_subtitle_sub">%1$s é apagada deste título. Pode transferi-la de novo em Procurar legendas.</string>
 </resources>

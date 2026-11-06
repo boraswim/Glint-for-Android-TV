@@ -445,4 +445,6 @@
     <string name="animation_subtitles">Animasyonlarda altyazı</string>
     <string name="same_as_preferred">Tercih edilenle aynı</string>
     <string name="animation_sub">Animasyon film ve diziler. Bu ses yoksa tercih edilen ses ve altyazı kullanılır.</string>
+    <string name="remove_subtitle_confirm">Bu altyazı kaldırılsın mı?</string>
+    <string name="remove_subtitle_sub">%1$s bu içerikten silinir. İstersen Altyazı ara ile yeniden indirebilirsin.</string>
 </resources>

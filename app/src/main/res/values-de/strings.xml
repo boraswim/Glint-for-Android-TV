@@ -438,4 +438,6 @@
     <string name="animation_subtitles">Untertitel bei Animation</string>
     <string name="same_as_preferred">Wie bevorzugt</string>
     <string name="animation_sub">Animationsfilme und -serien. Fehlt dieser Ton, gelten bevorzugter Ton und Untertitel.</string>
+    <string name="remove_subtitle_confirm">Diesen Untertitel entfernen?</string>
+    <string name="remove_subtitle_sub">%1$s wird für diesen Titel gelöscht. Über die Untertitelsuche kannst du ihn erneut laden.</string>
 </resources>

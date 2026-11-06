@@ -438,4 +438,6 @@
     <string name="animation_subtitles">Субтитры в мультфильмах</string>
     <string name="same_as_preferred">Как основные</string>
     <string name="animation_sub">Мультфильмы и мультсериалы. Если такой дорожки нет, действуют основные настройки звука и субтитров.</string>
+    <string name="remove_subtitle_confirm">Удалить эти субтитры?</string>
+    <string name="remove_subtitle_sub">%1$s удаляются для этого фильма. Их можно снова скачать через поиск субтитров.</string>
 </resources>

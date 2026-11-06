@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -82,6 +83,18 @@ fun PlayerOverlay(p: PlayerActivity) {
         if (p.error == null && (p.reopenAt != null || !p.playing && p.buffering < 100f) && p.upNext == null) {
             Box(Modifier.align(Alignment.Center).clip(RoundedCornerShape(14.dp)).background(Color(0xAA000000)).padding(horizontal = 28.dp, vertical = 16.dp)) {
                 Txt(if (p.buffering > 0f && p.reopenAt == null) stringResource(R.string.buffering, p.buffering.toInt()) else stringResource(R.string.loading), Type.Heading)
+            }
+        }
+
+        // Removing a downloaded subtitle (OK held on it in the menu), asked first.
+        p.removingSubtitle?.let { row ->
+            androidx.compose.ui.window.Dialog({ p.removingSubtitle = null }, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+                TvScale {
+                    OptionSheet(stringResource(R.string.remove_subtitle_confirm), listOf(
+                        stringResource(R.string.cancel) to {},
+                        stringResource(R.string.remove_source) to { p.removeSubtitle(row) },
+                    ), message = stringResource(R.string.remove_subtitle_sub, p.subtitleTracks.getOrNull(row - 1)?.label.orEmpty()), danger = 1) { p.removingSubtitle = null }
+                }
             }
         }
 
@@ -398,11 +411,11 @@ private fun OptionsColumn(p: PlayerActivity, options: List<MenuOption>, modifier
 
 /** "İZLER": the tracks, the playing one ticked. */
 @Composable
-private fun TracksColumn(rows: List<Pair<String, Boolean>>, modifier: Modifier = Modifier, up: androidx.compose.ui.focus.FocusRequester? = null, kind: (Int) -> SubtitleKind? = { null }, onPick: (Int) -> Unit) {
+private fun TracksColumn(rows: List<Pair<String, Boolean>>, modifier: Modifier = Modifier, up: androidx.compose.ui.focus.FocusRequester? = null, kind: (Int) -> SubtitleKind? = { null }, onHold: ((Int) -> Unit)? = null, onPick: (Int) -> Unit) {
     Column(modifier) {
         MenuHeading(stringResource(R.string.menu_tracks).uppercase())
         Column(Modifier.heightIn(max = 330.dp).verticalScroll(rememberScrollState())) {
-            rows.forEachIndexed { i, (label, on) -> MenuRow(label, checked = on, up = if (i == 0) up else null, kind = kind(i)) { onPick(i) } }
+            rows.forEachIndexed { i, (label, on) -> MenuRow(label, checked = on, up = if (i == 0) up else null, kind = kind(i), onHold = onHold?.let { h -> { h(i) } }) { onPick(i) } }
         }
     }
 }
@@ -412,8 +425,9 @@ private fun MenuHeading(text: String) =
     Txt(text, Type.Small.copy(color = Color(0xE6FFFFFF), fontSize = 14.sp, fontWeight = FontWeight.Bold), Modifier.padding(start = 38.dp, bottom = 10.dp))
 
 /** One line of a menu column: a tick (or room for one), the text, and an optional value at the right. */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun MenuRow(text: String, value: String? = null, checked: Boolean = false, first: Boolean = false, up: androidx.compose.ui.focus.FocusRequester? = null, enabled: Boolean = true, kind: SubtitleKind? = null, onFocused: () -> Unit = {}, onClick: () -> Unit) {
+private fun MenuRow(text: String, value: String? = null, checked: Boolean = false, first: Boolean = false, up: androidx.compose.ui.focus.FocusRequester? = null, enabled: Boolean = true, kind: SubtitleKind? = null, onHold: (() -> Unit)? = null, onFocused: () -> Unit = {}, onClick: () -> Unit) {
     val source = remember { MutableInteractionSource() }
     var focused by remember { mutableStateOf(false) }
     val focus = remember { androidx.compose.ui.focus.FocusRequester() }
@@ -422,7 +436,7 @@ private fun MenuRow(text: String, value: String? = null, checked: Boolean = fals
         Modifier.fillMaxWidth().focusRequester(focus).then(if (up != null) Modifier.focusProperties { this.up = up } else Modifier)
             .onFocusChanged { focused = it.isFocused; if (it.isFocused) onFocused() }
             .clip(RoundedCornerShape(10.dp)).background(if (focused) Color.White else Color.Transparent)
-            .clickable(source, indication = null, enabled = enabled, onClick = onClick)
+            .combinedClickable(source, indication = null, enabled = enabled, onLongClick = onHold, onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -555,7 +569,9 @@ private fun SubtitlesTab(p: PlayerActivity) {
     val rows = listOf(stringResource(R.string.none_choice) to (p.subtitleTrack == -1)) + p.subtitleTracks.map { it.label to (it.id == p.subtitleTrack) }
     Row(Modifier.fillMaxWidth()) {
         Spacer(Modifier.weight(0.3f))
-        TracksColumn(rows, Modifier.width(470.dp), up = p.menuTabFocus, kind = p::subtitleKind) { i -> p.chooseSubtitle(if (i == 0) -1 else p.subtitleTracks[i - 1].id) }
+        // Holding OK on a downloaded subtitle offers to remove it.
+        TracksColumn(rows, Modifier.width(470.dp), up = p.menuTabFocus, kind = p::subtitleKind,
+            onHold = { i -> if (p.subtitleKind(i) == SubtitleKind.Downloaded) p.removingSubtitle = i }) { i -> p.chooseSubtitle(if (i == 0) -1 else p.subtitleTracks[i - 1].id) }
         Spacer(Modifier.width(50.dp))
         OptionsColumn(p, options, Modifier.width(470.dp))
         Spacer(Modifier.weight(0.3f))
