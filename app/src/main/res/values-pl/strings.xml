@@ -445,4 +445,6 @@
     <string name="background_dark">Ciemne</string>
     <string name="downmix_normalized_note">Podgłaśnia ciche sceny i wycisza głośne, dialogi są lepiej słyszalne</string>
     <string name="downmix_original_note">Dźwięk pozostaje taki jak w filmie</string>
+    <string name="make_default">Ustaw jako domyślne</string>
+    <string name="made_default">Zapisano dla wszystkich filmów</string>
 </resources>

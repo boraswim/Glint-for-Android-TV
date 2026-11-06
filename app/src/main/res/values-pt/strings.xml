@@ -445,4 +445,6 @@
     <string name="background_dark">Escuro</string>
     <string name="downmix_normalized_note">Sobe as cenas calmas e contém as altas; os diálogos ouvem-se melhor</string>
     <string name="downmix_original_note">O som fica como vem no filme</string>
+    <string name="make_default">Predefinir</string>
+    <string name="made_default">Guardado para todos os filmes</string>
 </resources>

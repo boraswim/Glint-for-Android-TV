@@ -445,4 +445,6 @@
     <string name="background_dark">Scuro</string>
     <string name="downmix_normalized_note">Alza le scene sommesse e contiene quelle forti: i dialoghi si sentono meglio</string>
     <string name="downmix_original_note">L\'audio resta com\'è nel film</string>
+    <string name="make_default">Imposta come predefinito</string>
+    <string name="made_default">Salvato per tutti i film</string>
 </resources>

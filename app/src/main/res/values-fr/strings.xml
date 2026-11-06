@@ -445,4 +445,6 @@
     <string name="background_dark">Foncé</string>
     <string name="downmix_normalized_note">Remonte les scènes calmes et retient les fortes : les dialogues s\'entendent mieux</string>
     <string name="downmix_original_note">Le son reste tel qu\'il est dans le film</string>
+    <string name="make_default">Par défaut</string>
+    <string name="made_default">Enregistré pour tous les films</string>
 </resources>

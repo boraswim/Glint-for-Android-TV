@@ -452,4 +452,6 @@
     <string name="background_dark">Koyu</string>
     <string name="downmix_normalized_note">Sessiz sahneleri yükseltir, gürültülü sahneleri tutar; konuşmalar daha net duyulur</string>
     <string name="downmix_original_note">Ses filmde olduğu gibi kalır</string>
+    <string name="make_default">Varsayılan yap</string>
+    <string name="made_default">Tüm filmler için kaydedildi</string>
 </resources>

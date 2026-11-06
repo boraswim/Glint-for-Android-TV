@@ -445,4 +445,6 @@
     <string name="background_dark">Тёмный</string>
     <string name="downmix_normalized_note">Поднимает тихие сцены и сдерживает громкие, речь слышно лучше</string>
     <string name="downmix_original_note">Звук остаётся как в фильме</string>
+    <string name="make_default">По умолчанию</string>
+    <string name="made_default">Сохранено для всех фильмов</string>
 </resources>

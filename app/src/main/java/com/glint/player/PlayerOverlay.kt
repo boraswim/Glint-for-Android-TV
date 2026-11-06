@@ -383,6 +383,8 @@ private class MenuOption(
     val editor: (@Composable (close: () -> Unit) -> Unit)? = null,
     /** False greys the row out: shown, but focus passes over it and it can't be opened. */
     val enabled: Boolean = true,
+    /** A row that does something when pressed ("Make default") instead of listing choices. */
+    val action: (() -> Unit)? = null,
     val pick: (Int) -> Unit,
 )
 
@@ -403,7 +405,7 @@ private fun OptionsColumn(p: PlayerActivity, options: List<MenuOption>, modifier
         Column(Modifier.heightIn(max = 330.dp).verticalScroll(rememberScrollState())) {
             // Focus stays on the tabs until Down; an opened list takes it, on its current choice.
             if (o?.editor != null) o.editor.invoke { close() }
-            else if (o == null) options.forEachIndexed { i, opt -> MenuRow(opt.label, opt.value, first = i == last && opt.enabled, up = if (i == 0) p.menuTabFocus else null, enabled = opt.enabled, onFocused = { p.holdTab = false }) { p.holdTab = true; open = i } }
+            else if (o == null) options.forEachIndexed { i, opt -> MenuRow(opt.label, opt.value, first = i == last && opt.enabled, up = if (i == 0) p.menuTabFocus else null, enabled = opt.enabled, onFocused = { p.holdTab = false }) { val act = opt.action; if (act != null) act() else { p.holdTab = true; open = i } } }
             else o.choices.forEachIndexed { i, (label, on) -> MenuRow(label, checked = on, first = on || (i == 0 && o.choices.none { it.second }), up = if (i == 0) p.menuTabFocus else null, onFocused = { p.holdTab = false }) { o.pick(i); close() } }
         }
     }
@@ -532,6 +534,7 @@ private fun AudioTab(p: PlayerActivity) {
         // Greyed while the sound goes to the TV untouched (passthrough): there's nothing here to make louder.
         add(MenuOption(stringResource(R.string.volume_boost), VolumeBoost.label(p.volume), boosts.map { VolumeBoost.label(it) to (it == p.volume) },
             enabled = !p.boostBlocked) { p.chooseVolume(boosts[it]) })
+        add(MenuOption(stringResource(R.string.make_default), "", emptyList(), enabled = p.volume != p.volumeDefault, action = p::makeAudioDefault) {})
         if (p.delaysSupported) add(MenuOption(stringResource(R.string.menu_delay), delayLabel(p.audioDelay), DELAYS.map { delayLabel(it) to (it == p.audioDelay) }) { p.shiftAudio(DELAYS[it] - p.audioDelay) })
     }
     Row(Modifier.fillMaxWidth()) {
@@ -545,27 +548,27 @@ private fun AudioTab(p: PlayerActivity) {
 
 @Composable
 private fun SubtitlesTab(p: PlayerActivity) {
-    val s = App.library.settings
-    var tick by remember { mutableStateOf(0) }       // settings aren't observable; redraw after a change
-    fun change(block: () -> Unit) { block(); tick++; p.restyleSubtitles() }
-    if (tick < 0) return
-    // The same sizes and colours as Settings → Subtitles (one setting behind both).
+    // This viewing's look: it starts as Settings → Subtitles has it (the same choices), and changes here last
+    // until the player closes unless "Make default" keeps them.
+    val l = p.look
     val sizes = SubtitleStyle.SIZES.map { it.first to stringResource(it.second) }
     val colors = SubtitleStyle.COLORS.map { it.first to stringResource(it.second) }
     val weights = listOf(false to R.string.weight_normal, true to R.string.weight_bold).map { it.first to stringResource(it.second) }
     val outlines = listOf(0 to R.string.none_choice, 2 to R.string.outline_thin, 4 to R.string.weight_normal, 6 to R.string.outline_thick).map { it.first to stringResource(it.second) }
     val backs = SubtitleStyle.BACKGROUNDS.map { it.first to stringResource(it.second) }
     @Composable fun <T> option(label: Int, list: List<Pair<T, String>>, now: T, enabled: Boolean = true, set: (T) -> Unit) =
-        MenuOption(stringResource(label), list.firstOrNull { it.first == now }?.second ?: list.first().second, list.map { it.second to (it.first == now) }, enabled = enabled) { i -> change { set(list[i].first) } }
+        MenuOption(stringResource(label), list.firstOrNull { it.first == now }?.second ?: list.first().second, list.map { it.second to (it.first == now) }, enabled = enabled) { i -> set(list[i].first) }
     val options = buildList {
-        add(option(R.string.subtitle_size, sizes, s.subtitleScale) { s.subtitleScale = it })
+        add(option(R.string.subtitle_size, sizes, l.scale) { p.chooseLook(l.copy(scale = it)) })
         // Picture subtitles (Blu-ray PGS) come drawn: only their size changes, so the lettering options grey out.
         val lettering = p.subtitleTrack == -1 || !p.imageSubtitles()
-        add(option(R.string.subtitle_color, colors, s.subtitleColor, lettering) { s.subtitleColor = it })
-        add(option(R.string.menu_weight, weights, s.subtitleBold, lettering) { s.subtitleBold = it })
-        add(option(R.string.menu_outline, outlines, s.subtitleOutline, lettering) { s.subtitleOutline = it })
-        add(option(R.string.menu_background, backs, s.subtitleBackground, lettering) { s.subtitleBackground = it })
+        add(option(R.string.subtitle_color, colors, l.color, lettering) { p.chooseLook(l.copy(color = it)) })
+        add(option(R.string.menu_weight, weights, l.bold, lettering) { p.chooseLook(l.copy(bold = it)) })
+        add(option(R.string.menu_outline, outlines, l.outline, lettering) { p.chooseLook(l.copy(outline = it)) })
+        add(option(R.string.menu_background, backs, l.background, lettering) { p.chooseLook(l.copy(background = it)) })
         add(MenuOption(stringResource(R.string.menu_delay), secondsLabel(p.subtitleDelay), emptyList(), editor = { _ -> DelayEditor(p) }) {})
+        // Greyed until something here differs from Settings.
+        add(MenuOption(stringResource(R.string.make_default), "", emptyList(), enabled = l != p.lookDefault, action = p::makeSubtitleDefault) {})
     }
     val rows = listOf(stringResource(R.string.none_choice) to (p.subtitleTrack == -1)) + p.subtitleTracks.map { it.label to (it.id == p.subtitleTrack) }
     Row(Modifier.fillMaxWidth()) {

@@ -223,6 +223,20 @@ class Settings(context: Context) {
 }
 
 /** The subtitle sizes and colours, the same in Settings and in the player's menu. */
+/**
+ * How subtitles look for one viewing. Settings hold the master values; the player starts from them, its menu
+ * changes only this copy, and "Make default" writes it back for every film.
+ */
+data class SubtitleLook(val scale: Int, val color: Int, val bold: Boolean, val outline: Int, val background: Int, val position: Int) {
+    fun saveTo(s: Settings) {
+        s.subtitleScale = scale; s.subtitleColor = color; s.subtitleBold = bold
+        s.subtitleOutline = outline; s.subtitleBackground = background; s.subtitlePosition = position
+    }
+    companion object {
+        fun of(s: Settings) = SubtitleLook(s.subtitleScale, s.subtitleColor, s.subtitleBold, s.subtitleOutline, s.subtitleBackground, s.subtitlePosition)
+    }
+}
+
 /** The volume boost's steps, the same in Settings and the player menu. */
 object VolumeBoost {
     val LEVELS = listOf(100, 200, 300)

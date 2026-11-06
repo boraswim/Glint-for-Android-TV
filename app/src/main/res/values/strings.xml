@@ -465,4 +465,6 @@
     <string name="background_dark">Dark</string>
     <string name="downmix_normalized_note">Raises quiet scenes and holds back loud ones, so speech is easier to hear</string>
     <string name="downmix_original_note">The sound stays as the film has it</string>
+    <string name="make_default">Make default</string>
+    <string name="made_default">Saved for all films</string>
 </resources>

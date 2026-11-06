@@ -340,6 +340,7 @@ class PlayerActivity : ComponentActivity() {
         // A film that played DTS last time is opened decoding it at once (see [matchPassthrough]).
         intent.getStringExtra(EXTRA_KEY)?.let { dtsDecoded = lib.settings.passthrough && lib.settings.decodesDts(it) }
         volume = lib.settings.volumeBoost
+        look = SubtitleLook.of(lib.settings)
         createVlc()
 
         videoLayout = VLCVideoLayout(this)
@@ -367,13 +368,13 @@ class PlayerActivity : ComponentActivity() {
             "--network-caching=${s.bufferMs}",
             "--audio-time-stretch",
             "--avcodec-skiploopfilter=1",          // cheaper software H.264 on weak ARM boxes
-            "--sub-text-scale=${s.subtitleScale}",
-            "--freetype-color=${s.subtitleColor}",
-            "--freetype-background-opacity=${s.subtitleBackground}",
+            "--sub-text-scale=${look.scale}",
+            "--freetype-color=${look.color}",
+            "--freetype-background-opacity=${look.background}",
             "--freetype-background-color=0",
-            "--freetype-outline-thickness=${s.subtitleOutline}",
-            if (s.subtitleBold) "--freetype-bold" else "--no-freetype-bold",
-            "--sub-margin=${s.subtitlePosition}",
+            "--freetype-outline-thickness=${look.outline}",
+            if (look.bold) "--freetype-bold" else "--no-freetype-bold",
+            "--sub-margin=${look.position}",
             if (s.passthrough && !dtsDecoded) "--spdif" else "--no-spdif",
             "--gain=${volume / 100f}",
             "--deinterlace=${when (s.deinterlace) { 1 -> 1; 2 -> 0; else -> -1 }}",
@@ -398,8 +399,6 @@ class PlayerActivity : ComponentActivity() {
         player.videoScale = vlcScale(scale)   // keep the viewer's choice when coming back
         if (decoderLost) { decoderLost = false; exo?.player?.prepare() }
         if (exo?.isDolbyVision() == true) announceDolbyVision(true)
-        // Back from Settings with another volume boost: play on with it.
-        lib.settings.volumeBoost.let { if (it != volume) chooseVolume(it) }
         if (paused) showControls()
     }
 
@@ -1288,13 +1287,12 @@ class PlayerActivity : ComponentActivity() {
     }
 
     /**
-     * The volume boost playing, 100–300 percent: one value with Settings, as the subtitle options are, so a change in
-     * either shows in the other. Media3 applies it at once; libVLC reads its gain only when it's created, so the film
-     * reopens where it was.
+     * The volume boost playing, 100–300 percent: Settings' when the player opens; the menu changes it for this
+     * viewing only ([makeAudioDefault] keeps it). Media3 applies it at once; libVLC reads its gain only when it's
+     * created, so the film reopens where it was.
      */
     var volume by mutableIntStateOf(100)
     fun chooseVolume(v: Int) {
-        lib.settings.volumeBoost = v
         if (v == volume) return
         volume = v
         exo?.let { it.setGain(v / 100f); return }
@@ -1308,6 +1306,22 @@ class PlayerActivity : ComponentActivity() {
     val boostBlocked: Boolean get() = exo?.passthrough ?: (lib.settings.passthrough && mediaTracks()
         .firstOrNull { it.type == IMedia.Track.Type.Audio && it.id == audioTrack }?.codec.orEmpty().lowercase(Locale.ROOT)
         .let { c -> listOf("a52", "ac3", "ac-3", "eac3", "ec-3", "mlp", "trhd", "truehd").any { it in c } || ("dts" in c && !dtsDecoded) })
+
+    /** How subtitles look in this viewing: Settings' when the player opens; the menu changes only this. */
+    var look by mutableStateOf(SubtitleLook(100, 0xFFFFFF, false, 4, 0, 0))
+    /** What Settings hold now, to tell whether the menu has changed anything worth making the default. */
+    var lookDefault by mutableStateOf(SubtitleLook.of(lib.settings))
+        private set
+    var volumeDefault by mutableIntStateOf(lib.settings.volumeBoost)
+        private set
+
+    fun chooseLook(l: SubtitleLook) { if (l == look) return; look = l; restyleSubtitles() }
+
+    /** "Make default" in the Subtitles tab: this viewing's look becomes Settings', for every film. */
+    fun makeSubtitleDefault() { look.saveTo(lib.settings); lookDefault = look; savedAsDefault() }
+    /** "Make default" in the Audio tab: this viewing's volume boost becomes Settings'. */
+    fun makeAudioDefault() { lib.settings.volumeBoost = volume; volumeDefault = volume; savedAsDefault() }
+    private fun savedAsDefault() = android.widget.Toast.makeText(this, R.string.made_default, android.widget.Toast.LENGTH_SHORT).show()
 
     var repeat by mutableIntStateOf(lib.settings.repeatMode)
     fun chooseRepeat(mode: Int) { repeat = mode; lib.settings.repeatMode = mode }

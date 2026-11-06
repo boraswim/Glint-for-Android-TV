@@ -309,7 +309,7 @@ class ExoPlayback(private val a: PlayerActivity) {
      * bottom centre so they stay in place above the bottom of the frame.
      */
     private fun showCues() {
-        val k = App.library.settings.subtitleScale / 100f
+        val k = a.look.scale / 100f
         val shown = if (k == 1f) cues else cues.map { c ->
             if (c.bitmap == null || c.size == androidx.media3.common.text.Cue.DIMEN_UNSET) c
             else c.buildUpon().apply {
@@ -333,21 +333,21 @@ class ExoPlayback(private val a: PlayerActivity) {
     fun setGain(g: Float) { factory.gain.gain = g }
 
     private fun styleSubtitles() {
-        val s = App.library.settings
+        val s = a.look
         val sub = view.subtitleView ?: return
         sub.setStyle(
             CaptionStyleCompat(
-                Color.rgb(s.subtitleColor shr 16 and 255, s.subtitleColor shr 8 and 255, s.subtitleColor and 255),
-                Color.argb(s.subtitleBackground, 0, 0, 0),
+                Color.rgb(s.color shr 16 and 255, s.color shr 8 and 255, s.color and 255),
+                Color.argb(s.background, 0, 0, 0),
                 Color.TRANSPARENT,
-                if (s.subtitleOutline > 0) CaptionStyleCompat.EDGE_TYPE_OUTLINE else CaptionStyleCompat.EDGE_TYPE_NONE,
+                if (s.outline > 0) CaptionStyleCompat.EDGE_TYPE_OUTLINE else CaptionStyleCompat.EDGE_TYPE_NONE,
                 Color.BLACK,
-                if (s.subtitleBold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT,
+                if (s.bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT,
             )
         )
-        outlineWidth(sub, s.subtitleOutline)
-        sub.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * s.subtitleScale / 100f)
-        sub.setBottomPaddingFraction(SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION + s.subtitlePosition / 1080f)
+        outlineWidth(sub, s.outline)
+        sub.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * s.scale / 100f)
+        sub.setBottomPaddingFraction(SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION + s.position / 1080f)
         sub.setApplyEmbeddedStyles(true)
     }
 
