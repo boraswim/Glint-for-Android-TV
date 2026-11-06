@@ -551,12 +551,15 @@ class PlayerActivity : ComponentActivity() {
 
     /** Sidecar subtitles next to the film, then any that came with its dubs; saved locally as UTF-8. */
     private fun fetchSubtitles(src: Source, share: String, path: String, dubs: List<DubFile>): List<File> {
-        val dir = path.substringBeforeLast('/', "")
-        val base = path.substringAfterLast('/').substringBeforeLast('.').lowercase(Locale.ROOT)
-        val entries = Fs.list(src, share, dir)
-        val videos = entries.count { !it.isDir && Names.ext(it.name) in Names.VIDEO_EXT }
-        val subs = entries.filter { !it.isDir && Names.ext(it.name) in Names.SUB_EXT && (it.name.lowercase(Locale.ROOT).startsWith(base) || videos == 1) }
-            .map { Triple(src, share, it.path) }
+        // The library's scan found the files beside the video by the same rule; listing the folder again (a
+        // share's top folder can hold hundreds of films) held the start of playback by a second or more.
+        val subs = (now?.file?.takeIf { it.path == path }?.subtitles ?: run {
+            val dir = path.substringBeforeLast('/', "")
+            val base = path.substringAfterLast('/').substringBeforeLast('.').lowercase(Locale.ROOT)
+            val entries = Fs.list(src, share, dir)
+            val videos = entries.count { !it.isDir && Names.ext(it.name) in Names.VIDEO_EXT }
+            entries.filter { !it.isDir && Names.ext(it.name) in Names.SUB_EXT && (it.name.lowercase(Locale.ROOT).startsWith(base) || videos == 1) }.map { it.path }
+        }).map { Triple(src, share, it) }
         val dubSubs = dubs.flatMap { d -> lib.source(d.source)?.let { s -> d.subtitles.map { Triple(s, d.share, it) } }.orEmpty() }.distinct()
         val out = File(cacheDir, "subs").apply { mkdirs(); listFiles()?.forEach { it.delete() } }
         return (subs + dubSubs).mapIndexed { i, (s, sh, p) ->
