@@ -244,6 +244,16 @@ class DoviRenderersFactory(context: Context) : DefaultRenderersFactory(context) 
     /** Subtitle delay in microseconds (positive: later), read live by the text renderers. */
     @Volatile var subtitleOffsetUs = 0L
 
+    /** The volume boost (1 = as the film is; up to 3), applied to decoded sound; Dolby or DTS passed through untouched. */
+    val gain = GainProcessor()
+
+    override fun buildAudioSink(context: Context, enableFloatOutput: Boolean, enableAudioOutputPlaybackParameters: Boolean): androidx.media3.exoplayer.audio.AudioSink =
+        androidx.media3.exoplayer.audio.DefaultAudioSink.Builder(context)
+            .setEnableFloatOutput(enableFloatOutput)
+            .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParameters)
+            .setAudioProcessors(arrayOf(gain))
+            .build()
+
     /** Video handed to the decoder so far: how fast it grows is the film's live bitrate. */
     @Volatile var videoBytes = 0L
 
@@ -264,5 +274,30 @@ class DoviRenderersFactory(context: Context) : DefaultRenderersFactory(context) 
         super.buildVideoRenderers(context, extensionRendererMode, mediaCodecSelector, enableDecoderFallback, eventHandler, eventListener, allowedVideoJoiningTimeMs, out)
         val i = out.indexOfFirst { it.javaClass == MediaCodecVideoRenderer::class.java }
         if (i >= 0) out[i] = DoviVideoRenderer(context, this, mediaCodecSelector, enableDecoderFallback, eventHandler, eventListener, allowedVideoJoiningTimeMs)
+    }
+}
+
+/**
+ * Louder sound for Media3, which stops at 100%: each 16-bit or float sample is multiplied by [gain] and held at
+ * full scale, as libVLC's --gain does. Changes take effect at once; at 1 the sound passes unchanged.
+ */
+class GainProcessor : androidx.media3.common.audio.BaseAudioProcessor() {
+    @Volatile var gain = 1f
+
+    override fun onConfigure(input: androidx.media3.common.audio.AudioProcessor.AudioFormat) = when (input.encoding) {
+        androidx.media3.common.C.ENCODING_PCM_16BIT, androidx.media3.common.C.ENCODING_PCM_FLOAT -> input
+        else -> androidx.media3.common.audio.AudioProcessor.AudioFormat.NOT_SET
+    }
+
+    override fun queueInput(input: java.nio.ByteBuffer) {
+        val out = replaceOutputBuffer(input.remaining())
+        val g = gain
+        if (inputAudioFormat.encoding == androidx.media3.common.C.ENCODING_PCM_FLOAT) {
+            while (input.remaining() >= 4) out.putFloat((input.getFloat() * g).coerceIn(-1f, 1f))
+        } else {
+            while (input.remaining() >= 2) out.putShort((input.getShort() * g).toInt().coerceIn(-32768, 32767).toShort())
+        }
+        input.position(input.limit())
+        out.flip()
     }
 }

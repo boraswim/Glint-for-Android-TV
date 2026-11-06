@@ -186,8 +186,8 @@ class Settings(context: Context) {
     var cacheMode: Int get() = int("cacheMode", 0); set(v) = setInt("cacheMode", v)
     /** 0 auto, 1 always, 2 never. */
     var deinterlace: Int get() = int("deinterlace", 0); set(v) = setInt("deinterlace", v)
-    /** Volume boost in percent, 100–300. */
-    var volumeBoost: Int get() = int("volumeBoost", 100); set(v) = setInt("volumeBoost", v)
+    /** Volume boost in percent: 100, 200 or 300 (an older 150 or 250 moves up to the next). */
+    var volumeBoost: Int get() = int("volumeBoost", 100).let { v -> VolumeBoost.LEVELS.first { it >= v.coerceAtMost(300) } }; set(v) = setInt("volumeBoost", v)
     var normalizeDownmix: Boolean get() = flag("normalizeDownmix", false); set(v) = setFlag("normalizeDownmix", v)
     /** Distance of subtitles from the bottom edge, in pixels. */
     var subtitlePosition: Int get() = int("subtitlePosition", 0); set(v) = setInt("subtitlePosition", v)
@@ -223,6 +223,13 @@ class Settings(context: Context) {
 }
 
 /** The subtitle sizes and colours, the same in Settings and in the player's menu. */
+/** The volume boost's steps, the same in Settings and the player menu. */
+object VolumeBoost {
+    val LEVELS = listOf(100, 200, 300)
+    /** The percent as the language writes it ("%200" in Turkish, "200 %" in German). */
+    fun label(v: Int): String = java.text.NumberFormat.getPercentInstance(java.util.Locale.getDefault()).format(v / 100.0)
+}
+
 object SubtitleStyle {
     val SIZES = listOf(75 to R.string.size_small, 100 to R.string.size_medium, 115 to R.string.size_large, 130 to R.string.size_xlarge)
     val COLORS = listOf(0xFFFFFF to R.string.color_white, 0xFFE15A to R.string.color_yellow, 0xB4B4B4 to R.string.color_grey)

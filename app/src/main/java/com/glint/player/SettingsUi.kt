@@ -359,7 +359,7 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                     if (tick < 0) return@item   // read so a change redraws the rows
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         OnOffRow(stringResource(R.string.passthrough), s.passthrough, FocusFirst(), sub = stringResource(R.string.passthrough_sub)) { v -> change { s.passthrough = v } }
-                        ChoiceRow(stringResource(R.string.volume_boost), listOf(100, 150, 200, 250, 300).map { it to "$it%" }, s.volumeBoost, sub = stringResource(R.string.volume_boost_sub)) { v -> change { s.volumeBoost = v } }
+                        ChoiceRow(stringResource(R.string.volume_boost), VolumeBoost.LEVELS.map { it to VolumeBoost.label(it) }, s.volumeBoost, sub = stringResource(R.string.volume_boost_sub)) { v -> change { s.volumeBoost = v } }
                         ChoiceRow(stringResource(R.string.downmix_volume), listOf(true to stringResource(R.string.downmix_normalized), false to stringResource(R.string.downmix_original)), s.normalizeDownmix, sub = stringResource(R.string.downmix_sub)) { v -> change { s.normalizeDownmix = v } }
                     }
                 }

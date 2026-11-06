@@ -1,5 +1,7 @@
 package com.glint.player
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import android.app.Activity
 import android.graphics.Color
 import android.graphics.Typeface
@@ -203,7 +205,7 @@ class ExoPlayback(private val a: PlayerActivity) {
                 else -> list
             }
         }
-        val renderers = DoviRenderersFactory(a).also { factory = it }
+        val renderers = DoviRenderersFactory(a).also { factory = it; it.gain.gain = a.volume / 100f }
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
             .setMediaCodecSelector(selector)
             .setEnableDecoderFallback(true)
@@ -219,6 +221,10 @@ class ExoPlayback(private val a: PlayerActivity) {
         styleSubtitles()
         player.setVideoFrameMetadataListener { presentationUs, _, _, _ -> noteFrame(presentationUs) }
         player.addAnalyticsListener(object : androidx.media3.exoplayer.analytics.AnalyticsListener {
+            // Sound that isn't PCM goes to the TV as it is (Dolby passed through): no boost can reach it.
+            override fun onAudioTrackInitialized(eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime, config: androidx.media3.exoplayer.audio.AudioSink.AudioTrackConfig) {
+                passthrough = config.encoding != C.ENCODING_PCM_16BIT && config.encoding != C.ENCODING_PCM_FLOAT
+            }
             override fun onVideoDecoderInitialized(eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime, name: String, initializedTimestampMs: Long, initializationDurationMs: Long) {
                 decoderName = name
             }
@@ -318,6 +324,13 @@ class ExoPlayback(private val a: PlayerActivity) {
         }
         view.subtitleView?.setCues(shown)
     }
+
+    /** The sound playing goes to the TV undecoded (Dolby passed through), so the volume boost can't change it. */
+    var passthrough by androidx.compose.runtime.mutableStateOf(false)
+        private set
+
+    /** The volume boost: 1 is the film as it is, up to 3. */
+    fun setGain(g: Float) { factory.gain.gain = g }
 
     private fun styleSubtitles() {
         val s = App.library.settings

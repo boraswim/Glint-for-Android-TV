@@ -527,10 +527,11 @@ private fun VideoTab(p: PlayerActivity) {
 
 @Composable
 private fun AudioTab(p: PlayerActivity) {
-    val boosts = listOf(100, 150, 200)
-    val boostLabel = { v: Int -> if (v == 100) App.instance.getString(R.string.off) else "%$v" }
+    val boosts = VolumeBoost.LEVELS
     val options = buildList {
-        add(MenuOption(stringResource(R.string.volume_boost), boostLabel(p.volume), boosts.map { boostLabel(it) to (it == p.volume) }) { p.chooseVolume(boosts[it]) })
+        // Greyed while the sound goes to the TV untouched (passthrough): there's nothing here to make louder.
+        add(MenuOption(stringResource(R.string.volume_boost), VolumeBoost.label(p.volume), boosts.map { VolumeBoost.label(it) to (it == p.volume) },
+            enabled = !p.boostBlocked) { p.chooseVolume(boosts[it]) })
         if (p.delaysSupported) add(MenuOption(stringResource(R.string.menu_delay), delayLabel(p.audioDelay), DELAYS.map { delayLabel(it) to (it == p.audioDelay) }) { p.shiftAudio(DELAYS[it] - p.audioDelay) })
     }
     Row(Modifier.fillMaxWidth()) {

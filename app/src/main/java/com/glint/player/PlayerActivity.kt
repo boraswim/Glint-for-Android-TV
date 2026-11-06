@@ -339,6 +339,7 @@ class PlayerActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         // A film that played DTS last time is opened decoding it at once (see [matchPassthrough]).
         intent.getStringExtra(EXTRA_KEY)?.let { dtsDecoded = lib.settings.passthrough && lib.settings.decodesDts(it) }
+        volume = lib.settings.volumeBoost
         createVlc()
 
         videoLayout = VLCVideoLayout(this)
@@ -374,7 +375,7 @@ class PlayerActivity : ComponentActivity() {
             if (s.subtitleBold) "--freetype-bold" else "--no-freetype-bold",
             "--sub-margin=${s.subtitlePosition}",
             if (s.passthrough && !dtsDecoded) "--spdif" else "--no-spdif",
-            "--gain=${s.volumeBoost / 100f}",
+            "--gain=${volume / 100f}",
             "--deinterlace=${when (s.deinterlace) { 1 -> 1; 2 -> 0; else -> -1 }}",
             "--deinterlace-mode=yadif",
             "--no-sub-autodetect-file",            // sidecar subtitles are added by us, converted to UTF-8
@@ -1284,9 +1285,25 @@ class PlayerActivity : ComponentActivity() {
         if (target >= duration - 1000) onEnded() else { seekPlayback(target); position = target }
     }
 
-    /** Per-video loudness on top of the global boost: 100, 150 or 200 percent. */
+    /**
+     * The volume boost playing, 100–300 percent: the setting's, until the menu changes it while the player is open.
+     * Media3 applies it at once; libVLC reads its gain only when it's created, so the film reopens where it was.
+     */
     var volume by mutableIntStateOf(100)
-    fun chooseVolume(v: Int) { volume = v; exo?.player?.let { it.volume = (v / 100f).coerceAtMost(1f) } ?: run { player.volume = v } }
+    fun chooseVolume(v: Int) {
+        if (v == volume) return
+        volume = v
+        exo?.let { it.setGain(v / 100f); return }
+        reopenVlc()
+    }
+
+    /**
+     * The sound playing goes to the TV untouched (passthrough), so a boost can't reach it: Dolby with passthrough on,
+     * and DTS too where the TV takes it (here it's decoded, see [matchPassthrough]).
+     */
+    val boostBlocked: Boolean get() = exo?.passthrough ?: (lib.settings.passthrough && mediaTracks()
+        .firstOrNull { it.type == IMedia.Track.Type.Audio && it.id == audioTrack }?.codec.orEmpty().lowercase(Locale.ROOT)
+        .let { c -> listOf("a52", "ac3", "ac-3", "eac3", "ec-3", "mlp", "trhd", "truehd").any { it in c } || ("dts" in c && !dtsDecoded) })
 
     var repeat by mutableIntStateOf(lib.settings.repeatMode)
     fun chooseRepeat(mode: Int) { repeat = mode; lib.settings.repeatMode = mode }
