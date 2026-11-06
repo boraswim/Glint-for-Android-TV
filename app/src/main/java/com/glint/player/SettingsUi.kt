@@ -121,7 +121,8 @@ fun SettingsScreen(nav: Nav) {
 
 /** A setting's row with the value in use on the right; OK opens the choices to pick from, that one ticked. */
 @Composable
-internal fun <T> ChoiceRow(label: String, options: List<Pair<T, String>>, current: T, modifier: Modifier = Modifier, sub: String? = null, onPick: (T) -> Unit) {
+/** [notes]: a short line under each choice saying what it does, in the same order as [options]. */
+internal fun <T> ChoiceRow(label: String, options: List<Pair<T, String>>, current: T, modifier: Modifier = Modifier, sub: String? = null, notes: List<String?> = emptyList(), onPick: (T) -> Unit) {
     var picking by remember { mutableStateOf(false) }
     val at = options.indexOfFirst { it.first == current }.coerceAtLeast(0)
     ListRow(label, options[at].second, modifier, sub = sub) { picking = true }
@@ -130,14 +131,14 @@ internal fun <T> ChoiceRow(label: String, options: List<Pair<T, String>>, curren
         TvScale {
             OptionSheet(label, options.mapIndexed { i, (value, name) ->
                 ((if (i == at) "\u2713  " else "") + name) to { if (value != current) onPick(value) }
-            }, message = sub, start = at) { picking = false }
+            }, message = sub, start = at, notes = notes) { picking = false }
         }
     }
 }
 
 @Composable
 internal fun OnOffRow(label: String, on: Boolean, modifier: Modifier = Modifier, sub: String? = null, onPick: (Boolean) -> Unit) =
-    ChoiceRow(label, listOf(true to stringResource(R.string.on), false to stringResource(R.string.off)), on, modifier, sub, onPick)
+    ChoiceRow(label, listOf(true to stringResource(R.string.on), false to stringResource(R.string.off)), on, modifier, sub, onPick = onPick)
 
 @Composable
 fun SettingsSectionScreen(nav: Nav, section: Int) {
@@ -360,7 +361,8 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         OnOffRow(stringResource(R.string.passthrough), s.passthrough, FocusFirst(), sub = stringResource(R.string.passthrough_sub)) { v -> change { s.passthrough = v } }
                         ChoiceRow(stringResource(R.string.volume_boost), VolumeBoost.LEVELS.map { it to VolumeBoost.label(it) }, s.volumeBoost, sub = stringResource(R.string.volume_boost_sub)) { v -> change { s.volumeBoost = v } }
-                        ChoiceRow(stringResource(R.string.downmix_volume), listOf(true to stringResource(R.string.downmix_normalized), false to stringResource(R.string.downmix_original)), s.normalizeDownmix, sub = stringResource(R.string.downmix_sub)) { v -> change { s.normalizeDownmix = v } }
+                        ChoiceRow(stringResource(R.string.downmix_volume), listOf(true to stringResource(R.string.downmix_normalized), false to stringResource(R.string.downmix_original)), s.normalizeDownmix, sub = stringResource(R.string.downmix_sub),
+                            notes = listOf(stringResource(R.string.downmix_normalized_note), stringResource(R.string.downmix_original_note))) { v -> change { s.normalizeDownmix = v } }
                     }
                 }
                 8 -> item {

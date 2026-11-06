@@ -443,4 +443,6 @@
     <string name="background_light">Chiaro</string>
     <string name="background_medium">Medio</string>
     <string name="background_dark">Scuro</string>
+    <string name="downmix_normalized_note">Alza le scene sommesse e contiene quelle forti: i dialoghi si sentono meglio</string>
+    <string name="downmix_original_note">L\'audio resta com\'è nel film</string>
 </resources>

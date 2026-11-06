@@ -443,4 +443,6 @@
     <string name="background_light">Светлый</string>
     <string name="background_medium">Средний</string>
     <string name="background_dark">Тёмный</string>
+    <string name="downmix_normalized_note">Поднимает тихие сцены и сдерживает громкие, речь слышно лучше</string>
+    <string name="downmix_original_note">Звук остаётся как в фильме</string>
 </resources>

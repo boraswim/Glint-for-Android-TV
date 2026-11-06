@@ -443,4 +443,6 @@
     <string name="background_light">Jasne</string>
     <string name="background_medium">Średnie</string>
     <string name="background_dark">Ciemne</string>
+    <string name="downmix_normalized_note">Podgłaśnia ciche sceny i wycisza głośne, dialogi są lepiej słyszalne</string>
+    <string name="downmix_original_note">Dźwięk pozostaje taki jak w filmie</string>
 </resources>

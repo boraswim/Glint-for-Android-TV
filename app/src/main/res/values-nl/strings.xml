@@ -443,4 +443,6 @@
     <string name="background_light">Licht</string>
     <string name="background_medium">Middel</string>
     <string name="background_dark">Donker</string>
+    <string name="downmix_normalized_note">Maakt stille scènes luider en houdt luide in, zodat dialogen beter te verstaan zijn</string>
+    <string name="downmix_original_note">Het geluid blijft zoals het in de film zit</string>
 </resources>

@@ -443,4 +443,6 @@
     <string name="background_light">Hell</string>
     <string name="background_medium">Mittel</string>
     <string name="background_dark">Dunkel</string>
+    <string name="downmix_normalized_note">Hebt leise Szenen an und dämpft laute, Dialoge sind besser zu verstehen</string>
+    <string name="downmix_original_note">Der Ton bleibt, wie er im Film ist</string>
 </resources>

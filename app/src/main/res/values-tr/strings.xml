@@ -450,4 +450,6 @@
     <string name="background_light">Açık</string>
     <string name="background_medium">Orta</string>
     <string name="background_dark">Koyu</string>
+    <string name="downmix_normalized_note">Sessiz sahneleri yükseltir, gürültülü sahneleri tutar; konuşmalar daha net duyulur</string>
+    <string name="downmix_original_note">Ses filmde olduğu gibi kalır</string>
 </resources>
