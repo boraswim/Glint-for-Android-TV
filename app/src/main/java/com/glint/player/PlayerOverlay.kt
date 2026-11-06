@@ -553,7 +553,7 @@ private fun SubtitlesTab(p: PlayerActivity) {
     val colors = SubtitleStyle.COLORS.map { it.first to stringResource(it.second) }
     val weights = listOf(false to R.string.weight_normal, true to R.string.weight_bold).map { it.first to stringResource(it.second) }
     val outlines = listOf(0 to R.string.none_choice, 2 to R.string.outline_thin, 4 to R.string.weight_normal, 6 to R.string.outline_thick).map { it.first to stringResource(it.second) }
-    val backs = listOf(false to R.string.off, true to R.string.on).map { it.first to stringResource(it.second) }
+    val backs = SubtitleStyle.BACKGROUNDS.map { it.first to stringResource(it.second) }
     @Composable fun <T> option(label: Int, list: List<Pair<T, String>>, now: T, enabled: Boolean = true, set: (T) -> Unit) =
         MenuOption(stringResource(label), list.firstOrNull { it.first == now }?.second ?: list.first().second, list.map { it.second to (it.first == now) }, enabled = enabled) { i -> change { set(list[i].first) } }
     val options = buildList {

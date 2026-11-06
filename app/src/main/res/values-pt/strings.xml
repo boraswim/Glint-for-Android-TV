@@ -440,4 +440,7 @@
     <string name="animation_sub">Filmes e séries de animação. Sem este áudio, usam-se o áudio e as legendas preferidos.</string>
     <string name="remove_subtitle_confirm">Remover esta legenda?</string>
     <string name="remove_subtitle_sub">%1$s é apagada deste título. Pode transferi-la de novo em Procurar legendas.</string>
+    <string name="background_light">Claro</string>
+    <string name="background_medium">Médio</string>
+    <string name="background_dark">Escuro</string>
 </resources>

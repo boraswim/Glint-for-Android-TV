@@ -368,7 +368,7 @@ class PlayerActivity : ComponentActivity() {
             "--avcodec-skiploopfilter=1",          // cheaper software H.264 on weak ARM boxes
             "--sub-text-scale=${s.subtitleScale}",
             "--freetype-color=${s.subtitleColor}",
-            "--freetype-background-opacity=${if (s.subtitleBackground) 160 else 0}",
+            "--freetype-background-opacity=${s.subtitleBackground}",
             "--freetype-background-color=0",
             "--freetype-outline-thickness=${s.subtitleOutline}",
             if (s.subtitleBold) "--freetype-bold" else "--no-freetype-bold",

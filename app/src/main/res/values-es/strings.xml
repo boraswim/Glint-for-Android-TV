@@ -440,4 +440,7 @@
     <string name="animation_sub">Películas y series de animación. Si falta este audio, se usan el audio y los subtítulos preferidos.</string>
     <string name="remove_subtitle_confirm">¿Quitar este subtítulo?</string>
     <string name="remove_subtitle_sub">%1$s se elimina de este título. Puedes volver a descargarlo desde Buscar subtítulos.</string>
+    <string name="background_light">Claro</string>
+    <string name="background_medium">Medio</string>
+    <string name="background_dark">Oscuro</string>
 </resources>

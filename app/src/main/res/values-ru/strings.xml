@@ -440,4 +440,7 @@
     <string name="animation_sub">Мультфильмы и мультсериалы. Если такой дорожки нет, действуют основные настройки звука и субтитров.</string>
     <string name="remove_subtitle_confirm">Удалить эти субтитры?</string>
     <string name="remove_subtitle_sub">%1$s удаляются для этого фильма. Их можно снова скачать через поиск субтитров.</string>
+    <string name="background_light">Светлый</string>
+    <string name="background_medium">Средний</string>
+    <string name="background_dark">Тёмный</string>
 </resources>

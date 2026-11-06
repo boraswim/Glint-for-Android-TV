@@ -370,7 +370,7 @@ fun SettingsSectionScreen(nav: Nav, section: Int) {
                         OnOffRow(stringResource(R.string.forced_subtitles), s.forcedSubtitles, FocusFirst(), sub = stringResource(R.string.forced_subtitles_sub)) { v -> change { s.forcedSubtitles = v } }
                         ChoiceRow(stringResource(R.string.subtitle_size), SubtitleStyle.SIZES.map { (v, r) -> v to stringResource(r) }, s.subtitleScale) { v -> change { s.subtitleScale = v } }
                         ChoiceRow(stringResource(R.string.subtitle_color), colors.map { (c, r) -> c to stringResource(r) }, s.subtitleColor) { v -> change { s.subtitleColor = v } }
-                        OnOffRow(stringResource(R.string.subtitle_background), s.subtitleBackground) { v -> change { s.subtitleBackground = v } }
+                        ChoiceRow(stringResource(R.string.subtitle_background), SubtitleStyle.BACKGROUNDS.map { (v, r) -> v to stringResource(r) }, s.subtitleBackground) { v -> change { s.subtitleBackground = v } }
                         ChoiceRow(stringResource(R.string.subtitle_position), listOf(0 to stringResource(R.string.pos_bottom), 60 to stringResource(R.string.pos_raised), 140 to stringResource(R.string.pos_high)), s.subtitlePosition) { v -> change { s.subtitlePosition = v } }
                         ChoiceRow(stringResource(R.string.subtitle_outline), listOf(0 to stringResource(R.string.outline_none), 2 to stringResource(R.string.outline_thin), 4 to stringResource(R.string.outline_normal), 6 to stringResource(R.string.outline_thick)), s.subtitleOutline) { v -> change { s.subtitleOutline = v } }
                         OnOffRow(stringResource(R.string.subtitle_bold), s.subtitleBold) { v -> change { s.subtitleBold = v } }

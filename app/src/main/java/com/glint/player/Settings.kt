@@ -106,9 +106,10 @@ class Settings(context: Context) {
         get() = prefs.getInt("subtitleColor", 0xFFFFFF).let { if (it == 0xFFE135) 0xFFE15A else it }
         set(v) = prefs.edit().putInt("subtitleColor", v).apply()
 
-    var subtitleBackground: Boolean
-        get() = prefs.getBoolean("subtitleBackground", false)
-        set(v) = prefs.edit().putBoolean("subtitleBackground", v).apply()
+    /** How dark the box behind subtitles is, as an alpha (0: none; see [SubtitleStyle.BACKGROUNDS]). Was on/off: on is Medium. */
+    var subtitleBackground: Int
+        get() = prefs.getInt("subtitleBackdrop", if (prefs.getBoolean("subtitleBackground", false)) 160 else 0)
+        set(v) = prefs.edit().putInt("subtitleBackdrop", v).apply()
 
     /** ISO 639 code preferred for subtitles ("" = off unless forced, "auto" = device language). */
     var subtitleLanguage: String
@@ -225,4 +226,6 @@ class Settings(context: Context) {
 object SubtitleStyle {
     val SIZES = listOf(75 to R.string.size_small, 100 to R.string.size_medium, 115 to R.string.size_large, 130 to R.string.size_xlarge)
     val COLORS = listOf(0xFFFFFF to R.string.color_white, 0xFFE15A to R.string.color_yellow, 0xB4B4B4 to R.string.color_grey)
+    /** The box behind subtitles: its black's alpha. */
+    val BACKGROUNDS = listOf(0 to R.string.off, 96 to R.string.background_light, 160 to R.string.background_medium, 224 to R.string.background_dark)
 }

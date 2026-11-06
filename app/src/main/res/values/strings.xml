@@ -460,4 +460,7 @@
     <string name="animation_sub">Animated films and series. If this audio isn\'t there, the preferred audio and subtitles are used.</string>
     <string name="remove_subtitle_confirm">Remove this subtitle?</string>
     <string name="remove_subtitle_sub">%1$s is deleted from this title. You can download it again from Search subtitles.</string>
+    <string name="background_light">Light</string>
+    <string name="background_medium">Medium</string>
+    <string name="background_dark">Dark</string>
 </resources>

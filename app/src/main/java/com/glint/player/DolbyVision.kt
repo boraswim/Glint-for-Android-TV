@@ -325,7 +325,7 @@ class ExoPlayback(private val a: PlayerActivity) {
         sub.setStyle(
             CaptionStyleCompat(
                 Color.rgb(s.subtitleColor shr 16 and 255, s.subtitleColor shr 8 and 255, s.subtitleColor and 255),
-                if (s.subtitleBackground) Color.argb(160, 0, 0, 0) else Color.TRANSPARENT,
+                Color.argb(s.subtitleBackground, 0, 0, 0),
                 Color.TRANSPARENT,
                 if (s.subtitleOutline > 0) CaptionStyleCompat.EDGE_TYPE_OUTLINE else CaptionStyleCompat.EDGE_TYPE_NONE,
                 Color.BLACK,
