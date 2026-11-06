@@ -292,10 +292,11 @@ class ExoPlayback(private val a: PlayerActivity) {
     /** The cues on screen now, as the film gave them; [showCues] draws them at the viewer's size. */
     private var cues: List<androidx.media3.common.text.Cue> = emptyList()
 
-    /** True while the subtitle playing is pictures (Blu-ray PGS, DVD VobSub): only its size can change. */
-    fun imageSubtitles() = groups(C.TRACK_TYPE_TEXT).any { (_, g) ->
-        (0 until g.length).any { g.isTrackSelected(it) && g.getTrackFormat(it).codecs.orEmpty().let { c -> "pgs" in c || "vobsub" in c || "dvb" in c } }
-    }
+    /**
+     * True if this subtitle track is pictures (Blu-ray PGS, DVD VobSub): only its size can change. Asked of the
+     * track picked, not the one Media3 plays: it switches a moment later, and the menu would grey the wrong options.
+     */
+    fun imageSubtitle(id: Int) = format(id)?.let { f -> listOf(f.codecs, f.sampleMimeType).any { c -> c.orEmpty().let { "pgs" in it || "vobsub" in it || "dvb" in it } } } == true
 
     /**
      * Text cues take the size from [styleSubtitles]; picture cues (PGS, VobSub) are scaled here, about their

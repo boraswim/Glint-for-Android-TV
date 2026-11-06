@@ -1133,7 +1133,7 @@ class PlayerActivity : ComponentActivity() {
     private fun isDubSubtitle(f: File) = f.name.substringBefore('-').endsWith("dub")
     private fun isForced(f: File) = Regex("""(?i)forced|zorunlu""").containsMatchIn(f.name)
     /** The subtitle playing is pictures (Blu-ray PGS and the like): its size can change, its colour and lettering can't. */
-    fun imageSubtitles() = exo?.imageSubtitles() == true
+    fun imageSubtitles() = exo?.imageSubtitle(subtitleTrack) == true
     fun chooseSubtitle(id: Int, byViewer: Boolean = true) {
         if (byViewer) subtitleChosen = true
         exo?.let { e -> e.select(androidx.media3.common.C.TRACK_TYPE_TEXT, id); subtitleTrack = id } ?: run { player.spuTrack = id; subtitleTrack = player.spuTrack }
