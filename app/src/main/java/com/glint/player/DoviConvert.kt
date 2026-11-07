@@ -247,8 +247,16 @@ class DoviRenderersFactory(context: Context) : DefaultRenderersFactory(context) 
     /** The volume boost (1 = as the film is; up to 3), applied to decoded sound; Dolby or DTS passed through untouched. */
     val gain = GainProcessor()
 
+    /**
+     * With Passthrough off, Dolby and DTS are decoded here, as libVLC does, instead of going to the TV untouched
+     * whenever it can take them: Media3 sends what the TV supports unless told it supports only PCM.
+     */
     override fun buildAudioSink(context: Context, enableFloatOutput: Boolean, enableAudioOutputPlaybackParameters: Boolean): androidx.media3.exoplayer.audio.AudioSink =
-        androidx.media3.exoplayer.audio.DefaultAudioSink.Builder(context)
+        // Made with the context, the sink follows the TV's own capabilities and ignores fixed ones; without it,
+        // it keeps to PCM.
+        (if (App.library.settings.passthrough) androidx.media3.exoplayer.audio.DefaultAudioSink.Builder(context)
+        else @Suppress("DEPRECATION") androidx.media3.exoplayer.audio.DefaultAudioSink.Builder()
+            .setAudioCapabilities(androidx.media3.exoplayer.audio.AudioCapabilities.DEFAULT_AUDIO_CAPABILITIES))
             .setEnableFloatOutput(enableFloatOutput)
             .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParameters)
             .setAudioProcessors(arrayOf(gain))
