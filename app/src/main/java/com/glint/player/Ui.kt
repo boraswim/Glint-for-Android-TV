@@ -516,6 +516,7 @@ fun PosterCard(item: Item, width: Dp = 160.dp, wanted: String? = null, onLongCli
     if (hasFocus) LaunchedEffect(item.id) {
         kotlinx.coroutines.delay(350)
         item.backdrop?.let { coil.Coil.imageLoader(ctx).enqueue(fullScreenRequest(ctx, it)) }
+        warmPage(ctx, item)
     }
     Column(Modifier.width(width).onFocusChanged { hasFocus = it.hasFocus }, horizontalAlignment = Alignment.CenterHorizontally) {
         FocusCard(

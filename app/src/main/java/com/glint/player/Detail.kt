@@ -710,3 +710,26 @@ private fun warmPerson(ctx: android.content.Context, p: Person) {
 
 /** The large version of a cast photo, the same picture as the row's. */
 fun personPhoto(photo: String?) = photo?.replace("/w185/", "/w500/")
+
+/**
+ * A film's or series' page made ready while its poster keeps focus (with its backdrop, see PosterCard): the title
+ * logo, the first cast photos, the trailer (for the Trailer button) and the IMDb and Rotten Tomatoes scores, so the
+ * page opens filled in rather than filling in as you look at it.
+ */
+fun warmPage(ctx: android.content.Context, item: Item) {
+    val lib = App.library
+    val (tmdbId, tv) = when (item) {
+        is Item.MovieItem -> item.movie.tmdbId to false
+        is Item.ShowItem -> item.show.tmdbId to true
+        else -> return
+    }
+    val logo = (item as? Item.MovieItem)?.logo ?: (item as? Item.ShowItem)?.show?.logo
+    val cast = (item as? Item.MovieItem)?.movie?.cast ?: (item as? Item.ShowItem)?.show?.cast.orEmpty()
+    val loader = coil.Coil.imageLoader(ctx)
+    (listOfNotNull(logo) + cast.take(8).mapNotNull { it.photo }).forEach { loader.enqueue(coil.request.ImageRequest.Builder(ctx).data(it).build()) }
+    if (tmdbId == 0 || !lib.tmdb.enabled) return
+    kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+        runCatching { lib.tmdb.trailer(tmdbId, tv) }
+        runCatching { Omdb.forTitle(ctx, tmdbId, tv) }
+    }
+}

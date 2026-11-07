@@ -171,7 +171,16 @@ class Tmdb(private val keyOf: () -> String, private val language: () -> String, 
     }.getOrNull()
 
     /** YouTube key of the best trailer: one in the viewer's language, else English. */
+    /** Trailers found this run ("" for none), so a page opened again, or made ready ahead, has it at once. */
+    private val trailers = java.util.concurrent.ConcurrentHashMap<String, String>()
+
     fun trailer(id: Int, tv: Boolean): String? {
+        val k = "${lang()}|$tv|$id"
+        trailers[k]?.let { return it.ifEmpty { null } }
+        return findTrailer(id, tv).also { trailers[k] = it.orEmpty() }
+    }
+
+    private fun findTrailer(id: Int, tv: Boolean): String? {
         val kind = if (tv) "tv" else "movie"
         val iso = lang().substringBefore('-')
         for (lang in listOf(iso, "en").distinct()) {
