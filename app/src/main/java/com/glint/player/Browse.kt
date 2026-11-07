@@ -713,12 +713,17 @@ fun GridScreen(nav: Nav, kind: Kind) {
             val cardPixels = remember(wide) { PosterPrefetch.grid(ctx, wide) }
             val (w, h) = cardPixels
             fun picture(i: Item) = if (wide) i.backdrop ?: i.poster else i.poster
-            // Pictures load before their cards scroll in: the rows just above and the next few below, as the grid
-            // moves; meanwhile any never prepared at this size are made in the background, one at a time.
+            // Pictures load before their cards scroll in: the next few rows the way the grid is moving (down, or back
+            // up) and a couple the other way; meanwhile any never prepared at this size are made in the background,
+            // one at a time. Back up, the rows above have long left memory: with only two made ready there, a fast
+            // scroll up outran them and showed grey cards (a poster from disk takes ~150 ms, queued behind the rest).
             LaunchedEffect(items) {
                 var done = IntRange.EMPTY
+                var last = -1
                 androidx.compose.runtime.snapshotFlow { (gridState.firstVisibleItemIndex - 1).coerceAtLeast(0) }.collect { first ->
-                    val window = (first - 2 * cols).coerceAtLeast(0)..(first + 7 * cols).coerceAtMost(items.lastIndex)
+                    val up = last >= 0 && first < last
+                    last = first
+                    val window = (first - (if (up) 7 else 2) * cols).coerceAtLeast(0)..(first + (if (up) 4 else 7) * cols).coerceAtMost(items.lastIndex)
                     PosterPrefetch.warm(ctx, window.filter { it !in done }.mapNotNull { picture(items[it]) }, w, h)
                     done = window
                 }
