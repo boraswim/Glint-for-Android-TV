@@ -338,7 +338,6 @@ class Library(private val context: Context) {
         for (src in sources) {
             // DLNA servers are browsed as folders only, not indexed.
             if (src.type == "upnp") continue
-            if (auto && !src.autoScan) { notScanned += src.id; continue }
             _scan.value = ScanState(context.getString(R.string.scan_reading, src.name))
             try {
                 val shares = if (src.share.isNotEmpty()) listOf(src.share) else Fs.listShares(src)
@@ -597,7 +596,12 @@ class Library(private val context: Context) {
         }.getOrDefault(plain)
     }
 
-    private fun lookUpWhileScanning(f: VideoFile) = source(f.source)?.precacheDetails != false
+    private fun lookUpWhileScanning(@Suppress("UNUSED_PARAMETER") f: VideoFile) = precacheDetails
+
+    /** The Shares page's settings for all shares; until set, on if any share had its own on (as each did before). */
+    val scanOnStart get() = settings.scanOnStart(sources.value.isEmpty() || sources.value.any { it.autoScan })
+    val precacheDetails get() = settings.precacheDetails(sources.value.isEmpty() || sources.value.any { it.precacheDetails })
+    val smartFolders get() = settings.smartFolders(sources.value.isEmpty() || sources.value.any { it.smartFolders })
 
     /** Disc folders have no extension; give the parser one so "Alien.1979.DVD" keeps its last word. */
     private fun parseName(f: VideoFile) = Names.parse(if (f.disc.isEmpty()) f.path else f.path + ".disc")

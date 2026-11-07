@@ -329,9 +329,8 @@
     <string name="no_servers">Er reageerden geen mediaservers in dit netwerk.</string>
     <string name="add_season_to_collection">%1$s toevoegen aan collectie…</string>
     <string name="remove_from_collection">Uit collectie verwijderen</string>
-    <string name="share_options">Opties voor share</string>
     <string name="auto_scan">Automatisch scannen</string>
-    <string name="auto_scan_sub">Zoek naar nieuwe bestanden op deze share wanneer Glint start.</string>
+    <string name="auto_scan_sub">Zoekt bij het starten van Glint op alle shares naar nieuwe bestanden. Uit: alleen als je erom vraagt (vernieuwknop op Start).</string>
     <string name="precache_details">Details vooraf laden</string>
     <string name="precache_details_sub">Zoekt titels, samenvattingen en posters op tijdens het scannen. Uit: ze worden opgezocht als je een map voor het eerst opent.</string>
     <string name="precache_artwork">Afbeeldingen vooraf laden</string>

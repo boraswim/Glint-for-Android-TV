@@ -121,7 +121,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val lib = App.library
-        if (lib.sources.value.isNotEmpty() && System.currentTimeMillis() - lib.data.value.scannedAt > 6 * 3600_000L) lib.scanAll(auto = true)
+        if (lib.sources.value.isNotEmpty() && lib.scanOnStart && System.currentTimeMillis() - lib.data.value.scannedAt > 6 * 3600_000L) lib.scanAll(auto = true)
         else lib.resumePrecache()
         setContent {
             val nav = remember {

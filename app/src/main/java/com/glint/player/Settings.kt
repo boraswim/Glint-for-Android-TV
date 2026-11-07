@@ -155,6 +155,21 @@ class Settings(context: Context) {
         set(v) = prefs.edit().putInt("readAheadMb", v).apply()
 
     private fun flag(name: String, default: Boolean) = prefs.getBoolean(name, default)
+
+    /**
+     * Look titles up while scanning rather than when first opened: one setting for every share, on the Shares page.
+     * Each share had its own before; until this is set, it's on if any of them was ([anyShare]).
+     */
+    fun precacheDetails(anyShare: Boolean) = prefs.getBoolean("precacheDetails", anyShare)
+    fun setPrecacheDetails(on: Boolean) = prefs.edit().putBoolean("precacheDetails", on).apply()
+
+    /** Look for new files on every share when Glint starts (at most every 6 hours): one setting, as [precacheDetails]. */
+    fun scanOnStart(anyShare: Boolean) = prefs.getBoolean("scanOnStart", anyShare)
+    fun setScanOnStart(on: Boolean) = prefs.edit().putBoolean("scanOnStart", on).apply()
+
+    /** A folder holding one film opens that film: one setting for every share, as [precacheDetails]. */
+    fun smartFolders(anyShare: Boolean) = prefs.getBoolean("smartFolders", anyShare)
+    fun setSmartFolders(on: Boolean) = prefs.edit().putBoolean("smartFolders", on).apply()
     private fun setFlag(name: String, v: Boolean) = prefs.edit().putBoolean(name, v).apply()
 
     /** Orange corner on unwatched posters, progress bar on started ones. */

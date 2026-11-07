@@ -329,9 +329,8 @@
     <string name="no_servers">Nessun server multimediale ha risposto in questa rete.</string>
     <string name="add_season_to_collection">Aggiungi %1$s a raccolta…</string>
     <string name="remove_from_collection">Rimuovi dalla raccolta</string>
-    <string name="share_options">Opzioni della condivisione</string>
     <string name="auto_scan">Scansione automatica</string>
-    <string name="auto_scan_sub">Cerca nuovi file in questa condivisione all\'avvio di Glint.</string>
+    <string name="auto_scan_sub">Cerca nuovi file in tutte le condivisioni all\'avvio di Glint. Disattivato: solo quando lo chiedi (pulsante Aggiorna nella Home).</string>
     <string name="precache_details">Precarica dettagli</string>
     <string name="precache_details_sub">Cerca titoli, trame e poster durante la scansione. Se disattivato, vengono cercati la prima volta che apri una cartella.</string>
     <string name="precache_artwork">Precarica immagini</string>

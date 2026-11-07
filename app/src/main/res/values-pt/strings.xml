@@ -329,9 +329,8 @@
     <string name="no_servers">Nenhum servidor de mídia respondeu nesta rede.</string>
     <string name="add_season_to_collection">Adicionar %1$s à coleção…</string>
     <string name="remove_from_collection">Remover da coleção</string>
-    <string name="share_options">Opções do compartilhamento</string>
     <string name="auto_scan">Varredura automática</string>
-    <string name="auto_scan_sub">Procurar arquivos novos neste compartilhamento quando o Glint iniciar.</string>
+    <string name="auto_scan_sub">Procura ficheiros novos em todas as partilhas ao abrir o Glint. Desligado: só quando pedir (botão de atualizar no Início).</string>
     <string name="precache_details">Pré-carregar detalhes</string>
     <string name="precache_details_sub">Busca títulos, sinopses e pôsteres durante a varredura. Desativado, eles são buscados na primeira vez que você abre uma pasta.</string>
     <string name="precache_artwork">Pré-carregar imagens</string>

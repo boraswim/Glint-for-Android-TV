@@ -86,6 +86,20 @@ private fun SharesScreen(nav: Nav) {
                 }
                 item { ListRow(stringResource(R.string.add_source), icon = androidx.compose.material.icons.Icons.Filled.Add, modifier = if (sources.isEmpty()) FocusFirst() else Modifier) { nav.push(Screen.EditSource(null)) } }
                 if (sources.isNotEmpty()) item { Txt(stringResource(R.string.hold_to_edit_share), Type.Small, Modifier.padding(start = 8.dp, top = 2.dp)) }
+                // Settings for every share at once.
+                if (sources.isNotEmpty()) item {
+                    var scan by remember { mutableStateOf(lib.scanOnStart) }
+                    var details by remember { mutableStateOf(lib.precacheDetails) }
+                    var smart by remember { mutableStateOf(lib.smartFolders) }
+                    Column(Modifier.padding(top = 14.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
+                        OnOffRow(stringResource(R.string.auto_scan), scan, sub = stringResource(R.string.auto_scan_sub)) { v -> lib.settings.setScanOnStart(v); scan = v }
+                        OnOffRow(stringResource(R.string.precache_details), details, sub = stringResource(R.string.precache_details_sub)) { v ->
+                            lib.settings.setPrecacheDetails(v); details = v
+                            if (v) lib.scanAll()   // turned on: look everything up now
+                        }
+                        OnOffRow(stringResource(R.string.smart_folders), smart, sub = stringResource(R.string.smart_folders_sub)) { v -> lib.settings.setSmartFolders(v); smart = v }
+                    }
+                }
                 item { SpeedTestRow() }
                 item { UrlRow() }
             }
@@ -377,14 +391,10 @@ private fun ShareOptions(id: String) {
     val lib = App.library
     val sources by lib.sources.collectAsState()
     val src = sources.firstOrNull { it.id == id } ?: return
+    // Scanning, details and smart folders are set once for all shares, on the Shares page; only the SMB version is
+    // the share's own (an old NAS may need an older one), so a USB disk has nothing here.
+    if (src.type != "smb") return
     Column(Modifier.padding(top = 28.dp).width(720.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
-        Txt(stringResource(R.string.share_options), Type.Meta)
-        OnOffRow(stringResource(R.string.auto_scan), src.autoScan, sub = stringResource(R.string.auto_scan_sub)) { v -> lib.saveSource(src.copy(autoScan = v)) }
-        OnOffRow(stringResource(R.string.precache_details), src.precacheDetails, sub = stringResource(R.string.precache_details_sub)) { v ->
-            lib.saveSource(src.copy(precacheDetails = v))
-            if (v) lib.scanAll()   // turned on: look everything up now
-        }
-        OnOffRow(stringResource(R.string.smart_folders), src.smartFolders, sub = stringResource(R.string.smart_folders_sub)) { v -> lib.saveSource(src.copy(smartFolders = v)) }
         // Pick the SMB version for NAS boxes that stutter on what they and the TV agree on.
         if (src.type == "smb") ChoiceRow(
             stringResource(R.string.smb_version), listOf("", "2.0", "2.1", "3.0").map { it to if (it.isEmpty()) stringResource(R.string.auto) else "SMB $it" }, src.smbVersion,
@@ -446,8 +456,8 @@ fun FolderScreen(nav: Nav, screen: Screen.Folder) {
         val list = entries ?: return@LaunchedEffect
         if (src == null || share == null) return@LaunchedEffect
         // Pre-cache Details off: what the viewer browses is looked up now.
-        if (!src.precacheDetails) lib.fetchDetails(list.filter { !it.isDir }.map { "${src.id}|$share|${it.path}" } + "${src.id}|$share|${screen.path}")
-        if (!src.smartFolders || screen.path.isEmpty()) return@LaunchedEffect
+        if (!lib.precacheDetails) lib.fetchDetails(list.filter { !it.isDir }.map { "${src.id}|$share|${it.path}" } + "${src.id}|$share|${screen.path}")
+        if (!lib.smartFolders || screen.path.isEmpty()) return@LaunchedEffect
         // A DVD or Blu-ray folder opens as the film it holds.
         if (list.any { it.isDir && (it.name.equals("VIDEO_TS", true) || it.name.equals("BDMV", true)) }) {
             val key = "${src.id}|$share|${screen.path}"
