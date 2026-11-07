@@ -336,7 +336,7 @@
     <string name="add_season_to_collection">%1$s koleksiyona ekle…</string>
     <string name="remove_from_collection">Koleksiyondan çıkar</string>
     <string name="auto_scan">Otomatik tarama</string>
-    <string name="auto_scan_sub">Glint açılınca tüm paylaşımlarda yeni dosyaları arar. Kapalıyken sadece siz isteyince (ana ekrandaki yenile tuşu).</string>
+    <string name="auto_scan_sub">Glint açılınca tüm paylaşımlarda yeni dosyaları arar. Kapalıyken sadece siz isteyince\n(ana ekrandaki yenile tuşu).</string>
     <string name="precache_details">Ayrıntıları önceden al</string>
     <string name="precache_details_sub">Tarama sırasında başlık, özet ve afişleri bul. Kapalıysa bir klasörü ilk açtığınızda bulunur.</string>
     <string name="precache_artwork">Görselleri önceden al</string>

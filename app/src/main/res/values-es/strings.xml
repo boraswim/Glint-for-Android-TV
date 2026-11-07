@@ -330,7 +330,7 @@
     <string name="add_season_to_collection">Añadir %1$s a una colección…</string>
     <string name="remove_from_collection">Quitar de la colección</string>
     <string name="auto_scan">Escaneo automático</string>
-    <string name="auto_scan_sub">Busca archivos nuevos en todas las carpetas compartidas al abrir Glint. Apagado: solo cuando lo pidas (botón de actualizar en Inicio).</string>
+    <string name="auto_scan_sub">Busca archivos nuevos en todas las carpetas compartidas al abrir Glint. Apagado: solo cuando lo pidas\n(botón de actualizar en Inicio).</string>
     <string name="precache_details">Precargar detalles</string>
     <string name="precache_details_sub">Busca títulos, sinopsis y pósteres durante el escaneo. Si está desactivado, se buscan la primera vez que abres una carpeta.</string>
     <string name="precache_artwork">Precargar imágenes</string>

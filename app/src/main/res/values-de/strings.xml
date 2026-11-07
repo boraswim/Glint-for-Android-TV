@@ -330,7 +330,7 @@
     <string name="add_season_to_collection">%1$s zur Sammlung hinzufügen…</string>
     <string name="remove_from_collection">Aus der Sammlung entfernen</string>
     <string name="auto_scan">Automatisch durchsuchen</string>
-    <string name="auto_scan_sub">Beim Start von Glint auf allen Freigaben nach neuen Dateien suchen. Aus: nur auf Wunsch (Aktualisieren auf dem Startbildschirm).</string>
+    <string name="auto_scan_sub">Beim Start von Glint auf allen Freigaben nach neuen Dateien suchen. Aus: nur auf Wunsch\n(Aktualisieren auf dem Startbildschirm).</string>
     <string name="precache_details">Details vorab laden</string>
     <string name="precache_details_sub">Titel, Inhalte und Poster schon beim Durchsuchen abrufen. Wenn aus, werden sie beim ersten Öffnen eines Ordners geladen.</string>
     <string name="precache_artwork">Bilder vorab laden</string>

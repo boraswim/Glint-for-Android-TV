@@ -330,7 +330,7 @@
     <string name="add_season_to_collection">Добавить %1$s в коллекцию…</string>
     <string name="remove_from_collection">Убрать из коллекции</string>
     <string name="auto_scan">Автосканирование</string>
-    <string name="auto_scan_sub">Ищет новые файлы во всех папках при запуске Glint. Выкл.: только по запросу (кнопка обновления на главном экране).</string>
+    <string name="auto_scan_sub">Ищет новые файлы во всех папках при запуске Glint. Выкл.: только по запросу\n(кнопка обновления на главном экране).</string>
     <string name="precache_details">Заранее загружать сведения</string>
     <string name="precache_details_sub">Загружает названия, описания и постеры во время сканирования. Если выключено, они загружаются при первом открытии папки.</string>
     <string name="precache_artwork">Заранее загружать изображения</string>

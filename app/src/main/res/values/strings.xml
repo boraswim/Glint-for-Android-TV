@@ -349,7 +349,7 @@
     <string name="add_season_to_collection">Add %1$s to Collection…</string>
     <string name="remove_from_collection">Remove from Collection</string>
     <string name="auto_scan">Auto Scan</string>
-    <string name="auto_scan_sub">Look for new files on all shares when Glint starts. Off: only when you ask (the refresh button on Home).</string>
+    <string name="auto_scan_sub">Look for new files on all shares when Glint starts. Off: only when you ask\n(the refresh button on Home).</string>
     <string name="precache_details">Pre-cache Details</string>
     <string name="precache_details_sub">Look up titles, plots and posters while scanning. When off, they are looked up the first time you open a folder.</string>
     <string name="precache_artwork">Pre-cache Artwork</string>

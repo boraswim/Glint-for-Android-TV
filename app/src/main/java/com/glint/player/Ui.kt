@@ -340,7 +340,7 @@ object PosterPrefetch {
     }
 
     fun made(ctx: android.content.Context, model: Any, w: Int, h: Int) =
-        java.io.File(SizedPosterFetcher.dir(ctx), SizedPosterFetcher.key(SizedPoster(sharper(model), w, h))).exists()
+        SizedPosterFetcher.made(ctx, SizedPoster(sharper(model), w, h))
 
     // A picture already made is there at once, without fading in as if it had just arrived.
     fun request(ctx: android.content.Context, model: Any, w: Int, h: Int) =
@@ -365,13 +365,21 @@ object PosterPrefetch {
 }
 
 /**
- * Makes a card's picture once (full original, careful resize, sharpening) and keeps the result on disk,
- * lossless, at exactly the card's pixels. Coming back to a grid then loads small ready files instead of
+ * Makes a card's picture once (full original, careful resize, sharpening) and keeps the result on disk as a
+ * top-quality JPEG ([JPEG_QUALITY]) at exactly the card's pixels. Coming back to a grid then loads small ready files instead of
  * redoing that work for every 2000×3000 original pushed out of the memory cache.
  */
 class SizedPosterFetcher(private val data: SizedPoster, private val options: coil.request.Options, private val loader: coil.ImageLoader) : coil.fetch.Fetcher {
     override suspend fun fetch(): coil.fetch.FetchResult {
         val file = java.io.File(dir(options.context), key(data))
+        // Made by an earlier version as a PNG: shown as it is, not made again (convertOld turns it into a JPEG).
+        if (!file.exists()) earlier(options.context, data)?.let { png ->
+            return coil.fetch.SourceResult(
+                source = coil.decode.ImageSource(okio.Path.Companion.run { png.toOkioPath() }, okio.FileSystem.SYSTEM),
+                mimeType = "image/png",
+                dataSource = coil.decode.DataSource.DISK,
+            )
+        }
         if (!file.exists()) {
             val made = loader.execute(
                 coil.request.ImageRequest.Builder(options.context)
@@ -386,12 +394,12 @@ class SizedPosterFetcher(private val data: SizedPoster, private val options: coi
             val bmp = ((made as? coil.request.SuccessResult)?.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
                 ?: throw (made as? coil.request.ErrorResult)?.throwable ?: IllegalStateException("No picture for ${data.model}")
             val tmp = java.io.File.createTempFile("poster", ".tmp", file.parentFile)
-            tmp.outputStream().use { bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+            tmp.outputStream().use { bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }
             tmp.renameTo(file)
         } else file.setLastModified(System.currentTimeMillis())   // recently used: kept longest by trim()
         return coil.fetch.SourceResult(
             source = coil.decode.ImageSource(okio.Path.Companion.run { file.toOkioPath() }, okio.FileSystem.SYSTEM),
-            mimeType = "image/png",
+            mimeType = "image/jpeg",
             dataSource = coil.decode.DataSource.DISK,
         )
     }
@@ -405,9 +413,40 @@ class SizedPosterFetcher(private val data: SizedPoster, private val options: coi
         private const val VERSION = 1
         const val LIMIT = 400L shl 20
         fun dir(ctx: android.content.Context) = java.io.File(ctx.cacheDir, "posters-v$VERSION").apply { mkdirs() }
-        fun key(d: SizedPoster): String {
-            val id = "${d.model}|${d.w}x${d.h}"
-            return java.security.MessageDigest.getInstance("MD5").digest(id.toByteArray()).joinToString("") { "%02x".format(it) } + ".png"
+        /**
+         * Finished posters are kept as JPEGs at the highest quality: they open several times quicker than the PNGs
+         * of earlier versions, which a fast scroll outran (grey cards for a moment), and look the same.
+         */
+        const val JPEG_QUALITY = 100
+        private fun hash(d: SizedPoster) = "${d.model}|${d.w}x${d.h}".let { id ->
+            java.security.MessageDigest.getInstance("MD5").digest(id.toByteArray()).joinToString("") { "%02x".format(it) }
+        }
+        fun key(d: SizedPoster) = hash(d) + ".jpg"
+        /** The same poster as an earlier version made it, a PNG, until [convertOld] has turned it into a JPEG. */
+        fun earlier(ctx: android.content.Context, d: SizedPoster) = java.io.File(dir(ctx), hash(d) + ".png").takeIf { it.exists() }
+        /** Made already, in either form: shown at once. */
+        fun made(ctx: android.content.Context, d: SizedPoster) = java.io.File(dir(ctx), key(d)).exists() || earlier(ctx, d) != null
+
+        /**
+         * Turns the PNG posters of earlier versions into JPEGs, from the files themselves (no trip to the NAS), at a
+         * gentle pace behind whatever is on screen. A PNG goes once its JPEG is there; until then it's what's shown.
+         */
+        fun convertOld(ctx: android.content.Context) {
+            val d = dir(ctx)
+            d.listFiles { f -> f.name.endsWith(".part") }?.forEach { it.delete() }   // one cut short last time
+            d.listFiles { f -> f.name.endsWith(".png") }?.forEach { png ->
+                val jpg = java.io.File(d, png.name.removeSuffix(".png") + ".jpg")
+                if (jpg.exists()) { png.delete(); return@forEach }
+                runCatching {
+                    val bmp = android.graphics.BitmapFactory.decodeFile(png.path) ?: return@forEach
+                    val part = java.io.File(d, jpg.name + ".part")
+                    part.outputStream().use { bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }
+                    bmp.recycle()
+                    part.setLastModified(png.lastModified())
+                    if (part.renameTo(jpg)) png.delete()
+                    Thread.sleep(20)
+                }
+            }
         }
         /** Keeps the folder under [limit] bytes, dropping the least recently used files first. */
         fun trim(ctx: android.content.Context, limit: Long = LIMIT) {
@@ -729,8 +768,10 @@ fun ListRow(label: String, value: String = "", modifier: Modifier = Modifier, su
         Column(Modifier.weight(1f)) {
             val labelColor = when { danger && focused -> Color(0xFFD32F2F); danger -> Color(0xFFFF5A5F); focused -> Color.Black; else -> Palette.Text }
             Txt(label, Type.Button.copy(color = labelColor, fontWeight = FontWeight.Medium, fontSize = 19.sp), maxLines = 1)
-            if (sub != null) Txt(sub, Type.Small.copy(color = if (focused) Color(0xFF444444) else Palette.Faint), maxLines = 2)
+            if (sub != null) Txt(sub, Type.Small.copy(color = if (focused) Color(0xFF444444) else Palette.Faint), maxLines = 3)
         }
+        // Room between a long description and the value, so the two never run into each other.
+        if (value.isNotEmpty()) Spacer(Modifier.width(24.dp))
         if (value.isNotEmpty()) Txt(value, Type.Meta.copy(fontSize = 18.sp, color = if (focused) Color(0xFF333333) else Palette.Dim), maxLines = 1)
         if (chevron) { Spacer(Modifier.width(10.dp)); Txt("›", Type.Title.copy(color = if (focused) Color(0xFF555555) else Palette.Faint, fontSize = 24.sp)) }
     }

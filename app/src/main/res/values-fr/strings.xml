@@ -330,7 +330,7 @@
     <string name="add_season_to_collection">Ajouter %1$s à une collection…</string>
     <string name="remove_from_collection">Retirer de la collection</string>
     <string name="auto_scan">Analyse automatique</string>
-    <string name="auto_scan_sub">Cherche les nouveaux fichiers sur tous les partages au démarrage de Glint. Désactivé : seulement à la demande (bouton Actualiser de l\'accueil).</string>
+    <string name="auto_scan_sub">Cherche les nouveaux fichiers sur tous les partages au démarrage de Glint. Désactivé : seulement à la demande\n(bouton Actualiser de l\'accueil).</string>
     <string name="precache_details">Précharger les détails</string>
     <string name="precache_details_sub">Récupère titres, résumés et affiches pendant l\'analyse. Désactivé, ils sont récupérés la première fois que vous ouvrez un dossier.</string>
     <string name="precache_artwork">Précharger les visuels</string>
