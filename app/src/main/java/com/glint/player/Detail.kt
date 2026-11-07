@@ -247,6 +247,7 @@ private fun CastRow(nav: Nav, cast: List<Person>, director: String = "") {
     // Focusing a photo scrolls the whole row into view, names and roles included, not just the photo.
     val whole = remember { androidx.compose.foundation.relocation.BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     val here = nav.current
     val back = remember { nav.openedPerson?.takeIf { it.first == here }?.second }
     val backFocus = remember { androidx.compose.ui.focus.FocusRequester() }
@@ -263,7 +264,7 @@ private fun CastRow(nav: Nav, cast: List<Person>, director: String = "") {
     Box(Modifier.bringIntoViewRequester(whole)) { Shelf(stringResource(R.string.cast_crew), row) {
         items(people) { p ->
             Column(Modifier.width(152.dp)) {
-                FocusCard((if (p.name == back) Modifier.focusRequester(backFocus) else Modifier).size(152.dp, 162.dp), shape = RoundedCornerShape(22.dp), onFocus = { scope.launch { whole.bringIntoView() } }, onLongClick = { App.library.pin(Pin("actor:${p.name}", p.name, row = true)) }, onClick = { nav.openedPerson = here to p.name; nav.push(Screen.PersonPage(p.name, p.id, p.photo)) }) { focused ->
+                FocusCard((if (p.name == back) Modifier.focusRequester(backFocus) else Modifier).size(152.dp, 162.dp), shape = RoundedCornerShape(22.dp), onFocus = { scope.launch { whole.bringIntoView() }; warmPerson(ctx, p) }, onLongClick = { App.library.pin(Pin("actor:${p.name}", p.name, row = true)) }, onClick = { nav.openedPerson = here to p.name; nav.push(Screen.PersonPage(p.name, p.id, p.photo)) }) { focused ->
                     Box(Modifier.fillMaxSize().background(Color(0xFF3A3D43)), contentAlignment = Alignment.Center) {
                         Txt(p.name.split(' ').mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString(""), Type.Title)
                         if (p.photo != null) AsyncImage(p.photo, p.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
@@ -695,3 +696,17 @@ fun MatchScreen(nav: Nav, screen: Screen.Match) {
         }
     }
 }
+
+/**
+ * Someone's page made ready while their photo is focused, before OK: their life story and dates (kept by
+ * [Tmdb.person]) and the large photo the page opens with, so it opens filled in and sharp instead of filling in
+ * and sharpening as you watch.
+ */
+private fun warmPerson(ctx: android.content.Context, p: Person) {
+    val lib = App.library
+    personPhoto(p.photo)?.let { coil.Coil.imageLoader(ctx).enqueue(coil.request.ImageRequest.Builder(ctx).data(it).build()) }
+    if (lib.tmdb.enabled) kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch { runCatching { lib.tmdb.person(p.id, p.name, p.photo) } }
+}
+
+/** The large version of a cast photo, the same picture as the row's. */
+fun personPhoto(photo: String?) = photo?.replace("/w185/", "/w500/")

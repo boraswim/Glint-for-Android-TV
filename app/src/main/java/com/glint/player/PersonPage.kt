@@ -79,7 +79,8 @@ fun PersonScreen(nav: Nav, screen: Screen.PersonPage) {
         Row(Modifier.padding(horizontal = 64.dp).height(400.dp), horizontalArrangement = Arrangement.spacedBy(36.dp)) {
             Box(Modifier.size(266.dp, 400.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFF3A3D43)), contentAlignment = Alignment.Center) {
                 Txt(screen.name.split(' ').mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString(""), Type.Hero)
-                (photos.firstOrNull() ?: screen.photo)?.let { AsyncImage(it, screen.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
+                // The cast row's photo, large (made ready while it was focused); TMDB's best only for someone without one.
+                (personPhoto(screen.photo) ?: photos.firstOrNull())?.let { AsyncImage(it, screen.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
             }
             Column(Modifier.weight(1f)) {
                 Txt(p?.name ?: screen.name, Type.Hero, maxLines = 1)
