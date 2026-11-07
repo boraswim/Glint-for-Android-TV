@@ -705,7 +705,12 @@ fun MatchScreen(nav: Nav, screen: Screen.Match) {
 private fun warmPerson(ctx: android.content.Context, p: Person) {
     val lib = App.library
     personPhoto(p.photo)?.let { coil.Coil.imageLoader(ctx).enqueue(coil.request.ImageRequest.Builder(ctx).data(it).build()) }
-    if (lib.tmdb.enabled) kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch { runCatching { lib.tmdb.person(p.id, p.name, p.photo) } }
+    if (lib.tmdb.enabled) kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+        // With the story, the first of the page's other photos (as many as its row shows).
+        val info = runCatching { lib.tmdb.person(p.id, p.name, p.photo) }.getOrNull() ?: return@launch
+        val loader = coil.Coil.imageLoader(ctx)
+        info.photos.take(10).forEach { loader.enqueue(coil.request.ImageRequest.Builder(ctx).data(it).build()) }
+    }
 }
 
 /** The large version of a cast photo, the same picture as the row's. */

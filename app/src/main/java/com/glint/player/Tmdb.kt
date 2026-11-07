@@ -283,7 +283,40 @@ class Tmdb(private val keyOf: () -> String, private val language: () -> String, 
      */
     fun person(id: Int, name: String, photo: String?): PersonInfo? {
         val lang = lang()
-        people["$lang|$id|$name"]?.let { return it }
+        val k = "$lang|$id|$name"
+        people[k]?.let { return it }
+        readPerson(k)?.let { people[k] = it; return it }
+        return fetchPerson(id, name, photo, lang)?.also { people[k] = it; savePerson(k, it) }
+    }
+
+    /**
+     * Someone's page as looked up before, kept a month on the TV, so it opens at once on later visits too, even
+     * after Glint was closed; a life story or new photos added to TMDB meanwhile come with the next look-up.
+     */
+    /** Someone looked up before (this run, or kept on the TV): at once, for the page's first frame; null otherwise. */
+    fun knownPerson(id: Int, name: String): PersonInfo? {
+        val k = "${lang()}|$id|$name"
+        return people[k] ?: readPerson(k)?.also { people[k] = it }
+    }
+
+    private fun personFile(k: String) = java.io.File(App.instance.filesDir, "people/" + java.security.MessageDigest.getInstance("MD5")
+        .digest(k.toByteArray()).joinToString("") { "%02x".format(it) } + ".json")
+
+    private fun readPerson(k: String): PersonInfo? = runCatching {
+        val f = personFile(k).takeIf { it.exists() && System.currentTimeMillis() - it.lastModified() < 30L * 24 * 3600_000 } ?: return null
+        val o = JSONObject(f.readText())
+        PersonInfo(o.getString("name"), o.getString("biography"), o.getString("birthday"), o.getString("deathday"), o.getString("place"),
+            o.getJSONArray("photos").let { a -> (0 until a.length()).map { a.getString(it) } }, o.optBoolean("fromWikipedia"))
+    }.getOrNull()
+
+    private fun savePerson(k: String, p: PersonInfo) = runCatching {
+        val f = personFile(k).apply { parentFile?.mkdirs() }
+        val o = JSONObject().put("name", p.name).put("biography", p.biography).put("birthday", p.birthday).put("deathday", p.deathday)
+            .put("place", p.place).put("photos", org.json.JSONArray(p.photos)).put("fromWikipedia", p.fromWikipedia)
+        java.io.File(f.path + ".tmp").also { it.writeText(o.toString()) }.renameTo(f)
+    }
+
+    private fun fetchPerson(id: Int, name: String, photo: String?, lang: String): PersonInfo? {
         val found = if (id > 0) id else {
             val hits = JSONObject(get("search/person?query=${enc(name)}&include_adult=false&language=$lang")).getJSONArray("results").objects()
             val file = photo?.substringAfterLast('/')
@@ -304,7 +337,6 @@ class Tmdb(private val keyOf: () -> String, private val language: () -> String, 
             .sortedByDescending { it.optDouble("vote_average") }
             .mapNotNull { it.img("file_path", "w500") }.distinct().take(40)
         return PersonInfo(o.text("name").ifBlank { name }, story.trim(), o.text("birthday"), o.text("deathday"), o.text("place_of_birth"), photos, fromWikipedia = wiki.isNotBlank() && story === wiki)
-            .also { people["$lang|$id|$name"] = it }
     }
 
     private fun JSONObject.text(name: String) = if (isNull(name)) "" else optString(name)

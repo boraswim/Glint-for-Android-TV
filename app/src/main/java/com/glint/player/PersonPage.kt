@@ -60,10 +60,12 @@ import java.util.Locale
 fun PersonScreen(nav: Nav, screen: Screen.PersonPage) {
     val lib = App.library
     val data by lib.data.collectAsState()
-    var info by remember { mutableStateOf<PersonInfo?>(null) }
-    var loading by remember { mutableStateOf(true) }
+    // Someone seen before is there from the first frame (a small file on the TV), not after a "Loading".
+    var info by remember { mutableStateOf(if (lib.tmdb.enabled) runCatching { lib.tmdb.knownPerson(screen.id, screen.name) }.getOrNull() else null) }
+    var loading by remember { mutableStateOf(info == null) }
     var viewing by remember { mutableStateOf<Int?>(null) }
     LaunchedEffect(screen) {
+        if (info != null) return@LaunchedEffect
         info = if (!lib.tmdb.enabled) null
         else withContext(Dispatchers.IO) { runCatching { lib.tmdb.person(screen.id, screen.name, screen.photo) }.getOrNull() }
         loading = false
