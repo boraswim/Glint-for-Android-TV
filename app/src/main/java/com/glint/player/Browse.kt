@@ -179,11 +179,11 @@ fun HomeScreen(nav: Nav) {
                         // The title sits as far above the cards as Favorites' title above its tiles (measured with
                         // no card selected); the 9dp taken from its gap goes above it, so the cards stay put.
                         Gap(9.dp)
-                        Shelf(stringResource(R.string.shelf_watching), watchingRow, titleGap = 4.dp) {
+                        Shelf(stringResource(R.string.shelf_watching), watchingRow, titleGap = 0.dp) {
                             items(watching, key = { it.id }) {
-                                // The cards' title and year a size below Home's other text; corners rounded as
-                                // about 5% of the card's width.
-                                androidx.compose.runtime.CompositionLocalProvider(LocalTextScale provides 1.35f) {
+                                // The cards' title the size of the Favorites tiles' names, as the poster rows below
+                                // ([HomePoster]); corners rounded as about 5% of the card's width.
+                                HomePoster {
                                     WideCard(it, width = 324.dp, wanted = wanted, captionOnFocus = true, corner = 16.dp, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id); wakeFor(i) }, onClick = { i -> play(nav, i) })
                                 }
                             }
@@ -200,28 +200,28 @@ fun HomeScreen(nav: Nav) {
                 }
                 for (p in user.pins.filter { it.row }) item(key = "pinrow:${p.key}") {
                     val list = remember(data, user) { lib.pinItems(p.key) }
-                    if (list.isNotEmpty()) Shelf(p.label) {
-                        items(list, key = { "pr" + p.key + it.id }) { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
+                    if (list.isNotEmpty()) Shelf(p.label, titleGap = 0.dp) {
+                        items(list, key = { "pr" + p.key + it.id }) { HomePoster { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) } }
                     }
                 }
                 if (picks.isNotEmpty()) item {
-                    Shelf(stringResource(R.string.shelf_picks)) {
-                        items(picks, key = { "p" + it.id }) { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
+                    Shelf(stringResource(R.string.shelf_picks), titleGap = 0.dp) {
+                        items(picks, key = { "p" + it.id }) { HomePoster { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) } }
                     }
                 }
                 if (watchlist.isNotEmpty()) item {
-                    Shelf(stringResource(R.string.shelf_watchlist)) {
-                        items(watchlist, key = { "w" + it.id }) { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
+                    Shelf(stringResource(R.string.shelf_watchlist), titleGap = 0.dp) {
+                        items(watchlist, key = { "w" + it.id }) { HomePoster { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) } }
                     }
                 }
                 if (recentMovies.isNotEmpty()) item {
-                    Shelf(stringResource(R.string.shelf_recent_movies)) {
-                        items(recentMovies, key = { "r" + it.id }) { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
+                    Shelf(stringResource(R.string.shelf_recent_movies), titleGap = 0.dp) {
+                        items(recentMovies, key = { "r" + it.id }) { HomePoster { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) } }
                     }
                 }
                 if (recentShows.isNotEmpty()) item {
-                    Shelf(stringResource(R.string.shelf_recent_shows)) {
-                        items(recentShows, key = { "s" + it.id }) { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) }
+                    Shelf(stringResource(R.string.shelf_recent_shows), titleGap = 0.dp) {
+                        items(recentShows, key = { "s" + it.id }) { HomePoster { PosterCard(it, wanted = null, onLongClick = { i -> sheet = i }, onFocus = { i -> nav.remember(screen, i.id) }, onClick = nav::open) } }
                     }
                 }
             }
@@ -309,7 +309,8 @@ private fun FavoritesRow(nav: Nav, first: FocusRequester, wanted: String?) {
     // The menu that started the move took focus away; hand it back to the lifted tile so it gets the arrows.
     val liftFocus = remember { FocusRequester() }
     LaunchedEffect(moving) { if (moving != null) { kotlinx.coroutines.delay(80); runCatching { liftFocus.requestFocus() } } }
-    Shelf(if (moving != null) stringResource(R.string.shelf_favorites) + "   ·   " + stringResource(R.string.move_tile_hint) else stringResource(R.string.shelf_favorites), rowState) {
+    // Every Home row's title sits the same distance above its cards (titleGap 0 on each).
+    Shelf(if (moving != null) stringResource(R.string.shelf_favorites) + "   ·   " + stringResource(R.string.move_tile_hint) else stringResource(R.string.shelf_favorites), rowState, titleGap = 0.dp) {
         items(sorted.size, key = { sorted[it].id }) { n ->
             val e = sorted[n]
             val lifted = moving == e.id
@@ -1045,3 +1046,8 @@ fun SearchScreen(nav: Nav) {
         sheet?.let { ItemMenu(it, nav) { sheet = null } }
     }
 }
+
+/** A card in a Home row: its title the size of the Favorites tiles' names (13.5 sp at Home's 1.5×), the year below it. */
+@Composable
+private fun HomePoster(card: @Composable () -> Unit) =
+    androidx.compose.runtime.CompositionLocalProvider(LocalTextScale provides 13.5f * 1.5f / 17f) { card() }
