@@ -515,6 +515,11 @@ class PlayerActivity : ComponentActivity() {
         showControls()
 
         lifecycleScope.launch {
+            // libVLC's SMB module crashes the whole app when the NAS doesn't answer (seen with the NAS switched off),
+            // so it's asked whether the NAS is there first (milliseconds when it is). Media3 (Dolby Vision) wouldn't
+            // crash, but reading subtitles and the film would each wait a long time before giving up.
+            val reachable = withContext(Dispatchers.IO) { src.type != "smb" || now?.file?.strmUrl != null || answers(src.host) }
+            if (!reachable) { error = getString(R.string.source_unreachable, src.name); return@launch }
             // Sidecar subtitles: fetched and converted to UTF-8 (Turkish .srt files are often Windows-1254).
             val dubs = now?.file?.dubs.orEmpty()
             val subs = withContext(Dispatchers.IO) { runCatching { fetchSubtitles(src, share, path, dubs) }.getOrDefault(emptyList()) } +
@@ -568,6 +573,13 @@ class PlayerActivity : ComponentActivity() {
             startTicker()
         }
     }
+
+    /** Whether an SMB server answers on its port within a few seconds (a NAS that's off may not answer at all). */
+    private suspend fun answers(host: String): Boolean = kotlinx.coroutines.withTimeoutOrNull(4_000) {
+        kotlinx.coroutines.runInterruptible {
+            runCatching { java.net.Socket().use { it.connect(java.net.InetSocketAddress(host.substringBefore(':'), 445), 3_500); true } }.getOrDefault(false)
+        }
+    } ?: false
 
     /** Direct URL playback (http, https, rtsp, smb…). */
     private fun loadUrl(key: String, url: String) {
