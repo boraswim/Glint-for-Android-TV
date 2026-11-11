@@ -768,8 +768,11 @@ class Library(private val context: Context) {
         ed.commit()
     }
 
-    fun cacheBytes(): Long = context.cacheDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
-    fun clearCache() { context.cacheDir.listFiles()?.forEach { it.deleteRecursively() } }
+    // The finished posters are counted and cleared with the cache, though they're kept apart from it (see SizedPosterFetcher.dir).
+    fun cacheBytes(): Long = listOf(context.cacheDir, SizedPosterFetcher.dir(context)).sumOf { d -> d.walkTopDown().filter { f -> f.isFile }.sumOf { f -> f.length() } }
+    fun clearCache() {
+        for (d in listOf(context.cacheDir, SizedPosterFetcher.dir(context))) d.listFiles()?.forEach { f -> f.deleteRecursively() }
+    }
 
     fun clearLibrary() {
         publish(LibraryData())

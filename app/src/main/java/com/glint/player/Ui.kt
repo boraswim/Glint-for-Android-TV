@@ -412,7 +412,21 @@ class SizedPosterFetcher(private val data: SizedPoster, private val options: coi
         /** Bump when the look of finished posters changes, so old ones are made again. */
         private const val VERSION = 1
         const val LIMIT = 400L shl 20
-        fun dir(ctx: android.content.Context) = java.io.File(ctx.cacheDir, "posters-v$VERSION").apply { mkdirs() }
+        /**
+         * Kept with Glint's own files, not in its cache: Android empties an app's cache whenever the TV runs low on
+         * space, and the grids then came up grey, made again from the NAS one by one, or not at all with the NAS off.
+         * Kept to [LIMIT] by [trim]; Settings → Library → Library cache still clears them.
+         */
+        fun dir(ctx: android.content.Context) = java.io.File(ctx.filesDir, "posters-v$VERSION").apply { mkdirs() }
+
+        /** Moves the posters earlier versions kept in the cache (one rename: same disk), before anything is shown. */
+        fun moveOld(ctx: android.content.Context) {
+            val old = java.io.File(ctx.cacheDir, "posters-v$VERSION").takeIf { it.isDirectory } ?: return
+            val new = java.io.File(ctx.filesDir, "posters-v$VERSION")
+            if (!new.exists() && old.renameTo(new)) return
+            old.listFiles()?.forEach { f -> java.io.File(new.apply { mkdirs() }, f.name).let { if (it.exists()) f.delete() else f.renameTo(it) } }
+            old.deleteRecursively()
+        }
         /**
          * Finished posters are kept as JPEGs at the highest quality: they open several times quicker than the PNGs
          * of earlier versions, which a fast scroll outran (grey cards for a moment), and look the same.

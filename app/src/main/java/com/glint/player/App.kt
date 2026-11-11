@@ -31,6 +31,7 @@ class App : Application(), ImageLoaderFactory {
         Palette.light = library.settings.theme == 2
         Palette.black = library.settings.theme == 0
         Palette.accent = library.settings.accent
+        runCatching { SizedPosterFetcher.moveOld(this) }
         Thread {
             Thread.currentThread().priority = Thread.MIN_PRIORITY
             SizedPosterFetcher.convertOld(this)
