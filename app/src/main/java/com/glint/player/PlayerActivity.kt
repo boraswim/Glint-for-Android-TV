@@ -402,7 +402,19 @@ class PlayerActivity : ComponentActivity() {
         if (decoderLost) { decoderLost = false; exo?.player?.prepare() }
         if (exo?.isDolbyVision() == true) announceDolbyVision(true)
         if (paused) showControls()
+        // Stopped while hidden (onStop): opened again where it was, and held paused once it plays.
+        if (releasedInBackground) {
+            releasedInBackground = false
+            now?.key?.let { pauseWhenReady = true; load(it, fromStart = false) }
+        }
     }
+
+    /** Stopped in onStop to free the TV's audio output; onStart opens it again. */
+    private var releasedInBackground = false
+    /** Pause as soon as the reopened film plays, as it was paused when left. */
+    private var pauseWhenReady = false
+    /** libVLC opened another file in place of the last: its audio is set right once it plays ([resyncPassthrough]). */
+    private var resyncWhenPlaying = false
 
     override fun onStop() {
         super.onStop()
@@ -412,8 +424,23 @@ class PlayerActivity : ComponentActivity() {
         modeResume?.cancel()
         // Only on leaving the film: the remote's app buttons pass through other windows while it stays on screen.
         if (isFinishing) announceDolbyVision(false, changed = true)
-        if (player.isPlaying) player.pause()
-        exo?.player?.pause()
+        // Hidden (Home, another app): the film is stopped, not just paused. A paused player kept its audio output
+        // to the TV open, and with Passthrough that held the TV's one Dolby decoder: the next Glint (or any app)
+        // played silent. Its place is saved above; coming back opens it there again, paused (see onStart).
+        if (!isFinishing && upNext != null) {
+            // Left on the up-next card: the episode is over, so the player closes (reopening would start it again).
+            upNextJob?.cancel(); upNext = null
+            if (player.media != null) player.stop()
+            exo?.player?.stop()
+            finish()
+        } else if (!isFinishing && now != null && error == null) {
+            releasedInBackground = true
+            if (player.media != null) player.stop()
+            exo?.player?.stop()
+        } else {
+            if (player.isPlaying) player.pause()
+            exo?.player?.pause()
+        }
         player.detachViews()
     }
 
@@ -476,6 +503,7 @@ class PlayerActivity : ComponentActivity() {
 
     internal fun enginePlayingChanged(isPlaying: Boolean) {
         if (isPlaying) {
+            if (pauseWhenReady) { pauseWhenReady = false; pausePlayback() }
             decoderRetries = 0
             paused = false
             playing = true; buffering = 100f
@@ -569,6 +597,9 @@ class PlayerActivity : ComponentActivity() {
                 val dubSource = lib.source(d.source) ?: continue
                 media.addSlave(IMedia.Slave(IMedia.Slave.Type.Audio, 4, Fs.vlcUrl(dubSource, d.share, d.path)))
             }
+            // The last one (an episode that just ended) is stopped first: with Passthrough on, its audio output to
+            // the TV stayed open, and the next episode's Dolby went to a second one the TV played silent.
+            if (player.media != null) { player.stop(); resyncWhenPlaying = true }
             player.media = media
             media.release()
             player.play()
@@ -647,6 +678,10 @@ class PlayerActivity : ComponentActivity() {
         when (e.type) {
             MediaPlayer.Event.Playing -> {
                 playing = true; buffering = 100f
+                if (pauseWhenReady) { pauseWhenReady = false; pausePlayback() }
+                // Another file in the same player (the next episode, or back from the background): with Passthrough
+                // the TV hands the audio output back on its old clock and the sound runs ahead, as after a track change.
+                if (resyncWhenPlaying) { resyncWhenPlaying = false; resyncPassthrough() }
                 if (controls) scheduleHide()
                 // By the time playback starts every stream is known, so language choices can be made.
                 if (!tracksApplied) {
@@ -1162,7 +1197,9 @@ class PlayerActivity : ComponentActivity() {
      */
     private fun resyncPassthrough(then: () -> Unit = {}) {
         lifecycleScope.launch {
-            if (exo == null && lib.settings.passthrough) { delay(800); player.time = position }
+            // libVLC's own time: a film reopened and paused at once (back from the background) hasn't reported its
+            // place yet, and [position] still said 0, so this seek sent it back to the start.
+            if (exo == null && lib.settings.passthrough) { delay(800); player.time = player.time.takeIf { it > 0 } ?: maxOf(position, resumeAt) }
             delay(400)
             then()
         }
