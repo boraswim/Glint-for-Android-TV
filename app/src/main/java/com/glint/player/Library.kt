@@ -676,7 +676,7 @@ class Library(private val context: Context) {
         withContext(Dispatchers.IO) {
             // Below the size the folder is trimmed to (a finished poster is about 300 KB), or each scan would make again what the last pushed out.
             val used = SizedPosterFetcher.dir(context).listFiles().orEmpty().sumOf { it.length() }
-            val room = ((SizedPosterFetcher.LIMIT * 9 / 10 - used) / (300L shl 10)).coerceAtLeast(0).toInt()
+            val room = ((SizedPosterFetcher.limit(context) * 9 / 10 - used) / (300L shl 10)).coerceAtLeast(0).toInt()
             cards.filter { (m, cw, ch) -> !PosterPrefetch.made(context, m, cw, ch) }.take(room).map { (m, cw, ch) ->
                 async {
                     gate.withPermit {

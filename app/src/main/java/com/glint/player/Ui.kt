@@ -462,12 +462,23 @@ class SizedPosterFetcher(private val data: SizedPoster, private val options: coi
                 }
             }
         }
+        /**
+         * How much the finished posters may take on this TV: [LIMIT], or a quarter of the room they have (free space
+         * plus what they take already) on a TV short of space, as the cache's emptying doesn't reach them.
+         */
+        fun limit(ctx: android.content.Context): Long {
+            val d = dir(ctx)
+            val used = d.listFiles()?.sumOf { it.length() } ?: 0L
+            return minOf(LIMIT, (d.usableSpace + used) / 4)
+        }
+
         /** Keeps the folder under [limit] bytes, dropping the least recently used files first. */
-        fun trim(ctx: android.content.Context, limit: Long = LIMIT) {
+        fun trim(ctx: android.content.Context, limit: Long = limit(ctx)) {
             // Times read once first: posters loading meanwhile touch their files, and a sort whose keys change
             // under it throws ("Comparison method violates its general contract").
             val files = dir(ctx).listFiles()?.map { it to it.lastModified() }?.sortedBy { it.second }?.map { it.first } ?: return
             var total = files.sumOf { it.length() }
+            android.util.Log.i("Glint", "Posters: ${files.size} files, ${total shr 20} MB of ${limit shr 20} MB")
             for (f in files) { if (total <= limit) break; total -= f.length(); f.delete() }
         }
     }
