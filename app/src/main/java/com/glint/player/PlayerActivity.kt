@@ -227,6 +227,8 @@ class PlayerActivity : ComponentActivity() {
 
     /** The downloaded subtitle at this row of the subtitle list (row 0 is "None") that the viewer asked to remove, or null. */
     var removingSubtitle by mutableStateOf<Int?>(null)
+    /** The pop-up row OK went down on, while it may still turn into a hold (see dispatchKeyEvent); -1 otherwise. */
+    private var okHeldOn = -1
 
     /** The added subtitle file a track plays, or null for the film's own. */
     private fun subtitleFileOf(id: Int): File? = exo?.let { e ->
@@ -1364,7 +1366,12 @@ class PlayerActivity : ComponentActivity() {
         if (panel || upNext != null || error != null) return super.dispatchKeyEvent(event)
         // While a reopen catches up (a few seconds), the controls wait; Back is handled above.
         if (reopenAt != null) return true
-        if (event.action == KeyEvent.ACTION_UP) return true
+        if (event.action == KeyEvent.ACTION_UP) {
+            // OK let go on a downloaded subtitle before it counted as held: an ordinary pick.
+            if (okHeldOn >= 0 && trackPopup == 3 && okHeldOn == popupFocus) pickPopup()
+            okHeldOn = -1
+            return true
+        }
         // Paused on a clean picture: the first press only brings the controls back. Play and OK go on to play.
         if (paused && !controls) when (code) {
             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
@@ -1381,7 +1388,13 @@ class PlayerActivity : ComponentActivity() {
             KeyEvent.KEYCODE_DPAD_DOWN -> { val n = popupRows().size; if (n > 0) popupFocus = (popupFocus + 1) % n; return true }
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> trackPopup = -1
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
-                if (event.repeatCount == 0) pickPopup()
+                // On a downloaded subtitle, as in the menu: a press picks it (on release), holding OK offers to remove it.
+                val holdable = trackPopup == 3 && subtitleKind(popupFocus) == SubtitleKind.Downloaded
+                when {
+                    !holdable -> if (event.repeatCount == 0) pickPopup()
+                    event.repeatCount == 0 -> okHeldOn = popupFocus
+                    event.isLongPress && okHeldOn == popupFocus -> { okHeldOn = -1; trackPopup = -1; removingSubtitle = popupFocus }
+                }
                 return true
             }
             else -> return true
