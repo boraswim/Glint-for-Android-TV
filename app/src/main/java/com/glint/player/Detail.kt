@@ -626,22 +626,35 @@ fun ShowDetailScreen(nav: Nav, key: String, openSeason: Int? = null) {
                 }
             }
             val inSeason = episodes.filter { it.season == season }
+            // The card focus belongs on: at first the next episode (or the last one visited), then whichever the viewer
+            // moved to. A card asks for focus when it comes into view, so a fixed one (the next episode) took it back
+            // on the way left, mid-row; and marking an episode moved "next" on and focus followed it.
+            var landOn by remember(season) { mutableStateOf(if (lib.settings.autoSelectNext) next.id else nav.focused(screen)) }
             // Smaller stills, captioned with the episode alone (the series' name is the page's), so the row and its
             // names stay on screen under a three-line plot too.
-            LazyRow(contentPadding = PaddingValues(horizontal = 80.dp, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(26.dp)) {
+            // Leaving the episodes (up to Resume) puts the header back on the episode that button plays; it kept
+            // the last one passed, so "S1 • E1 - Pilot" sat over a Resume that went on with E2.
+            val episodeRow = androidx.compose.foundation.lazy.rememberLazyListState()
+            CardMargin(40.dp) { LazyRow(Modifier.onFocusChanged { if (!it.hasFocus) focused = null }, state = episodeRow,
+                contentPadding = PaddingValues(horizontal = 80.dp, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(26.dp)) {
                 items(inSeason, key = { it.id }) { e ->
                     val item = Item.EpisodeItem(show, e)
                     val hide = lib.settings.hideSpoilers && progress[e.id]?.watched != true
                     val card = if (hide) item.copy(episode = e.copy(still = null)) else item
                     WideCard(
-                        card, width = 256.dp, wanted = if (lib.settings.autoSelectNext) next.id else nav.focused(screen), frame = lib.settings.posterFrame,
+                        card, width = 256.dp, wanted = landOn, frame = lib.settings.posterFrame,
                         title = "E${e.number}" + if (e.title.isNotBlank()) " - ${e.title}" else "", label = "",
                         onLongClick = { lib.setWatched(listOf(e.id), progress[e.id]?.watched != true) },
-                        onFocus = { focused = e; nav.remember(screen, e.id) },
+                        // Back on the first episode, the row goes right back to its start: brought in only as far as
+                        // it shows, it stayed past the page's margin, half off the edge. Only the first: doing it for
+                        // every card made each step left move twice. After focus's own scroll, which would cut it short.
+                        onFocus = {
+                            focused = e; landOn = e.id; nav.remember(screen, e.id)
+                            if (e == inSeason.first()) scope.launch { kotlinx.coroutines.delay(180); episodeRow.animateScrollToItem(0) }
+                        },
                     ) { play(nav, item) }
                 }
-            }
-            Txt(stringResource(R.string.hold_to_mark), Type.Small, Modifier.padding(start = 80.dp))
+            } }
             CastRow(nav, show.cast)
             Gap(50.dp)
         } }

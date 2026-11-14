@@ -1,6 +1,7 @@
 package com.glint.player
 
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
@@ -96,6 +97,26 @@ fun MinimalScroll(content: @Composable () -> Unit) {
                 offset >= 0 && offset + size <= containerSize -> 0f
                 offset < 0 || size > containerSize -> offset
                 else -> offset + size - containerSize
+            }
+        }
+    }
+    androidx.compose.runtime.CompositionLocalProvider(androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides spec, content = content)
+}
+
+/**
+ * Like [MinimalScroll], but a focused card stops [margin] inside the edge rather than at it: a card grows when
+ * focused (10%, with its frame), and brought in only to its own edge the grown part was cut off at the screen's side.
+ */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+fun CardMargin(margin: Dp, content: @Composable () -> Unit) {
+    val m = with(androidx.compose.ui.platform.LocalDensity.current) { margin.toPx() }
+    val spec = remember(m) {
+        object : androidx.compose.foundation.gestures.BringIntoViewSpec {
+            override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float = when {
+                offset - m < 0 -> offset - m
+                offset + size + m > containerSize -> offset + size + m - containerSize
+                else -> 0f
             }
         }
     }
@@ -628,6 +649,13 @@ fun WideCard(item: Item, width: Dp = 330.dp, wanted: String? = null, label: Stri
         ) { focused ->
             Poster(item.backdrop ?: item.poster, item.title, Modifier.fillMaxSize())
             if (p?.inProgress == true) ProgressLine(p.fraction, Modifier.align(Alignment.BottomCenter))
+            // An episode seen wears a tick (whatever the posters' indicators are set to), so marking one by holding
+            // OK on it shows at once; one not seen yet the posters' orange corner, where that's on.
+            else if (item is Item.EpisodeItem && p?.watched == true) Box(
+                Modifier.align(Alignment.TopEnd).padding(8.dp).size(30.dp).clip(CircleShape).background(Color(0xCC000000)),
+                contentAlignment = Alignment.Center,
+            ) { Icon(androidx.compose.material.icons.Icons.Filled.Check, Color.White, Modifier.size(20.dp)) }
+            else if (item is Item.EpisodeItem && App.library.settings.watchedIndicators) UnwatchedCorner(Modifier.align(Alignment.TopEnd))
             if (focused && frame) Box(Modifier.matchParentSize().border(4.dp, Palette.Accent, RoundedCornerShape(corner)))
         }
         // The year (or episode line) a touch heavier under these wide cards, where it sits below a big title.
