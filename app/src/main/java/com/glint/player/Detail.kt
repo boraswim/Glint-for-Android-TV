@@ -616,9 +616,9 @@ fun ShowDetailScreen(nav: Nav, key: String, openSeason: Int? = null) {
                     if (trailer != null) HeroButton(stringResource(R.string.trailer)) { openTrailer(ctx, trailer) }
                 }
             }
-            Gap(26.dp)
+            Gap(16.dp)
             // Season pills
-            LazyRow(contentPadding = PaddingValues(horizontal = 80.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            LazyRow(contentPadding = PaddingValues(horizontal = 80.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(show.seasons) { n ->
                     val name = if (n == 0) stringResource(R.string.specials) else stringResource(R.string.season_n, n)
                     // Hold OK on a season to put it in a collection.
@@ -626,14 +626,16 @@ fun ShowDetailScreen(nav: Nav, key: String, openSeason: Int? = null) {
                 }
             }
             val inSeason = episodes.filter { it.season == season }
-            LazyRow(contentPadding = PaddingValues(horizontal = 80.dp, vertical = 18.dp), horizontalArrangement = Arrangement.spacedBy(30.dp)) {
+            // Smaller stills, captioned with the episode alone (the series' name is the page's), so the row and its
+            // names stay on screen under a three-line plot too.
+            LazyRow(contentPadding = PaddingValues(horizontal = 80.dp, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(26.dp)) {
                 items(inSeason, key = { it.id }) { e ->
                     val item = Item.EpisodeItem(show, e)
                     val hide = lib.settings.hideSpoilers && progress[e.id]?.watched != true
                     val card = if (hide) item.copy(episode = e.copy(still = null)) else item
                     WideCard(
-                        card, width = 300.dp, wanted = if (lib.settings.autoSelectNext) next.id else nav.focused(screen), frame = lib.settings.posterFrame,
-                        label = "E${e.number}" + if (e.title.isNotBlank()) " - ${e.title}" else "",
+                        card, width = 256.dp, wanted = if (lib.settings.autoSelectNext) next.id else nav.focused(screen), frame = lib.settings.posterFrame,
+                        title = "E${e.number}" + if (e.title.isNotBlank()) " - ${e.title}" else "", label = "",
                         onLongClick = { lib.setWatched(listOf(e.id), progress[e.id]?.watched != true) },
                         onFocus = { focused = e; nav.remember(screen, e.id) },
                     ) { play(nav, item) }

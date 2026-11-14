@@ -134,8 +134,22 @@ class Tmdb(private val keyOf: () -> String, private val language: () -> String, 
         o.optJSONArray("seasons")?.objects()?.forEach { s -> s.img("poster_path", "w342")?.let { seasonPosters[s.optInt("season_number")] = it } }
         val episodes = HashMap<Pair<Int, Int>, JSONObject>()
         for (n in seasons) {
-            val s = runCatching { JSONObject(get("tv/$id/season/$n?language=${o.optString("_lang")}")) }.getOrNull() ?: continue
-            s.optJSONArray("episodes")?.objects()?.forEach { e -> episodes[n to e.optInt("episode_number")] = e }
+            val lang = o.optString("_lang")
+            val s = runCatching { JSONObject(get("tv/$id/season/$n?language=$lang")) }.getOrNull() ?: continue
+            val eps = s.optJSONArray("episodes")?.objects().orEmpty()
+            eps.forEach { e -> episodes[n to e.optInt("episode_number")] = e }
+            // Not translated: TMDB gives no plot and a stand-in name ("6. Bölüm", "Folge 6"), and the page fell back
+            // to the series' plot for every episode. English fills them, as details() does for a film's plot.
+            if (!lang.startsWith("en") && eps.any { it.optString("overview").isBlank() }) {
+                runCatching { JSONObject(get("tv/$id/season/$n?language=en-US")) }.getOrNull()
+                    ?.optJSONArray("episodes")?.objects()?.forEach { en ->
+                        val e = episodes[n to en.optInt("episode_number")] ?: return@forEach
+                        if (e.optString("overview").isNotBlank()) return@forEach
+                        e.put("overview", en.optString("overview"))
+                        if (isStandInName(e.optString("name"), en.optInt("episode_number")) && !isStandInName(en.optString("name"), en.optInt("episode_number")))
+                            e.put("name", en.optString("name"))
+                    }
+            }
         }
         val rating = o.optJSONObject("content_ratings")?.optJSONArray("results")?.objects()
             ?.let { list -> list.firstOrNull { it.optString("iso_3166_1") == region() } ?: list.firstOrNull { it.optString("iso_3166_1") == "US" } }
@@ -191,6 +205,10 @@ class Tmdb(private val keyOf: () -> String, private val language: () -> String, 
         }
         return null
     }
+
+    /** TMDB's name for an episode nobody named in this language: blank, or a word or two around its number. */
+    private fun isStandInName(name: String, number: Int) =
+        name.isBlank() || Regex("""^\D{0,12}\b0*$number\b\D{0,12}$""").matches(name.trim())
 
     fun episode(file: VideoFile, season: Int, number: Int, e: JSONObject?) = Episode(
         file = file, season = season, number = number,

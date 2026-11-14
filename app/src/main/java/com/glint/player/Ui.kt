@@ -614,7 +614,7 @@ fun PosterCard(item: Item, width: Dp = 160.dp, wanted: String? = null, onLongCli
 
 /** Landscape card: watching, up next, episodes, other videos. */
 @Composable
-fun WideCard(item: Item, width: Dp = 330.dp, wanted: String? = null, label: String? = null, captionOnFocus: Boolean = false, corner: Dp = 12.dp, frame: Boolean = false, onLongClick: ((Item) -> Unit)? = null, onFocus: (Item) -> Unit, onClick: (Item) -> Unit) {
+fun WideCard(item: Item, width: Dp = 330.dp, wanted: String? = null, label: String? = null, title: String? = null, captionOnFocus: Boolean = false, corner: Dp = 12.dp, frame: Boolean = false, onLongClick: ((Item) -> Unit)? = null, onFocus: (Item) -> Unit, onClick: (Item) -> Unit) {
     val all by App.library.progress.collectAsState()
     val p = all[item.id]
     var hasFocus by remember { mutableStateOf(false) }
@@ -633,7 +633,7 @@ fun WideCard(item: Item, width: Dp = 330.dp, wanted: String? = null, label: Stri
         // The year (or episode line) a touch heavier under these wide cards, where it sits below a big title.
         // captionOnFocus (Home's Watching row): only the selected card shows it; the others keep its room.
         val shown by animateFloatAsState(if (!captionOnFocus || hasFocus) 1f else 0f, label = "caption")
-        Box(Modifier.alpha(shown)) { Caption(item.title, label ?: subtitle(item), hasFocus, width, subWeight = FontWeight.SemiBold) }
+        Box(Modifier.alpha(shown)) { Caption(title ?: item.title, label ?: subtitle(item), hasFocus, width, subWeight = FontWeight.SemiBold) }
     }
 }
 
