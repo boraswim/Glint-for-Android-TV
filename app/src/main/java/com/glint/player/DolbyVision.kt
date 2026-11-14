@@ -461,20 +461,25 @@ class ExoPlayback(private val a: PlayerActivity) {
     /** Frames shown so far. */
     fun framesShown(): Int? = player.videoDecoderCounters?.let { it.ensureUpdated(); it.renderedOutputBufferCount }
 
-    fun frameRate(): Double? = player.videoFormat?.frameRate?.takeIf { it > 0 }?.toDouble() ?: measuredFps
+    fun frameRate(): Double? = player.videoFormat?.frameRate?.takeIf { it > 0 }?.toDouble() ?: preciseFps ?: measuredFps
 
-    // Many remuxes don't state a frame rate, so it's measured from the first frames' timestamps.
+    // Many remuxes don't state a frame rate, so it's measured from the frames' timestamps: quickly at first (enough
+    // to match the TV's refresh rate, where 59.94 and 60 are alike), then over ~10 seconds for the exact rate shown
+    // beside subtitle search. A file's timestamps are often whole milliseconds, and over a second and a half that
+    // couldn't tell 59.94 from 60 (0.1% apart): the same film read one time 59.940, the next 60.
     @Volatile private var measuredFps: Double? = null
+    @Volatile private var preciseFps: Double? = null
     @Volatile private var measureAgain = false
     private val frameGaps = ArrayList<Long>()
     private var lastFrameUs = -1L
 
     private fun noteFrame(presentationUs: Long) {
-        if (measureAgain) { measureAgain = false; frameGaps.clear(); lastFrameUs = -1; measuredFps = null }
-        if (measuredFps != null) return
+        if (measureAgain) { measureAgain = false; frameGaps.clear(); lastFrameUs = -1; measuredFps = null; preciseFps = null }
+        if (preciseFps != null) return
         if (lastFrameUs >= 0 && presentationUs > lastFrameUs) frameGaps += presentationUs - lastFrameUs
         lastFrameUs = presentationUs
-        if (frameGaps.size >= 96) measuredFps = fpsFromFrameGaps(frameGaps)
+        if (measuredFps == null && frameGaps.size >= 96) measuredFps = fpsFromFrameGaps(frameGaps)
+        if (frameGaps.size >= 600) preciseFps = fpsFromFrameGaps(frameGaps)
     }
 
     fun scale(i: Int) {

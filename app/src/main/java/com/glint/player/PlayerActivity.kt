@@ -120,13 +120,12 @@ class PlayerActivity : ComponentActivity() {
     fun popupRows(): List<Pair<String, Boolean>> = when (trackPopup) {
         2 -> audioTracks.map { it.label to (it.id == audioTrack) }
         3 -> listOf(getString(R.string.none_choice) to (subtitleTrack == -1)) + subtitleTracks.map { it.label to (it.id == subtitleTrack) } +
-            listOfNotNull(if (canSearchSubtitles) getString(R.string.search_subtitles) to false else null)
+            listOfNotNull(if (canSearchSubtitles) searchLabel() to false else null)
         4 -> quickItems.map { it.second to (it.first == now?.key) }
         // OpenSubtitles results, or one line saying what's happening (searching, downloading, an error).
         5 -> osStatus?.let { listOf(it to false) } ?: osHits.map { h ->
             listOfNotNull(
-                langName(h.language), h.release.take(70),
-                h.fps.takeIf { it > 0 }?.let { String.format(Locale.ROOT, "%.3f fps", it).replace(".000 ", " ") },
+                langName(h.language), h.release.take(70), hitFps(h),
                 if (h.hearingImpaired) "SDH" else null, "↓ ${h.downloads}",
             ).joinToString("  ·  ") to false
         }
@@ -141,10 +140,34 @@ class PlayerActivity : ComponentActivity() {
         if (trackPopup != 5 || osStatus != null) return null
         val h = osHits.getOrNull(i) ?: return null
         return "${langName(h.language)}  ·  ${h.release}" to listOfNotNull(
-            h.fps.takeIf { it > 0 }?.let { String.format(Locale.ROOT, "%.3f fps", it).replace(".000 ", " ") },
-            if (h.hearingImpaired) "SDH" else null, "↓ ${h.downloads}",
+            hitFps(h), if (h.hearingImpaired) "SDH" else null, "↓ ${h.downloads}",
         ).joinToString("  ·  ")
     }
+
+    /** A frame rate to three places, as compared: 23.976 and 24 (or 23.98) are different, never rounded together. */
+    private fun fpsKey(fps: Double) = String.format(Locale.ROOT, "%.3f", fps)
+    /** A frame rate as the viewer reads it, all three places kept ("23,976"; "25" for 25.000). */
+    private fun fpsText(fps: Double) = String.format(Locale.getDefault(), "%.3f", fps).let { s ->
+        val sep = s[s.length - 4]
+        if (s.endsWith("${sep}000")) s.dropLast(4) else s
+    }
+    /** The frame rate the film's file states (an MKV's frame length), read as it opens; exact, so it comes first. */
+    private var fileFps: Double? = null
+
+    /**
+     * The film's own frame rate, once playback has told it: read from the player itself, as the TV's refresh match
+     * (which keeps [declaredFps]) may be switched off.
+     */
+    private fun filmFps(): Double? = fileFps ?: (if (exo != null) exo?.frameRate() else declaredFps)?.takeIf { it > 0 } ?: (if (exo != null) null else
+        listOfNotNull(player.currentVideoTrack, mediaTracks().filterIsInstance<IMedia.VideoTrack>().firstOrNull())
+            .firstOrNull { it.frameRateNum > 0 && it.frameRateDen > 0 }?.let { it.frameRateNum.toDouble() / it.frameRateDen })?.takeIf { it > 0 }
+    /** Whether a subtitle was timed for exactly this film's frame rate. */
+    private fun fpsMatches(h: OpenSubtitles.Hit) = filmFps()?.let { f -> h.fps > 0 && fpsKey(h.fps) == fpsKey(f) } == true
+    /** A result's frame rate. No mark on the matching ones: a tick read as "already downloaded". */
+    private fun hitFps(h: OpenSubtitles.Hit) = h.fps.takeIf { it > 0 }?.let { fpsText(it) + " fps" }
+    /** "Search subtitles…", with the film's frame rate beside it, so a result can be matched to it. */
+    private fun searchLabel() = getString(R.string.search_subtitles) +
+        (filmFps()?.let { "   ·   " + getString(R.string.film_fps, fpsText(it)) } ?: "")
 
     /** "Search subtitles": the results (pop-up 5) and a line shown instead of them while busy or after an error. */
     private var osHits by mutableStateOf<List<OpenSubtitles.Hit>>(emptyList())
@@ -170,8 +193,18 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
             if (trackPopup != 5) return@launch
-            r.onSuccess { osHits = it; osStatus = if (it.isEmpty()) getString(R.string.os_none_found) else null }
-                .onFailure { osStatus = it.message ?: it.javaClass.simpleName }
+            // Those timed for exactly this film's frame rate first, then those that don't say (they may fit), and at the
+            // very bottom rates only just off (23.98 or 24 for 23.976, 60 for 59.94): they drift as the film goes on,
+            // but one may be mislabelled, a last resort. Rates further off aren't listed. Each group keeps the search's
+            // order: the viewer's language first, most downloaded on top. Before playback has told the film's own
+            // rate, everything as it came.
+            r.onSuccess { all ->
+                val film = filmFps()
+                val hits = if (film == null) all
+                    else all.filter(::fpsMatches) + all.filter { h -> h.fps <= 0 } +
+                        all.filter { h -> h.fps > 0 && !fpsMatches(h) && kotlin.math.abs(h.fps - film) <= 0.1 }
+                osHits = hits; osStatus = if (hits.isEmpty()) getString(R.string.os_none_found) else null
+            }.onFailure { osStatus = it.message ?: it.javaClass.simpleName }
         }
     }
 
@@ -526,7 +559,15 @@ class PlayerActivity : ComponentActivity() {
 
     // ---- loading ----
 
+    /** Titles opened in this player already: opened again (back from Home, a restyle, repeat), they keep this viewing's choices. */
+    private val openedHere = HashSet<String>()
+    /** Whether the title loading now keeps the audio and subtitle picked earlier in this viewing. */
+    private var sameViewing = false
+
     fun load(key: String, fromStart: Boolean) {
+        // Settings are the master: a new viewing starts with Settings' languages; one picked in the player lasts that
+        // viewing only (it was kept with the film, and a film once switched to English opened in English for good).
+        sameViewing = !openedHere.add(key)
         upNextJob?.cancel(); upNext = null
         error = null; tracksApplied = false; audioChosen = false; subtitleChosen = false; modeSwitched = false; declaredFps = null; modeResume?.cancel(); paused = false
         hud = lib.settings.playbackStats; sampledAt = 0; flowMbps = 0.0; peakMbps = 0.0; netMbps = 0.0; flowSamples = 0; shownFps = 0.0; sampledShown = 0; shownWindow.clear()
@@ -542,6 +583,11 @@ class PlayerActivity : ComponentActivity() {
         val path = parts[2]
         playingFrom = Triple(src, share, path)
         now = describe(key, path)
+        fileFps = null
+        lifecycleScope.launch {
+            val fps = withContext(Dispatchers.IO) { runCatching { MkvChapters.frameRate(src, share, path) }.getOrNull() }
+            if (playingFrom?.third == path) fileFps = fps
+        }
         showControls()
 
         lifecycleScope.launch {
@@ -873,8 +919,8 @@ class PlayerActivity : ComponentActivity() {
             return listOf(l.getDisplayLanguage(Locale.ENGLISH), l.getDisplayLanguage(l), l.displayLanguage).any { it.isNotEmpty() && name.contains(it.lowercase()) }
         }
 
-        val audio = audioTracks.map { TrackInfo(it.id, info[it.id]?.language, dub = it.id in dubIds) }
-        val (audioChoice, subtitlePref) = TrackRules.audioFor(audio, saved?.audioTrack ?: -2, lib.settings.audioLanguage,
+        val audio = audioTracks.map { TrackInfo(it.id, info[it.id]?.language, dub = it.id in dubIds, quality = vlcQuality(info[it.id] as? IMedia.AudioTrack)) }
+        val (audioChoice, subtitlePref) = TrackRules.audioFor(audio, (if (sameViewing) saved?.audioTrack else null) ?: -2, lib.settings.audioLanguage,
             lib.settings.subtitleLanguage, animationLanguages(n.key), ::speaks)
         audioChoice?.let { pick ->
             if (pick.id in dubIds && !pick.byViewer) chooseAudio(pick.id, byViewer = false) else player.audioTrack = pick.id
@@ -893,7 +939,7 @@ class PlayerActivity : ComponentActivity() {
         // The dubs on the NAS are Turkish.
         val audioLang = if (dubPlaying) "tr" else info[player.audioTrack]?.language
         val sub = TrackRules.subtitle(subs, if (pref == "auto") AppLanguage.system.language else pref, audioLang, dubPlaying,
-            lib.settings.forcedSubtitles, saved?.subtitleTrack ?: -2, ::speaks)
+            lib.settings.forcedSubtitles, (if (sameViewing) saved?.subtitleTrack else null) ?: -2, ::speaks)
         player.spuTrack = sub.id
         if (sub.byViewer) subtitleChosen = true
         // Reopened without a removed subtitle: the one that was on, by its new place (the saved track id may have moved).
@@ -908,6 +954,59 @@ class PlayerActivity : ComponentActivity() {
         return if (TrackRules.isAnimation(genres)) lib.settings.animationAudio to lib.settings.animationSubtitles else null
     }
 
+    /** The formats this TV (or the sound system on its HDMI) takes as they are, for [AudioQuality]. */
+    private val sink by lazy {
+        @Suppress("DEPRECATION") androidx.media3.exoplayer.audio.AudioCapabilities.getCapabilities(this)
+    }
+
+    private fun sinkTakes(kind: AudioQuality.Kind): Boolean {
+        return when (kind) {
+            AudioQuality.Kind.TRUEHD -> sink.supportsEncoding(androidx.media3.common.C.ENCODING_DOLBY_TRUEHD)
+            AudioQuality.Kind.DTS_X, AudioQuality.Kind.DTS_HD -> sink.supportsEncoding(androidx.media3.common.C.ENCODING_DTS_HD)
+            AudioQuality.Kind.EAC3 -> sink.supportsEncoding(androidx.media3.common.C.ENCODING_E_AC3)
+            AudioQuality.Kind.DTS -> sink.supportsEncoding(androidx.media3.common.C.ENCODING_DTS)
+            AudioQuality.Kind.AC3 -> sink.supportsEncoding(androidx.media3.common.C.ENCODING_AC3)
+            else -> false
+        }
+    }
+
+    private fun quality(kind: AudioQuality.Kind, channels: Int, atmos: Boolean) =
+        AudioQuality.score(kind, channels, atmos, lib.settings.passthrough, sinkTakes(kind))
+
+    /** A libVLC audio track's [AudioQuality], from its codec and the file's name for it. */
+    private fun vlcQuality(t: IMedia.AudioTrack?): Int {
+        t ?: return 0
+        val c = listOfNotNull(t.codec, t.originalCodec).joinToString(" ").lowercase(Locale.ROOT)
+        val d = t.description.orEmpty().lowercase(Locale.ROOT)
+        val kind = when {
+            "truehd" in c || "mlp" in c || "trhd" in c -> AudioQuality.Kind.TRUEHD
+            "eac3" in c || "e-ac3" in c || "e-ac-3" in c || "ec-3" in c || "enhanced" in c -> AudioQuality.Kind.EAC3
+            "a52" in c || "ac3" in c || "ac-3" in c || "a/52" in c -> AudioQuality.Kind.AC3
+            "dts" in c -> if ("dts-x" in d || "dts:x" in d) AudioQuality.Kind.DTS_X
+                else if ("hd" in d || " ma" in d || "master" in d) AudioQuality.Kind.DTS_HD else AudioQuality.Kind.DTS
+            "flac" in c || "pcm" in c || "araw" in c || "s16l" in c || "s24l" in c -> AudioQuality.Kind.LOSSLESS
+            else -> AudioQuality.Kind.OTHER
+        }
+        return quality(kind, t.channels, "atmos" in d)
+    }
+
+    /** A Media3 audio track's [AudioQuality], from its format. */
+    private fun exoQuality(f: androidx.media3.common.Format?): Int {
+        f ?: return 0
+        val kind = when (f.sampleMimeType) {
+            androidx.media3.common.MimeTypes.AUDIO_TRUEHD -> AudioQuality.Kind.TRUEHD
+            androidx.media3.common.MimeTypes.AUDIO_DTS_X -> AudioQuality.Kind.DTS_X
+            androidx.media3.common.MimeTypes.AUDIO_DTS_HD -> AudioQuality.Kind.DTS_HD
+            androidx.media3.common.MimeTypes.AUDIO_E_AC3, androidx.media3.common.MimeTypes.AUDIO_E_AC3_JOC -> AudioQuality.Kind.EAC3
+            androidx.media3.common.MimeTypes.AUDIO_DTS, androidx.media3.common.MimeTypes.AUDIO_DTS_EXPRESS -> AudioQuality.Kind.DTS
+            androidx.media3.common.MimeTypes.AUDIO_AC3 -> AudioQuality.Kind.AC3
+            androidx.media3.common.MimeTypes.AUDIO_FLAC, androidx.media3.common.MimeTypes.AUDIO_RAW -> AudioQuality.Kind.LOSSLESS
+            else -> AudioQuality.Kind.OTHER
+        }
+        val atmos = f.sampleMimeType == androidx.media3.common.MimeTypes.AUDIO_E_AC3_JOC || f.label?.contains("atmos", true) == true
+        return quality(kind, f.channelCount, atmos)
+    }
+
     /** The same choices as for libVLC, made with Media3's track formats. */
     private fun applyExoPreferences(e: ExoPlayback, n: NowPlaying) {
         tracksApplied = true
@@ -916,8 +1015,8 @@ class PlayerActivity : ComponentActivity() {
         fun lang(id: Int) = e.format(id)?.language?.lowercase(Locale.ROOT)
         val saved = lib.progressOf(n.key)
         // The track picked here: Media3 reports a new selection only once the player has applied it, a moment later.
-        val audio = audioTracks.map { TrackInfo(it.id, lang(it.id), dub = it.id in dubIds) }
-        val (audioChoice, subtitlePref) = TrackRules.audioFor(audio, saved?.audioTrack ?: -2, lib.settings.audioLanguage,
+        val audio = audioTracks.map { TrackInfo(it.id, lang(it.id), dub = it.id in dubIds, quality = exoQuality(e.format(it.id))) }
+        val (audioChoice, subtitlePref) = TrackRules.audioFor(audio, (if (sameViewing) saved?.audioTrack else null) ?: -2, lib.settings.audioLanguage,
             lib.settings.subtitleLanguage, animationLanguages(n.key))
         val audioPick = audioChoice?.also { pick ->
             if (pick.id in dubIds && !pick.byViewer) chooseAudio(pick.id, byViewer = false) else e.select(audioType, pick.id)
@@ -933,7 +1032,7 @@ class PlayerActivity : ComponentActivity() {
         // The dubs on the NAS are Turkish.
         val audioLang = if (dubPlaying) "tr" else lang(audioPick)
         val sub = TrackRules.subtitle(subs, if (pref == "auto") AppLanguage.system.language else pref, audioLang, dubPlaying,
-            lib.settings.forcedSubtitles, saved?.subtitleTrack ?: -2)
+            lib.settings.forcedSubtitles, (if (sameViewing) saved?.subtitleTrack else null) ?: -2)
         e.select(textType, sub.id)
         if (sub.byViewer) subtitleChosen = true
         audioTrack = e.selected(audioType)

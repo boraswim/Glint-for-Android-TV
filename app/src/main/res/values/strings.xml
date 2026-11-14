@@ -270,6 +270,7 @@
     <string name="outline_thick">Thick</string>
     <string name="subtitle_bold">Bold</string>
     <string name="search_subtitles">Search subtitles…</string>
+    <string name="film_fps">This film is %1$s fps</string>
     <string name="os_not_set_up">Add your OpenSubtitles API key in Settings → Subtitles first</string>
     <string name="os_none_found">No subtitles found for this title</string>
     <string name="os_downloading">Downloading…</string>

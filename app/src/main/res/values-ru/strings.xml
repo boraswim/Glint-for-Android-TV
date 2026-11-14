@@ -257,6 +257,7 @@
     <string name="outline_thick">Толстая</string>
     <string name="subtitle_bold">Жирный</string>
     <string name="search_subtitles">Найти субтитры…</string>
+    <string name="film_fps">Этот фильм: %1$s fps</string>
     <string name="os_not_set_up">Сначала введите API-ключ OpenSubtitles в Настройки → Субтитры</string>
     <string name="os_none_found">Субтитры для этого названия не найдены</string>
     <string name="os_downloading">Загрузка…</string>

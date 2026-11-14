@@ -257,6 +257,7 @@
     <string name="outline_thick">Dick</string>
     <string name="subtitle_bold">Fett</string>
     <string name="search_subtitles">Untertitel suchen…</string>
+    <string name="film_fps">Dieser Film hat %1$s fps</string>
     <string name="os_not_set_up">Zuerst den OpenSubtitles-API-Schlüssel unter Einstellungen → Untertitel eintragen</string>
     <string name="os_none_found">Keine Untertitel für diesen Titel gefunden</string>
     <string name="os_downloading">Wird geladen…</string>

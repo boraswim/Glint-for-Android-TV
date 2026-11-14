@@ -257,6 +257,7 @@
     <string name="outline_thick">Grosso</string>
     <string name="subtitle_bold">Negrito</string>
     <string name="search_subtitles">Procurar legendas…</string>
+    <string name="film_fps">Este filme tem %1$s fps</string>
     <string name="os_not_set_up">Primeiro adicione sua chave de API do OpenSubtitles em Configurações → Legendas</string>
     <string name="os_none_found">Nenhuma legenda encontrada para este título</string>
     <string name="os_downloading">Baixando…</string>

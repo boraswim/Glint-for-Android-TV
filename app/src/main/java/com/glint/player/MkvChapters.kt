@@ -31,6 +31,8 @@ object MkvChapters {
     private const val VIDEO = 0xE0L
     private const val PIXEL_WIDTH = 0xB0L
     private const val PIXEL_HEIGHT = 0xBAL
+    private const val TRACK_TYPE = 0x83L
+    private const val DEFAULT_DURATION = 0x23E383L
 
     /**
      * The picture size of an MKV's first video track, as "4K", "1080p" or "720p" (blank when unknown or smaller):
@@ -45,6 +47,17 @@ object MkvChapters {
             w >= 1200 || h >= 700 -> "720p"
             else -> ""
         }
+    }
+
+    /**
+     * The frame rate an MKV's first video track states (its DefaultDuration, the length of one frame in ns), as tools
+     * like MediaInfo read it: exact (59.94006 for 59.94), where measuring frames can't tell close rates apart. Null
+     * when the file doesn't say.
+     */
+    fun frameRate(src: Source, share: String, path: String): Double? {
+        if (Names.ext(path) != "mkv") return null
+        return Fs.open(src, share, path).use { runCatching { Reader(it.buffered(64 * 1024)).frameDuration() }.getOrNull() }
+            ?.takeIf { it > 0 }?.let { 1_000_000_000.0 / it }
     }
 
     fun read(src: Source, share: String, path: String): List<Pair<String, Long>> {
@@ -121,6 +134,43 @@ object MkvChapters {
                                 }
                                 skipTo(innerEnd)
                             }
+                        }
+                        skipTo(entryEnd)
+                    }
+                    return null
+                }
+                skipTo(end)
+            }
+        }
+
+        /** The DefaultDuration (ns) of the first video track, or null. */
+        fun frameDuration(): Long? {
+            if (vint(true) != EBML) return null
+            skipTo(vint(false) + pos)
+            if (vint(true) != SEGMENT) return null
+            vint(false)
+            while (true) {
+                val id = vint(true)
+                val size = vint(false)
+                if (id == CLUSTER || size < 0) return null
+                val end = pos + size
+                if (id == TRACKS) {
+                    while (pos < end) {
+                        val entry = vint(true)
+                        val entryEnd = vint(false) + pos
+                        if (entry == TRACK_ENTRY) {
+                            var type = 0L
+                            var duration = 0L
+                            while (pos < entryEnd) {
+                                val inner = vint(true)
+                                val innerSize = vint(false)
+                                when (inner) {
+                                    TRACK_TYPE -> type = uint(innerSize)
+                                    DEFAULT_DURATION -> duration = uint(innerSize)
+                                    else -> skipTo(pos + innerSize)
+                                }
+                            }
+                            if (type == 1L && duration > 0) return duration
                         }
                         skipTo(entryEnd)
                     }

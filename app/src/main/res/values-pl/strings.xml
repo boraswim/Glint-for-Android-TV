@@ -257,6 +257,7 @@
     <string name="outline_thick">Gruby</string>
     <string name="subtitle_bold">Pogrubienie</string>
     <string name="search_subtitles">Szukaj napisów…</string>
+    <string name="film_fps">Ten film ma %1$s fps</string>
     <string name="os_not_set_up">Najpierw wpisz klucz API OpenSubtitles w Ustawienia → Napisy</string>
     <string name="os_none_found">Nie znaleziono napisów do tego tytułu</string>
     <string name="os_downloading">Pobieranie…</string>

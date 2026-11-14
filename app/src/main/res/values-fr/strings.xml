@@ -257,6 +257,7 @@
     <string name="outline_thick">Épais</string>
     <string name="subtitle_bold">Gras</string>
     <string name="search_subtitles">Rechercher des sous-titres…</string>
+    <string name="film_fps">Ce film est en %1$s fps</string>
     <string name="os_not_set_up">Ajoutez d\'abord votre clé d\'API OpenSubtitles dans Réglages → Sous-titres</string>
     <string name="os_none_found">Aucun sous-titre trouvé pour ce titre</string>
     <string name="os_downloading">Téléchargement…</string>

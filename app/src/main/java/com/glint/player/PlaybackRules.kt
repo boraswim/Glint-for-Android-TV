@@ -13,7 +13,23 @@ data class TrackInfo(
     val forced: Boolean = false,
     val sidecar: Boolean = false,   // a subtitle file next to the film
     val dub: Boolean = false,       // a dub from the NAS, or a subtitle file that goes with one
+    val quality: Int = 0,           // audio: how good it sounds on this TV ([AudioQuality]); the best of a language plays
 )
+
+/**
+ * How good an audio track sounds here, as a number to compare tracks of one language by: the format (TrueHD and
+ * DTS-HD lossless above Dolby Digital+, DTS, Dolby Digital, then AAC and the like), Atmos, and channels. With
+ * Passthrough on, a track the TV or its sound system takes as it is goes above every one that would have to be
+ * decoded (a soundbar on ARC gets Dolby Digital 5.1 that way, but a TrueHD it can't take only as decoded sound).
+ */
+object AudioQuality {
+    enum class Kind(val base: Int, val bitstream: Boolean) {
+        TRUEHD(70, true), DTS_X(68, true), DTS_HD(65, true), LOSSLESS(60, false), EAC3(50, true), DTS(40, true), AC3(30, true), OTHER(10, false)
+    }
+
+    fun score(kind: Kind, channels: Int, atmos: Boolean, passthroughOn: Boolean, sinkTakes: Boolean): Int =
+        (if (passthroughOn && kind.bitstream && sinkTakes) 1000 else 0) + kind.base + (if (atmos) 4 else 0) + channels.coerceIn(0, 8)
+}
 
 /** A track picked, and whether it's the viewer's own choice (kept for the file) rather than the settings'. */
 data class TrackPick(val id: Int, val byViewer: Boolean)
@@ -62,14 +78,15 @@ object TrackRules {
     fun speaks(t: TrackInfo, lang: String) = !untagged(t) && sameLanguage(t.language, lang)
 
     /**
-     * The audio: the viewer's earlier pick for the file while it's still there; else the first track in the language
-     * wanted; else, when Turkish is wanted, a dub from the NAS (they're Turkish); else null, the file's own default.
+     * The audio: the viewer's earlier pick for the file while it's still there; else the best-sounding track in the
+     * language wanted ([TrackInfo.quality]); else, when Turkish is wanted, a dub from the NAS (they're Turkish); else null, the file's own default.
      * [speaks] can also look at a track's name, as libVLC's untagged tracks need.
      */
     fun audio(tracks: List<TrackInfo>, want: String, saved: Int, speaks: (TrackInfo, String) -> Boolean = ::speaks): TrackPick? {
         if (saved != -2 && tracks.any { it.id == saved }) return TrackPick(saved, byViewer = true)
         if (want.isEmpty()) return null
-        tracks.firstOrNull { !it.dub && speaks(it, want) }?.let { return TrackPick(it.id, byViewer = false) }
+        // Of the tracks in that language, the one that sounds best here (the first of equals).
+        tracks.filter { !it.dub && speaks(it, want) }.maxByOrNull { it.quality }?.let { return TrackPick(it.id, byViewer = false) }
         if ("tur" in languageCodes(want)) tracks.firstOrNull { it.dub }?.let { return TrackPick(it.id, byViewer = false) }
         return null
     }

@@ -257,6 +257,7 @@
     <string name="outline_thick">Spesso</string>
     <string name="subtitle_bold">Grassetto</string>
     <string name="search_subtitles">Cerca sottotitoli…</string>
+    <string name="film_fps">Questo film è a %1$s fps</string>
     <string name="os_not_set_up">Prima inserisci la chiave API di OpenSubtitles in Impostazioni → Sottotitoli</string>
     <string name="os_none_found">Nessun sottotitolo trovato per questo titolo</string>
     <string name="os_downloading">Download in corso…</string>

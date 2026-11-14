@@ -257,6 +257,7 @@
     <string name="outline_thick">Kalın</string>
     <string name="subtitle_bold">Kalın yazı</string>
     <string name="search_subtitles">Altyazı ara…</string>
+    <string name="film_fps">Bu film %1$s fps</string>
     <string name="os_not_set_up">Önce OpenSubtitles API anahtarınızı Ayarlar → Altyazılar\'a girin</string>
     <string name="os_none_found">Bu başlık için altyazı bulunamadı</string>
     <string name="os_downloading">İndiriliyor…</string>
