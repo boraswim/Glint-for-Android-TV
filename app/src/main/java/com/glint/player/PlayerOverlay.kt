@@ -554,7 +554,7 @@ private fun SubtitlesTab(p: PlayerActivity) {
     val sizes = SubtitleStyle.SIZES.map { it.first to stringResource(it.second) }
     val colors = SubtitleStyle.COLORS.map { it.first to stringResource(it.second) }
     val weights = listOf(false to R.string.weight_normal, true to R.string.weight_bold).map { it.first to stringResource(it.second) }
-    val outlines = listOf(0 to R.string.none_choice, 2 to R.string.outline_thin, 4 to R.string.weight_normal, 6 to R.string.outline_thick).map { it.first to stringResource(it.second) }
+    val outlines = listOf(0 to R.string.off, 2 to R.string.outline_thin, 4 to R.string.weight_normal, 6 to R.string.outline_thick).map { it.first to stringResource(it.second) }
     val backs = SubtitleStyle.BACKGROUNDS.map { it.first to stringResource(it.second) }
     @Composable fun <T> option(label: Int, list: List<Pair<T, String>>, now: T, enabled: Boolean = true, set: (T) -> Unit) =
         MenuOption(stringResource(label), list.firstOrNull { it.first == now }?.second ?: list.first().second, list.map { it.second to (it.first == now) }, enabled = enabled) { i -> set(list[i].first) }
@@ -570,7 +570,7 @@ private fun SubtitlesTab(p: PlayerActivity) {
         // Greyed until something here differs from Settings.
         add(MenuOption(stringResource(R.string.make_default), "", emptyList(), enabled = l != p.lookDefault, action = p::makeSubtitleDefault) {})
     }
-    val rows = listOf(stringResource(R.string.none_choice) to (p.subtitleTrack == -1)) + p.subtitleTracks.map { it.label to (it.id == p.subtitleTrack) }
+    val rows = listOf(stringResource(R.string.off) to (p.subtitleTrack == -1)) + p.subtitleTracks.map { it.label to (it.id == p.subtitleTrack) }
     Row(Modifier.fillMaxWidth()) {
         Spacer(Modifier.weight(0.3f))
         // Holding OK on a downloaded subtitle offers to remove it.

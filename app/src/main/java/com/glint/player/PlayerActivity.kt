@@ -119,7 +119,7 @@ class PlayerActivity : ComponentActivity() {
     /** The open pop-up's rows: label and whether it's the track playing. Subtitles start with None. */
     fun popupRows(): List<Pair<String, Boolean>> = when (trackPopup) {
         2 -> audioTracks.map { it.label to (it.id == audioTrack) }
-        3 -> listOf(getString(R.string.none_choice) to (subtitleTrack == -1)) + subtitleTracks.map { it.label to (it.id == subtitleTrack) } +
+        3 -> listOf(getString(R.string.off) to (subtitleTrack == -1)) + subtitleTracks.map { it.label to (it.id == subtitleTrack) } +
             listOfNotNull(if (canSearchSubtitles) searchLabel() to false else null)
         4 -> quickItems.map { it.second to (it.first == now?.key) }
         // OpenSubtitles results, or one line saying what's happening (searching, downloading, an error).
@@ -163,6 +163,26 @@ class PlayerActivity : ComponentActivity() {
             .firstOrNull { it.frameRateNum > 0 && it.frameRateDen > 0 }?.let { it.frameRateNum.toDouble() / it.frameRateDen })?.takeIf { it > 0 }
     /** Whether a subtitle was timed for exactly this film's frame rate. */
     private fun fpsMatches(h: OpenSubtitles.Hit) = filmFps()?.let { f -> h.fps > 0 && fpsKey(h.fps) == fpsKey(f) } == true
+
+    /**
+     * The clock a frame rate runs on. Subtitles are timed in seconds, not frames, so what matters is the film's speed:
+     * 23.976, 29.97 and 59.94 (the 1000/1001 rates) all run a film at the same speed, and so do 24, 30 and 60; but
+     * between the two there's 0.1% (seconds off by the end), and PAL's 25 and 50 play a film 4% fast. Null for
+     * anything else.
+     */
+    private fun fpsFamily(f: Double): String? {
+        val whole = Math.round(f).toDouble()
+        val ntsc = f * 1.001
+        return when {
+            kotlin.math.abs(f - whole) > 0.005 && kotlin.math.abs(ntsc - Math.round(ntsc)) < 0.01 -> "ntsc"
+            kotlin.math.abs(f - whole) <= 0.005 -> if (whole == 25.0 || whole == 50.0) "pal" else "whole"
+            else -> null
+        }
+    }
+
+    /** A subtitle that stays in step with this film: its exact rate, or another on the same clock (23.976 for 59.94). */
+    private fun fpsFits(h: OpenSubtitles.Hit) = fpsMatches(h) ||
+        filmFps()?.let { f -> h.fps > 0 && fpsFamily(f) != null && fpsFamily(h.fps) == fpsFamily(f) } == true
     /** A result's frame rate. No mark on the matching ones: a tick read as "already downloaded". */
     private fun hitFps(h: OpenSubtitles.Hit) = h.fps.takeIf { it > 0 }?.let { fpsText(it) + " fps" }
     /** "Search subtitles…", with the film's frame rate beside it, so a result can be matched to it. */
@@ -193,16 +213,16 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
             if (trackPopup != 5) return@launch
-            // Those timed for exactly this film's frame rate first, then those that don't say (they may fit), and at the
-            // very bottom rates only just off (23.98 or 24 for 23.976, 60 for 59.94): they drift as the film goes on,
-            // but one may be mislabelled, a last resort. Rates further off aren't listed. Each group keeps the search's
-            // order: the viewer's language first, most downloaded on top. Before playback has told the film's own
-            // rate, everything as it came.
+            // Those that stay in step first (this film's rate, or one on the same clock: 23.976 for a 59.94 film), then
+            // those that don't say (they may fit), and at the very bottom rates only just off on the other clock (24
+            // for 23.976, 60 for 59.94): they drift as the film goes on, but one may be mislabelled, a last resort.
+            // Others (25 for a 23.976 film) aren't listed. Each group keeps the search's order: the viewer's language
+            // first, most downloaded on top. Before playback has told the film's own rate, everything as it came.
             r.onSuccess { all ->
                 val film = filmFps()
                 val hits = if (film == null) all
-                    else all.filter(::fpsMatches) + all.filter { h -> h.fps <= 0 } +
-                        all.filter { h -> h.fps > 0 && !fpsMatches(h) && kotlin.math.abs(h.fps - film) <= 0.1 }
+                    else all.filter(::fpsFits) + all.filter { h -> h.fps <= 0 } +
+                        all.filter { h -> h.fps > 0 && !fpsFits(h) && kotlin.math.abs(h.fps - film) <= 0.1 }
                 osHits = hits; osStatus = if (hits.isEmpty()) getString(R.string.os_none_found) else null
             }.onFailure { osStatus = it.message ?: it.javaClass.simpleName }
         }

@@ -87,15 +87,16 @@ object OpenSubtitles {
      * language first, then the most downloaded.
      */
     fun search(title: String, year: String, season: Int, episode: Int, tmdbId: Int = 0): List<Hit> {
-        val byName = find(sortedMapOf("query" to title.lowercase(Locale.ROOT)).apply {
-            if (season > 0) { put("season_number", "$season"); put("episode_number", "$episode"); put("type", "episode") }
-            else { put("type", "movie"); if (year.isNotBlank()) put("year", year) }
-        })
-        // A name OpenSubtitles doesn't know (a translated title): the TMDB id finds the same film.
-        if (byName.isNotEmpty() || tmdbId == 0) return byName
-        return find(sortedMapOf<String, String>().apply {
+        // The TMDB id first: it is this very film. A name search is loose: "Gemini Man" also brought Yip Man 4,
+        // Spider-Man and the film's trailer, and those crowded out the real ones.
+        if (tmdbId != 0) find(sortedMapOf<String, String>().apply {
             if (season > 0) { put("parent_tmdb_id", "$tmdbId"); put("season_number", "$season"); put("episode_number", "$episode") }
             else put("tmdb_id", "$tmdbId")
+        }).takeIf { it.isNotEmpty() }?.let { return it }
+        // Not matched by TMDB id there (or no id): by name and year.
+        return find(sortedMapOf("query" to title.lowercase(Locale.ROOT)).apply {
+            if (season > 0) { put("season_number", "$season"); put("episode_number", "$episode"); put("type", "episode") }
+            else { put("type", "movie"); if (year.isNotBlank()) put("year", year) }
         })
     }
 
